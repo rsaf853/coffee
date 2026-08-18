@@ -4,113 +4,326 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>발췌 이미지 만들기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/batang.min.css">
 <style>
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
-    font-family: -apple-system, "Malgun Gothic", sans-serif;
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
     background: #ffffff;
-    color: #222;
+    color: #111;
+  }
+
+  header {
+    padding: 20px 24px 12px;
+    font-size: 13px;
+    color: #999;
+    letter-spacing: 0.02em;
+  }
+
+  main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
-    padding: 32px;
+    gap: 32px;
+    padding: 0 24px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
-  .panel {
-    width: 300px;
+
+  #canvasWrap {
+    order: 0;
+    border: 1px solid #e0e0e0;
+    line-height: 0;
+    flex-shrink: 0;
   }
-  .panel label {
+
+  canvas {
     display: block;
-    margin-top: 14px;
-    margin-bottom: 4px;
-    font-size: 13px;
-    color: #666;
+    max-width: 100%;
+    height: auto;
   }
-  .panel input[type=text], .panel textarea {
+
+  .panel {
+    order: 1;
     width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f7f7f7;
-    color: #222;
+    max-width: 420px;
+  }
+
+  /* PC: 왼쪽 패널 / 오른쪽 프리뷰 */
+  @media (min-width: 900px) {
+    main {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 48px;
+      padding-top: 20px;
+    }
+    .panel { order: 0; }
+    #canvasWrap { order: 1; }
+    canvas { max-width: 560px; }
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #777;
+    letter-spacing: 0.02em;
+  }
+
+  .field input[type=text],
+  .field textarea,
+  .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #111;
     font-size: 14px;
+    font-family: inherit;
+    border-radius: 0;
   }
-  .panel textarea { height: 70px; resize: vertical; }
-  .panel input[type=color] {
-    width: 100%;
-    height: 36px;
-    border: none;
-    background: none;
-  }
-  .panel input[type=range] { width: 100%; }
-  button {
-    margin-top: 20px;
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background: #6c63ff;
-    color: white;
-    font-size: 15px;
+
+  .field textarea { height: 70px; resize: vertical; }
+
+  .field select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #999 50%), linear-gradient(135deg, #999 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
     cursor: pointer;
   }
-  button:hover { background: #5a52e0; }
-  #canvasWrap {
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .field input[type=color] {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #ddd;
+    padding: 2px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .field input[type=range] { width: 100%; accent-color: #111; }
+
+  .toggle-btn {
+    padding: 10px 0;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #444;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+  }
+
+  .toggle-btn.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+
+  .checkbox-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
   }
-  canvas {
-    max-width: 90vw;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+
+  .checkbox-row input { accent-color: #111; width: 16px; height: 16px; }
+  .checkbox-row label { font-size: 12px; color: #777; margin: 0; }
+
+  hr.sep {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 24px 0;
   }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: #111;
+    margin-bottom: 14px;
+  }
+
+  button#downloadBtn {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #111;
+    border-radius: 0;
+    background: #111;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+
+  button#downloadBtn:hover { background: #fff; color: #111; }
 </style>
 </head>
 <body>
 
-<div id="canvasWrap">
-  <canvas id="canvas" width="800" height="800"></canvas>
-</div>
+<header>by @7ucky</header>
 
-<div class="panel">
-  <label>본문 (인용구)</label>
-  <textarea id="quote">시작이 반이다.</textarea>
+<main>
+  <div class="panel">
 
-  <label>출처 / 이름</label>
-  <input type="text" id="source" value="- 아리스토텔레스 -">
+    <div class="section-title">본문</div>
 
-  <label>배경색</label>
-  <input type="color" id="bgColor" value="#ffffff">
+    <div class="field">
+      <label>인용구</label>
+      <textarea id="quote">시작이 반이다.</textarea>
+    </div>
 
-  <label>글자색</label>
-  <input type="color" id="textColor" value="#000000">
+    <div class="field">
+      <label>폰트</label>
+      <select id="fontFamily">
+        <option value="'Pretendard Variable', sans-serif">Pretendard Variable</option>
+        <option value="'KoPubWorld Batang', serif">KoPub World 바탕체</option>
+      </select>
+    </div>
 
-  <label>글자 크기 (<span id="fontSizeVal">40</span>px)</label>
-  <input type="range" id="fontSize" min="20" max="80" value="40">
+    <div class="field">
+      <label>스타일</label>
+      <div class="row2">
+        <div class="toggle-btn" id="boldBtn">B 볼드체</div>
+        <div class="toggle-btn" id="italicBtn"><i>I</i> 기울임</div>
+      </div>
+    </div>
 
-  <button id="downloadBtn">이미지로 저장</button>
-</div>
+    <div class="row2">
+      <div class="field">
+        <label>배경색</label>
+        <input type="color" id="bgColor" value="#ffffff">
+      </div>
+      <div class="field">
+        <label>글자색</label>
+        <input type="color" id="textColor" value="#000000">
+      </div>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="highlightOn">
+      <label for="highlightOn">형광펜 효과</label>
+    </div>
+    <div class="field">
+      <label>형광펜 색</label>
+      <input type="color" id="highlightColor" value="#fff176">
+    </div>
+
+    <div class="field">
+      <label>글자 크기 (<span id="fontSizeVal">40</span>px)</label>
+      <input type="range" id="fontSize" min="16" max="90" value="40">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>자간 (<span id="letterSpacingVal">0</span>px)</label>
+        <input type="range" id="letterSpacing" min="-3" max="20" value="0">
+      </div>
+      <div class="field">
+        <label>줄간격 (<span id="lineHeightVal">140</span>%)</label>
+        <input type="range" id="lineHeight" min="100" max="220" value="140">
+      </div>
+    </div>
+
+    <hr class="sep">
+
+    <div class="section-title">출처 (하단 우측 고정)</div>
+
+    <div class="field">
+      <label>출처 / 이름</label>
+      <input type="text" id="source" value="- 아리스토텔레스 -">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>글자 크기 (<span id="sourceFontSizeVal">20</span>px)</label>
+        <input type="range" id="sourceFontSize" min="10" max="40" value="20">
+      </div>
+      <div class="field">
+        <label>글자색</label>
+        <input type="color" id="sourceColor" value="#666666">
+      </div>
+    </div>
+
+    <button id="downloadBtn">이미지로 저장</button>
+  </div>
+
+  <div id="canvasWrap">
+    <canvas id="canvas" width="800" height="800"></canvas>
+  </div>
+</main>
 
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-const quoteEl = document.getElementById('quote');
-const sourceEl = document.getElementById('source');
-const bgColorEl = document.getElementById('bgColor');
-const textColorEl = document.getElementById('textColor');
-const fontSizeEl = document.getElementById('fontSize');
-const fontSizeVal = document.getElementById('fontSizeVal');
+const el = id => document.getElementById(id);
+const quoteEl = el('quote');
+const sourceEl = el('source');
+const bgColorEl = el('bgColor');
+const textColorEl = el('textColor');
+const fontSizeEl = el('fontSize');
+const fontSizeVal = el('fontSizeVal');
+const fontFamilyEl = el('fontFamily');
+const boldBtn = el('boldBtn');
+const italicBtn = el('italicBtn');
+const highlightOnEl = el('highlightOn');
+const highlightColorEl = el('highlightColor');
+const letterSpacingEl = el('letterSpacing');
+const letterSpacingVal = el('letterSpacingVal');
+const lineHeightEl = el('lineHeight');
+const lineHeightVal = el('lineHeightVal');
+const sourceFontSizeEl = el('sourceFontSize');
+const sourceFontSizeVal = el('sourceFontSizeVal');
+const sourceColorEl = el('sourceColor');
 
-// 긴 텍스트를 캔버스 너비에 맞게 여러 줄로 자동 줄바꿈
-function wrapText(ctx, text, maxWidth) {
+let bold = false;
+let italic = false;
+
+boldBtn.addEventListener('click', () => {
+  bold = !bold;
+  boldBtn.classList.toggle('active', bold);
+  draw();
+});
+italicBtn.addEventListener('click', () => {
+  italic = !italic;
+  italicBtn.classList.toggle('active', italic);
+  draw();
+});
+
+function buildFont(sizePx, family) {
+  return `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${sizePx}px ${family}`;
+}
+
+// 자간을 반영한 한 줄의 실제 렌더링 너비 계산
+function measureLineWidth(ctx, text, spacing) {
+  let w = 0;
+  for (const ch of text) w += ctx.measureText(ch).width + spacing;
+  if (text.length > 0) w -= spacing;
+  return w;
+}
+
+// 자간을 반영해서 최대 너비에 맞게 줄바꿈
+function wrapText(ctx, text, maxWidth, spacing) {
   const words = text.split(' ');
   const lines = [];
   let line = '';
   for (const word of words) {
     const test = line ? line + ' ' + word : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
+    if (measureLineWidth(ctx, test, spacing) > maxWidth && line) {
       lines.push(line);
       line = word;
     } else {
@@ -121,46 +334,84 @@ function wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
+// 자간을 적용해서 한 글자씩 그리기 (가운데 정렬)
+function drawLineWithSpacing(ctx, text, centerX, y, spacing) {
+  const totalWidth = measureLineWidth(ctx, text, spacing);
+  let x = centerX - totalWidth / 2;
+  const prevAlign = ctx.textAlign;
+  ctx.textAlign = 'left';
+  for (const ch of text) {
+    ctx.fillText(ch, x, y);
+    x += ctx.measureText(ch).width + spacing;
+  }
+  ctx.textAlign = prevAlign;
+}
+
 function draw() {
   const W = canvas.width, H = canvas.height;
   const bg = bgColorEl.value;
   const textColor = textColorEl.value;
   const fontSize = parseInt(fontSizeEl.value, 10);
+  const fontFamily = fontFamilyEl.value;
+  const spacing = parseInt(letterSpacingEl.value, 10);
+  const lineHeightPct = parseInt(lineHeightEl.value, 10);
+  const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
+
   fontSizeVal.textContent = fontSize;
+  letterSpacingVal.textContent = spacing;
+  lineHeightVal.textContent = lineHeightPct;
+  sourceFontSizeVal.textContent = sourceFontSize;
 
   // 배경
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // 본문 텍스트
-  ctx.fillStyle = textColor;
-  ctx.font = `bold ${fontSize}px sans-serif`;
+  // 본문 폰트 설정 및 줄바꿈 계산
+  ctx.font = buildFont(fontSize, fontFamily);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   const maxWidth = W * 0.8;
-  const lines = wrapText(ctx, quoteEl.value, maxWidth);
-  const lineHeight = fontSize * 1.4;
+  const lines = wrapText(ctx, quoteEl.value, maxWidth, spacing);
+  const lineHeight = fontSize * (lineHeightPct / 100);
   const totalHeight = lines.length * lineHeight;
   let startY = H / 2 - totalHeight / 2 + lineHeight / 2;
 
+  // 형광펜 (텍스트보다 먼저 그려야 뒤에 깔림)
+  if (highlightOnEl.checked) {
+    ctx.fillStyle = highlightColorEl.value;
+    ctx.globalAlpha = 0.55;
+    const padY = fontSize * 0.12;
+    lines.forEach((line, i) => {
+      const w = measureLineWidth(ctx, line, spacing);
+      const y = startY + i * lineHeight;
+      ctx.fillRect(W / 2 - w / 2 - 6, y - lineHeight / 2 + padY, w + 12, lineHeight - padY * 2);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // 본문 텍스트
+  ctx.fillStyle = textColor;
   lines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, startY + i * lineHeight);
+    drawLineWithSpacing(ctx, line, W / 2, startY + i * lineHeight, spacing);
   });
 
-  // 출처
-  ctx.font = `${fontSize * 0.45}px sans-serif`;
-  ctx.globalAlpha = 0.75;
-  ctx.fillText(sourceEl.value, W / 2, startY + lines.length * lineHeight + fontSize * 0.6);
-  ctx.globalAlpha = 1;
+  // 출처 - 하단 우측 고정
+  ctx.font = buildFont(sourceFontSize, fontFamily);
+  ctx.fillStyle = sourceColorEl.value;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  const margin = W * 0.06;
+  ctx.fillText(sourceEl.value, W - margin, H - margin);
 }
 
-// 입력 바뀔 때마다 다시 그리기
-[quoteEl, sourceEl, bgColorEl, textColorEl, fontSizeEl].forEach(el => {
-  el.addEventListener('input', draw);
+[quoteEl, sourceEl, bgColorEl, textColorEl, fontSizeEl, fontFamilyEl,
+ highlightOnEl, highlightColorEl, letterSpacingEl, lineHeightEl,
+ sourceFontSizeEl, sourceColorEl].forEach(node => {
+  node.addEventListener('input', draw);
+  node.addEventListener('change', draw);
 });
 
-// 이미지로 저장
 document.getElementById('downloadBtn').addEventListener('click', () => {
   const link = document.createElement('a');
   link.download = 'quote.png';
@@ -168,6 +419,7 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   link.click();
 });
 
+document.fonts.ready.then(draw);
 draw();
 </script>
 
