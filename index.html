@@ -802,6 +802,13 @@ bgImageInput.addEventListener('change', (e) => {
       bgImageObj = img;
       bgOffsetX = 0; 
       bgOffsetY = 0; 
+      
+      // 이미지가 로드될 때 캔버스 가로폭에 딱 맞도록(100%) 스케일 자동 계산
+      const currentCanvasWidth = parseInt(canvasWidthEl.value, 10) || 800;
+      const initialScale = (currentCanvasWidth / img.width) * 100;
+      bgScaleEl.value = Math.max(10, Math.min(300, Math.round(initialScale)));
+      el('bgScaleVal').textContent = bgScaleEl.value;
+
       draw();
     };
     img.src = event.target.result;
