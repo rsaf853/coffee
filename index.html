@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>i'm feeling @7ucky!</title>
+<title>rosie/quote</title>
 <!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <style>
@@ -387,7 +387,7 @@
   <div id="panelCol">
     <div class="panel">
 
-      <!-- 캔버스 설정 (기본 접힘) -->
+      <!-- 캔버스 설정 -->
       <details class="panel-section">
         <summary class="section-title">캔버스 설정</summary>
         <div class="details-content">
@@ -430,7 +430,7 @@
         </div>
       </details>
       
-      <!-- 제목 설정 (기본 접힘) -->
+      <!-- 제목 설정 -->
       <details class="panel-section">
         <summary class="section-title">제목 설정</summary>
         <div class="details-content">
@@ -474,7 +474,7 @@
         </div>
       </details>
 
-      <!-- 본문 기본값 (기본 접힘) -->
+      <!-- 본문 기본값 -->
       <details class="panel-section">
         <summary class="section-title">본문 기본값</summary>
         <div class="details-content">
@@ -532,26 +532,26 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <!-- 화면상 0 ~ 40px로 표시되나, 실제 내부 연산은 -20이 적용됨 (기본값 슬라이더 20 -> 실제 0px) -->
-              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
-              <input type="range" id="paraSpacing" min="0" max="40" step="1" value="20">
+              <!-- 문단 간격 기본값 및 계산식 정상화 -->
+              <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
+              <input type="range" id="paraSpacing" min="0" max="60" step="2" value="10">
             </div>
           </div>
 
           <div class="row2">
             <div class="field">
-              <label>글자 간격 (<span id="letterSpacingVal">0</span>px)</label>
-              <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="0">
+              <label>글자 간격 (<span id="letterSpacingVal">-0.5</span>px)</label>
+              <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="-0.5">
             </div>
             <div class="field">
-              <label>장평 (<span id="scaleXVal">100</span>%)</label>
-              <input type="range" id="scaleX" min="80" max="120" step="1" value="100">
+              <label>장평 (<span id="scaleXVal">97</span>%)</label>
+              <input type="range" id="scaleX" min="80" max="120" step="1" value="97">
             </div>
           </div>
         </div>
       </details>
 
-      <!-- 본문 편집 및 서식 (열림 유지) -->
+      <!-- 본문 편집 및 서식 -->
       <details class="panel-section" open>
         <summary class="section-title">본문 편집 및 서식</summary>
         <div class="details-content">
@@ -590,14 +590,20 @@
             </div>
           </div>
           
-          <div class="field">
-            <label>* * (별표) 안의 내용 자동 변경 색상</label>
-            <input type="color" id="asteriskColor" value="#777777">
+          <div class="row2" style="margin-top: 14px;">
+            <div class="field" style="margin-bottom: 0;">
+              <label>* * (별표) 안 색상</label>
+              <input type="color" id="asteriskColor" value="#777777">
+            </div>
+            <div class="field" style="margin-bottom: 0;">
+              <label>따옴표( “ ” " ) 안 색상</label>
+              <input type="color" id="quoteColor" value="#358AE8">
+            </div>
           </div>
         </div>
       </details>
 
-      <!-- 출처 표시 (기본 접힘) -->
+      <!-- 출처 표시 -->
       <details class="panel-section">
         <summary class="section-title">출처 표시</summary>
         <div class="details-content">
@@ -646,6 +652,7 @@ const alignEl = el('align');
 const highlightColorEl = el('highlightColor');
 const inlineColorPickerEl = el('inlineColorPicker');
 const asteriskColorEl = el('asteriskColor');
+const quoteColorEl = el('quoteColor');
 const letterSpacingEl = el('letterSpacing');
 const paraSpacingEl = el('paraSpacing'); 
 const paraSpacingValEl = el('paraSpacingVal');
@@ -674,10 +681,10 @@ const FONT_DEFS = {
 let currentPage = 0;
 const DPR = 3; 
 const BASE_PREVIEW_WIDTH = 460; 
-const WORD_SPACING_OFFSET = -0.5;
+const WORD_SPACING_OFFSET = -2;
 
 function makeDefaultFormat() { 
-  return { bold: false, italic: false, underline: false, strike: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false }; 
+  return { bold: false, italic: false, underline: false, strike: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false, isQuote: false }; 
 }
 
 heightModeEl.addEventListener('change', (e) => {
@@ -728,6 +735,7 @@ function removeQuotes(node) {
 }
 el('tbRemoveQuote').addEventListener('click', () => { removeQuotes(editorEl); draw(); });
 
+// HTML DOM 트래버스 및 줄바꿈 보정 파서
 function extractDataFromEditor() {
   const tokens = [];
   const isEmpty = editorEl.textContent.trim() === '';
@@ -739,46 +747,85 @@ function extractDataFromEditor() {
     return tokens;
   }
 
-  function traverse(node, currentFmt, inAst) {
-    if (node.nodeType === 3) { 
+  let state = { inAst: false, inQuote: false };
+
+  function traverse(node, currentFmt) {
+    if (node.nodeType === 3) {
       let text = node.nodeValue;
       if (!text) return;
-      const lines = text.split('\n');
-      lines.forEach((lineText, idx) => {
-        let remaining = lineText;
-        while(remaining.length > 0) {
-          if(!inAst) {
-            let nextAstIdx = remaining.indexOf('*');
-            if(nextAstIdx === -1) {
-              if (remaining.length > 0) tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
-              break;
-            } else {
-              if(nextAstIdx > 0) tokens.push({ text: remaining.substring(0, nextAstIdx), format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
-              inAst = true;
-              remaining = remaining.substring(nextAstIdx); 
-            }
-          } else {
-            let nextAstIdx = remaining.indexOf('*', 1);
-            if(nextAstIdx === -1) {
-              tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
-              break;
-            } else {
-              tokens.push({ text: remaining.substring(0, nextAstIdx + 1), format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
-              inAst = false;
-              remaining = remaining.substring(nextAstIdx + 1);
-            }
-          }
+
+      let curBuf = "";
+      let curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+
+      function flush() {
+        if (curBuf.length > 0) {
+          tokens.push({
+            text: curBuf,
+            format: {
+              ...currentFmt,
+              isAsterisk: curFmtState.inAst,
+              isQuote: curFmtState.inQuote
+            },
+            isPlaceholder: false
+          });
+          curBuf = "";
         }
-        if (idx < lines.length - 1) tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
-      });
+      }
+
+      for (let i = 0; i < text.length; i++) {
+        let ch = text[i];
+        if (ch === '\n') {
+          flush();
+          tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
+          curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+          continue;
+        }
+
+        let isAst = (ch === '*');
+        let isQ = (ch === '"' || ch === '“' || ch === '”');
+
+        if (isAst) {
+          if (!state.inAst) {
+            flush();
+            state.inAst = true;
+            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+            curBuf += ch;
+          } else {
+            curBuf += ch;
+            flush();
+            state.inAst = false;
+            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+          }
+        } else if (isQ) {
+          if (!state.inQuote) {
+            flush();
+            state.inQuote = true;
+            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+            curBuf += ch;
+          } else {
+            curBuf += ch;
+            flush();
+            state.inQuote = false;
+            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+          }
+        } else {
+          if (curFmtState.inAst !== state.inAst || curFmtState.inQuote !== state.inQuote) {
+            flush();
+            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
+          }
+          curBuf += ch;
+        }
+      }
+      flush();
       return;
     }
-    
+
     if (node.nodeType === 1) {
-      if (node.tagName === 'BR' && node !== editorEl.lastChild) {
-        tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
+      if (node.tagName === 'BR') {
+        tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
         return;
       }
+
       const newFmt = { ...currentFmt };
       if (['B', 'STRONG'].includes(node.tagName) || node.style.fontWeight === 'bold' || parseInt(node.style.fontWeight) >= 700) newFmt.bold = true;
       if (['I', 'EM'].includes(node.tagName) || node.style.fontStyle === 'italic') newFmt.italic = true;
@@ -789,7 +836,7 @@ function extractDataFromEditor() {
       if (!fg && node.tagName === 'FONT' && node.hasAttribute('color')) fg = node.getAttribute('color');
       if (fg && fg !== '' && fg !== 'inherit') newFmt.inlineColor = fg;
       
-      let bg = node.style.backgroundColor || node.style.background;
+      let bg = node.style ? (node.style.backgroundColor || node.style.background) : null;
       if (bg) {
         let bgl = bg.toLowerCase();
         if (bgl.includes('rgba') && (bgl.includes(', 0)') || bgl.replace(/ /g,'').includes(',0)'))) bg = null;
@@ -797,15 +844,24 @@ function extractDataFromEditor() {
       }
       if (bg) newFmt.highlightColor = bg;
       
-      let ds = window.getComputedStyle(node).display;
-      if (ds === 'block' && node !== editorEl && node !== editorEl.firstChild) {
-        tokens.push({ text: '\n', format: {...newFmt}, isPlaceholder: false });
+      const isBlock = ['DIV', 'P', 'SECTION'].includes(node.tagName);
+      if (isBlock && node !== editorEl && node !== editorEl.firstChild) {
+        tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
       }
-      Array.from(node.childNodes).forEach(child => traverse(child, newFmt, inAst));
+
+      // 블록 태그 내에 단순 <br>만 들어있는 경우의 이중 줄바꿈 방지
+      if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
+        if (node === editorEl.firstChild) {
+          tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
+        }
+        return;
+      }
+
+      Array.from(node.childNodes).forEach(child => traverse(child, newFmt));
     }
   }
 
-  traverse(editorEl, rootFormat, false);
+  traverse(editorEl, rootFormat);
   return tokens;
 }
 
@@ -926,8 +982,8 @@ function computePages() {
   let pY = 0;
   let isFirstPage = true;
   
-  // 실제 슬라이더 값(0~40)에서 20을 빼서 -20 ~ 20px로 연산
-  const actualParaSpacing = parseInt(paraSpacingEl.value, 10) - 20;
+  // 문단 간격 수식 정상화 (음수 버그 제거)
+  const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
   currentLines.forEach((ln, idx) => {
     let isNewPara = false;
@@ -940,8 +996,7 @@ function computePages() {
       }
     }
     
-    let pSpace = isNewPara ? actualParaSpacing : 0;
-    
+    let pSpace = (isNewPara && idx > 0) ? actualParaSpacing : 0;
     let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0);
 
     if (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0) {
@@ -990,6 +1045,7 @@ function draw() {
   const align = alignEl.value;
   const baseColor = textColorEl.value;
   const astColor = asteriskColorEl.value;
+  const quoteColor = quoteColorEl.value;
   const scaleX = parseInt(scaleXEl.value, 10) / 100;
   
   let startY = my + (lh - size)/2 + size; 
@@ -1068,6 +1124,7 @@ function draw() {
       
       ctx.save();
       if (data.isPlaceholder) ctx.fillStyle = '#cccccc';
+      else if (fmt.isQuote) ctx.fillStyle = quoteColor; 
       else if (fmt.isAsterisk) ctx.fillStyle = astColor;
       else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
       else ctx.fillStyle = baseColor;
@@ -1128,8 +1185,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   if(input.id === 'canvasZoom') return; 
   input.addEventListener('input', (e) => {
     if (e.target.id === 'paraSpacing') {
-      // 화면상에는 0 ~ 40px로 표시되도록 변환 (슬라이더값 - 20)
-      paraSpacingValEl.textContent = parseInt(e.target.value, 10) - 20;
+      paraSpacingValEl.textContent = e.target.value;
     } else {
       const valSpan = el(e.target.id + 'Val');
       if (valSpan) valSpan.textContent = e.target.value;
@@ -1138,7 +1194,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, bgColorEl, textColorEl, fontFamilyEl, lineBreakModeEl, weightEl, alignEl, asteriskColorEl, sourceColorEl].forEach(item => {
+[sourceEl, bgColorEl, textColorEl, fontFamilyEl, lineBreakModeEl, weightEl, alignEl, asteriskColorEl, quoteColorEl, sourceColorEl].forEach(item => {
   item.addEventListener('input', draw);
 });
 
