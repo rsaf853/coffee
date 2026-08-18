@@ -1211,13 +1211,29 @@ function draw() {
     ctx.save();
     const opacity = parseInt(bgOpacityEl.value, 10) / 100;
     const darkness = parseInt(bgDarknessEl.value, 10) / 100;
-    const brightness = 100 - (darkness * 100); 
     const scale = parseInt(bgScaleEl.value, 10) / 100;
-    
-    ctx.globalAlpha = opacity; ctx.filter = `brightness(${brightness}%)`;
-    const drawW = bgImageObj.width * scale; const drawH = bgImageObj.height * scale;
-    const centerX = (cWidth - drawW) / 2; const centerY = (cHeight - drawH) / 2;
-    ctx.drawImage(bgImageObj, centerX + bgOffsetX, centerY + bgOffsetY, drawW, drawH);
+
+    const drawW = bgImageObj.width * scale;
+    const drawH = bgImageObj.height * scale;
+    const centerX = (cWidth - drawW) / 2;
+    const centerY = (cHeight - drawH) / 2;
+    const dx = centerX + bgOffsetX;
+    const dy = centerY + bgOffsetY;
+
+    /* 1) 이미지를 투명도만 적용해서 그린다.
+       (모바일 브라우저는 canvas의 ctx.filter=brightness()를
+        지원/무시하는 경우가 많아 어둡기가 안 먹히는 문제가 있었음) */
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(bgImageObj, dx, dy, drawW, drawH);
+
+    /* 2) 어둡기는 이미지 영역 위에 검은색 반투명 오버레이를
+       덧그리는 방식으로 구현 -> 모든 브라우저(PC/모바일)에서 동일하게 작동 */
+    if (darkness > 0) {
+      ctx.globalAlpha = opacity * darkness;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(dx, dy, drawW, drawH);
+    }
+
     ctx.restore();
   }
 
