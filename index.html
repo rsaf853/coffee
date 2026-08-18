@@ -11,8 +11,12 @@
 
   * { box-sizing: border-box; }
 
-  body {
+  body, html {
     margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     font-family: 'Pretendard Variable', -apple-system, sans-serif;
     background: #efefef;
     color: #111;
@@ -24,45 +28,73 @@
     flex-direction: column;
     max-width: 1400px;
     margin: 0 auto;
-    min-height: 100vh;
+    height: 100vh;
   }
 
-  /* 미리보기(캔버스) 영역 */
+  /* 왼쪽: 미리보기(캔버스) 영역 컨테이너 */
   #previewCol {
     order: 0;
     background: #efefef;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 20px 10px;
-    gap: 16px;
     flex: 1;
-    overflow-x: hidden;
+    position: relative;
+    overflow: hidden;
   }
 
-  /* 캔버스 감싸는 박스 - 확대/축소 가능하게 설정 */
-  #canvasWrap {
-    border: 1px solid #ccc;
-    line-height: 0;
-    background: #fff;
+  /* 실제 스크롤되는 영역 */
+  #scrollArea {
+    flex: 1;
     overflow: auto;
-    max-width: 100%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 10px 120px;
   }
 
+  /* 종이 느낌의 캔버스 요소 */
   canvas {
     display: block;
-    width: 100%; 
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    width: 460px;
+    max-width: 95vw;
     height: auto;
-    transform-origin: top center;
+    transition: width 0.05s ease-out;
+  }
+
+  /* 절대 안 움직이는 하단 컨트롤 바 */
+  .bottom-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    flex-wrap: nowrap;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .bottom-bar .divider {
+    width: 1px;
+    height: 14px;
+    background: #e2e2e2;
   }
 
   #pageNav {
     display: flex;
     align-items: center;
-    gap: 14px;
-    font-size: 13px;
+    gap: 10px;
+    font-size: 12px;
     color: #555;
   }
 
@@ -70,86 +102,142 @@
     border: 1px solid #ccc;
     background: #fff;
     color: #333;
-    padding: 6px 12px;
+    padding: 4px 10px;
     cursor: pointer;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 11px;
     border-radius: 4px;
+    transition: background 0.2s;
   }
+  #pageNav button:hover:not(:disabled) { background: #f5f5f5; }
   #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
-  /* 옵션 조절 패널 영역 */
-  #panelCol { 
-    order: 1; 
-    padding: 16px 16px 60px; 
-    background: #fff; 
-    border-top: 1px solid #eee;
+  /* 확대/축소 바 디자인 */
+  #zoomControl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #777;
+    user-select: none;
+  }
+  #zoomControl input[type="range"] {
+    width: 70px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #eaeaea;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  #zoomControl input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #aaa;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #zoomControl input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #aaa;
+    cursor: pointer;
+    border: none;
   }
 
-  .panel { width: 100%; max-width: 460px; margin: 0 auto; }
+  #resizer { display: none; }
 
-  /* PC버전 레이아웃 (패널 고정 위치) */
+  /* 오른쪽: 옵션 패널 영역 */
+  #panelCol { 
+    order: 2; 
+    padding: 20px 16px; 
+    background: #fff; 
+    border-top: 1px solid #eee;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .panel { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column;}
+
+  /* PC버전 레이아웃 */
   @media (min-width: 900px) {
     main { flex-direction: row; align-items: stretch; }
-    #previewCol { padding: 40px; }
-    #panelCol {
+    
+    #resizer {
       order: 1;
-      width: 440px;
+      display: block;
+      width: 8px;
+      background: #e0e0e0;
+      cursor: col-resize;
       flex-shrink: 0;
-      border-left: 1px solid #eee;
-      border-top: none;
-      padding: 28px 24px 60px;
-      /* 고정 위치 설정 */
-      position: sticky;
-      top: 0;
+      transition: background 0.2s;
+    }
+    #resizer:hover, #resizer.resizing { background: #bbb; }
+
+    #panelCol {
+      order: 2;
+      width: 440px;
+      min-width: 300px;
+      max-width: 800px;
+      flex: none;
       height: 100vh;
-      overflow-y: auto;
+      border-left: none;
+      border-top: none;
+      padding: 28px 24px;
     }
     .panel { max-width: none; }
   }
 
-  /* 아코디언(접기/펴기) 설정 */
-  details {
-    margin-bottom: 16px;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    background: #fafafa;
-    overflow: hidden;
+  /* 아코디언 패널 */
+  details.panel-section {
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid #e2e2e2;
   }
-  details[open] { background: #fff; padding-bottom: 8px; }
-  
-  summary.section-title {
-    font-size: 13px;
+  details.panel-section summary {
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.02em;
     color: #111;
-    padding: 14px 16px;
+    margin: 0;
     cursor: pointer;
     list-style: none;
-    background: #f7f7f7;
-    margin-bottom: 0;
-    user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    user-select: none;
   }
-  summary.section-title::-webkit-details-marker { display: none; }
-  summary.section-title::after { content: '+'; font-size: 16px; color: #888; }
-  details[open] summary.section-title { background: #fff; border-bottom: 1px dashed #eee; margin-bottom: 14px; }
-  details[open] summary.section-title::after { content: '−'; }
+  details.panel-section summary::-webkit-details-marker { display: none; }
+  details.panel-section summary::after {
+    content: '';
+    display: block;
+    width: 6px; height: 6px;
+    border-right: 1.5px solid #bbb;
+    border-bottom: 1.5px solid #bbb;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease, margin 0.2s ease;
+    margin-right: 4px; margin-bottom: 2px;
+  }
+  details.panel-section[open] summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
 
-  .details-content { padding: 0 16px; }
+  .details-content { padding: 16px 0 0 0; }
 
   .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  
   .field label {
     display: block;
     margin-bottom: 6px;
     font-size: 12px;
     color: #777;
-    letter-spacing: 0.02em;
   }
 
   .field input[type=text],
+  .field input[type=number],
   .field select {
     width: 100%;
     padding: 10px 12px;
@@ -173,139 +261,118 @@
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .field input[type=color] {
-    width: 100%;
-    height: 38px;
-    border: 1px solid #ddd;
-    padding: 2px;
-    background: #fff;
-    cursor: pointer;
-    border-radius: 4px;
+    width: 100%; height: 38px; border: 1px solid #ddd; padding: 2px;
+    background: #fff; cursor: pointer; border-radius: 4px;
   }
 
   .swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .swatch {
-    width: 28px;
-    height: 28px;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    border-radius: 4px;
-    padding: 0;
+    width: 28px; height: 28px; border: 1px solid #ccc;
+    cursor: pointer; border-radius: 4px; padding: 0;
   }
 
-  .field input[type=range] { width: 100%; accent-color: #111; margin-top: 4px; }
-
+  .field input[type=range]:not(#canvasZoom) { width: 100%; accent-color: #111; margin-top: 4px; }
   .hint { font-size: 11px; color: #888; margin: -4px 0 8px; line-height: 1.4; }
 
   /* 에디터 툴바 */
   .editor-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 8px;
-    background: #fcfcfc;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+    background: #fcfcfc; padding: 8px; border: 1px solid #ddd;
+    border-bottom: none; border-radius: 4px 4px 0 0;
+    align-items: center; /* 세로 정렬 맞춤 */
   }
 
   .tbtn {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    background: #fff;
-    color: #333;
-    font-size: 12px;
-    cursor: pointer;
-    font-family: inherit;
-    border-radius: 3px;
-    transition: 0.2s;
+    padding: 6px 10px; border: 1px solid #ccc; background: #fff;
+    color: #333; font-size: 12px; cursor: pointer; font-family: inherit;
+    border-radius: 3px; transition: 0.2s;
   }
   .tbtn:hover { background: #f2f2f2; }
   .tbtn.danger { color: #d44; border-color: #f0caca; }
   .tbtn.danger:hover { background: #fdf2f2; }
 
-  /* 새 통합 에디터 (입력창 자체) */
+  /* 통합 에디터 */
   #editor {
-    width: 100%;
-    min-height: 140px;
-    padding: 12px 14px;
-    border: 1px solid #ddd;
-    border-radius: 0 0 4px 4px;
-    background: #fff;
-    color: #111;
-    font-size: 14px;
-    font-family: inherit;
-    line-height: 1.6;
-    outline: none;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    width: 100%; min-height: 140px; max-height: 250px;
+    padding: 12px 14px; border: 1px solid #ddd; border-radius: 0 0 4px 4px;
+    background: #fff; color: #111; font-size: 14px; font-family: inherit;
+    line-height: 1.6; outline: none; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
   }
   #editor:empty::before {
-    content: attr(data-placeholder);
-    color: #aaa;
-    pointer-events: none;
-    display: block;
+    content: attr(data-placeholder); color: #aaa; pointer-events: none; display: block;
   }
   #editor:focus { border-color: #999; }
 
-  .action-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 24px;
-  }
+  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
   .btn-primary, .btn-secondary {
-    width: 100%;
-    padding: 14px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    transition: 0.2s;
+    width: 100%; padding: 14px; border-radius: 4px; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: inherit; transition: 0.2s;
   }
   .btn-primary { border: 1px solid #111; background: #111; color: #fff; }
   .btn-primary:hover { background: #333; }
   .btn-secondary { border: 1px solid #ccc; background: #fff; color: #111; }
   .btn-secondary:hover { background: #f4f4f4; border-color: #111; }
+
+  .footer-credit { margin-top: 24px; text-align: center; font-size: 12px; color: #ccc; font-weight: 300; padding-bottom: 20px;}
 </style>
 </head>
 <body>
 
 <main>
+  <!-- 캔버스 및 절대 고정 컨트롤 바 영역 -->
   <div id="previewCol">
-    <!-- 캔버스 확대/축소 기능 바 -->
-    <div style="width: 100%; max-width: 520px; display: flex; gap: 10px; align-items: center; justify-content: flex-end; font-size: 12px; color: #666;">
-      <label for="canvasZoom">미리보기 확대:</label>
-      <input type="range" id="canvasZoom" min="50" max="150" step="10" value="100" style="width: 100px;">
-      <span id="canvasZoomVal">100%</span>
-    </div>
-
-    <div id="canvasWrap" style="max-width: 100%;">
+    <div id="scrollArea">
       <canvas id="canvas"></canvas>
     </div>
-    <div id="pageNav">
-      <button id="prevBtn">&larr; 이전</button>
-      <span id="pageIndicator">1 / 1</span>
-      <button id="nextBtn">다음 &rarr;</button>
+    
+    <div class="bottom-bar">
+      <div id="pageNav">
+        <button id="prevBtn">&larr; 이전</button>
+        <span id="pageIndicator">1 / 1</span>
+        <button id="nextBtn">다음 &rarr;</button>
+      </div>
+      <div class="divider"></div>
+      <div id="zoomControl">
+        <span>🔍 배율</span>
+        <input type="range" id="canvasZoom" min="40" max="160" step="5" value="100">
+        <span id="canvasZoomVal" style="width:36px; text-align:right;">100%</span>
+      </div>
     </div>
   </div>
 
+  <div id="resizer"></div>
+
+  <!-- 설정 패널 영역 -->
   <div id="panelCol">
     <div class="panel">
 
-      <details open>
-        <summary class="section-title">캔버스 옵션</summary>
+      <!-- 캔버스 옵션 -->
+      <details class="panel-section" open>
+        <summary class="section-title">캔버스 설정</summary>
         <div class="details-content">
-          <div class="field">
-            <label>비율 (가로 800px 기준)</label>
-            <select id="ratio">
-              <option value="4:5">4 : 5 (세로형)</option>
-              <option value="3:4">3 : 4 (세로형)</option>
-              <option value="1:1">1 : 1 (정방형)</option>
-            </select>
+          <div class="row2">
+            <div class="field">
+              <label>가로 폭 (px)</label>
+              <input type="number" id="canvasWidth" value="800">
+            </div>
+            <div class="field">
+              <label>높이 설정</label>
+              <select id="heightMode">
+                <option value="4:5">비율 (4:5)</option>
+                <option value="3:4">비율 (3:4)</option>
+                <option value="1:1">비율 (1:1)</option>
+                <option value="auto">내용에 맞게 자동 (1장)</option>
+                <option value="custom">세로 높이 직접 입력</option>
+              </select>
+            </div>
           </div>
+          
+          <div class="field" id="customHeightWrap" style="display: none;">
+            <label>세로 높이 (px)</label>
+            <input type="number" id="canvasHeight" value="1000">
+          </div>
+
           <div class="row2">
             <div class="field">
               <label>위·아래 여백 (<span id="marginYVal">70</span>px)</label>
@@ -323,7 +390,8 @@
         </div>
       </details>
 
-      <details open>
+      <!-- 본문 기본값 -->
+      <details class="panel-section" open>
         <summary class="section-title">본문 기본값</summary>
         <div class="details-content">
           <div class="field">
@@ -333,14 +401,13 @@
               <option value="noto">Noto Serif KR (명조체)</option>
             </select>
           </div>
+          
           <div class="row2">
             <div class="field">
-              <label>굵기</label>
-              <select id="weight">
-                <option value="thin">Thin (얇게)</option>
-                <option value="regular" selected>Regular (보통)</option>
-                <option value="medium">Medium (중간)</option>
-                <option value="bold">Bold (굵게)</option>
+              <label>줄바꿈 기준</label>
+              <select id="lineBreakMode">
+                <option value="word" selected>단어 단위 (Keep-all)</option>
+                <option value="char">글자 단위</option>
               </select>
             </div>
             <div class="field">
@@ -353,78 +420,108 @@
               </select>
             </div>
           </div>
-          <div class="field">
-            <label>기본 글자색</label>
-            <input type="color" id="textColor" value="#000000">
-          </div>
-          <div class="field">
-            <label>글자 크기 (<span id="fontSizeVal">16</span>px)</label>
-            <input type="range" id="fontSize" min="10" max="90" value="16">
-          </div>
+          
           <div class="row2">
             <div class="field">
-              <label>자간 (<span id="letterSpacingVal">0</span>px)</label>
-              <input type="range" id="letterSpacing" min="-2" max="5" step="0.1" value="0">
+              <label>굵기</label>
+              <select id="weight">
+                <option value="thin">Thin (얇게)</option>
+                <option value="regular" selected>Regular (보통)</option>
+                <option value="medium">Medium (중간)</option>
+                <option value="bold">Bold (굵게)</option>
+              </select>
             </div>
+            <div class="field">
+              <label>기본 글자색</label>
+              <input type="color" id="textColor" value="#000000">
+            </div>
+          </div>
+          
+          <div class="field">
+            <label>글자 크기 (<span id="fontSizeVal">20</span>px)</label>
+            <input type="range" id="fontSize" min="10" max="90" value="20">
+          </div>
+          
+          <!-- 요청하신 문단 간격 / 줄간격 나란히 배치 -->
+          <div class="row2">
             <div class="field">
               <label>줄간격 (<span id="lineHeightVal">150</span>%)</label>
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
+            <div class="field">
+              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
+              <input type="range" id="paraSpacing" min="0" max="100" step="5" value="0">
+            </div>
           </div>
-          <div class="field">
-            <label>장평 (<span id="scaleXVal">100</span>%)</label>
-            <input type="range" id="scaleX" min="80" max="120" step="1" value="100">
+
+          <!-- 요청하신 자간 / 장평 나란히 배치 -->
+          <div class="row2">
+            <div class="field">
+              <label>글자 간격 [자간] (<span id="letterSpacingVal">0</span>px)</label>
+              <input type="range" id="letterSpacing" min="-5" max="10" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label>장평 (<span id="scaleXVal">100</span>%)</label>
+              <input type="range" id="scaleX" min="80" max="120" step="1" value="100">
+            </div>
           </div>
         </div>
       </details>
 
-      <details open>
+      <!-- 본문 편집 및 서식 -->
+      <details class="panel-section" open>
         <summary class="section-title">본문 편집 및 서식</summary>
         <div class="details-content">
           <div class="hint">텍스트를 드래그한 뒤 아래 툴바를 누르면 편집창에 바로 적용됩니다.</div>
           
           <div class="editor-toolbar">
-            <button type="button" class="tbtn" id="tbBold"><b>B</b> 볼드</button>
-            <button type="button" class="tbtn" id="tbItalic"><i>I</i> 이탤릭</button>
-            <button type="button" class="tbtn" id="tbUnderline"><u>U</u> 밑줄</button>
+            <button type="button" class="tbtn" id="tbBold"><b>B</b></button>
+            <button type="button" class="tbtn" id="tbItalic"><i>I</i></button>
+            <button type="button" class="tbtn" id="tbUnderline"><u>U</u></button>
+            
+            <!-- 글자색 적용 버튼 & 부분 글자색 피커 묶음 -->
+            <div style="display: flex; gap: 4px; align-items: center; border-left: 1px solid #ddd; border-right: 1px solid #ddd; padding: 0 6px; margin: 0 2px;">
+              <button type="button" class="tbtn" id="tbApplyColor">글자색 적용</button>
+              <input type="color" id="inlineColorPicker" value="#358AE8" title="부분 글자색 선택" style="width: 24px; height: 26px; border: 1px solid #ccc; padding: 0; cursor: pointer; border-radius: 3px; background: #fff;">
+            </div>
+
             <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
             <button type="button" class="tbtn" id="tbFontPretendard">Pretendard</button>
             <button type="button" class="tbtn" id="tbFontNoto">Noto Serif</button>
-            <button type="button" class="tbtn danger" id="tbClear">서식/형광펜 지우기</button>
+            <button type="button" class="tbtn danger" id="tbClear">서식 모두 지우기</button>
           </div>
 
-          <!-- 통합 에디터 박스 -->
           <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
           
-          <div class="field" style="margin-top: 14px;">
-            <button type="button" class="tbtn" id="tbRemovePunct" style="width: 100%;">문장부호( *, “, ”, " ) 모두 지우기</button>
+          <div class="row2" style="margin-top: 14px;">
+            <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우기</button>
+            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
           </div>
 
           <div class="field" style="margin-top: 14px;">
-            <label>형광펜 색상 선택 (적용 시 사용)</label>
-            <input type="color" id="highlightColor" value="#F9E79F">
+            <label>형광펜 색상 (툴바의 '형광펜 적용' 버튼 클릭 시 적용)</label>
+            <input type="color" id="highlightColor" value="#FFE0F9">
             <div class="swatches">
-              <!-- 기존보다 약간 더 진하고 식별 가능한 색상 배치 -->
-              <button type="button" class="swatch" data-color="#F4D03F" style="background:#F4D03F"></button>
-              <button type="button" class="swatch" data-color="#F5B7B1" style="background:#F5B7B1"></button>
-              <button type="button" class="swatch" data-color="#AED6F1" style="background:#AED6F1"></button>
-              <button type="button" class="swatch" data-color="#F9E79F" style="background:#F9E79F"></button>
-              <button type="button" class="swatch" data-color="#A2D9CE" style="background:#A2D9CE"></button>
+              <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
+              <button type="button" class="swatch" data-color="#DBF7FF" style="background:#DBF7FF"></button>
+              <button type="button" class="swatch" data-color="#DBFFDF" style="background:#DBFFDF"></button>
+              <button type="button" class="swatch" data-color="#FCFFBF" style="background:#FCFFBF"></button>
+              <button type="button" class="swatch" data-color="#EDEDED" style="background:#EDEDED"></button>
             </div>
           </div>
           
           <div class="field">
             <label>* * (별표) 안의 내용 자동 변경 색상</label>
-            <input type="color" id="asteriskColor" value="#D32F2F">
-            <div class="hint">* * 기호로 묶인 단어는 캔버스에서 자동으로 이 색상으로 칠해집니다.</div>
+            <input type="color" id="asteriskColor" value="#777777">
           </div>
         </div>
       </details>
 
-      <details open>
-        <summary class="section-title">출처 (우측 하단 고정)</summary>
+      <!-- 출처 -->
+      <details class="panel-section">
+        <summary class="section-title">출처 표시</summary>
         <div class="details-content">
-          <div class="hint">입력하지 않으면 예시(@7ucky)가 연하게 표시됩니다. 여백설정 영향을 받지 않고 우측 여백이 항상 고정됩니다.</div>
+          <div class="hint">모든 페이지 우측 하단에 공통으로 표시됩니다.</div>
           <div class="field">
             <label>출처 / 이름</label>
             <input type="text" id="source" placeholder="@7ucky" value="">
@@ -447,6 +544,7 @@
         <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
       </div>
 
+      <div class="footer-credit">by @7ucky</div>
     </div>
   </div>
 </main>
@@ -463,490 +561,1581 @@ const bgColorEl = el('bgColor');
 const textColorEl = el('textColor');
 const fontSizeEl = el('fontSize');
 const fontFamilyEl = el('fontFamily');
+const lineBreakModeEl = el('lineBreakMode');
 const weightEl = el('weight');
 const alignEl = el('align');
 const highlightColorEl = el('highlightColor');
+const inlineColorPickerEl = el('inlineColorPicker');
 const asteriskColorEl = el('asteriskColor');
 const letterSpacingEl = el('letterSpacing');
+const paraSpacingEl = el('paraSpacing'); 
 const lineHeightEl = el('lineHeight');
 const scaleXEl = el('scaleX');
 const sourceFontSizeEl = el('sourceFontSize');
 const sourceColorEl = el('sourceColor');
-const ratioEl = el('ratio');
 const marginYEl = el('marginY');
 const marginXEl = el('marginX');
 const zoomEl = el('canvasZoom');
+
+// 크기 설정 요소들
+const canvasWidthEl = el('canvasWidth');
+const heightModeEl = el('heightMode');
+const canvasHeightEl = el('canvasHeight');
+const customHeightWrap = el('customHeightWrap');
 
 const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
-// 폰트 정의 (Noto Serif KR 추가 및 Weight 4단계 분리)
+// 폰트 정의
 const FONT_DEFS = {
   pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
   noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
 };
 
 let currentPage = 0;
-const CANVAS_WIDTH = 800;
-const DPR = 3; // ★ 고화질 저장을 위한 픽셀 배율 (3배)
+const DPR = 3; 
+const BASE_PREVIEW_WIDTH = 460; 
 
-// 서식 모델 기본값
 function makeDefaultFormat() { 
-  return { bold: false, italic: false, underline: false, highlightColor: null, font: null, isAsterisk: false }; 
+  return { bold: false, italic: false, underline: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false }; 
 }
 
-// ----------------------------------------------------
-// 1. 에디터(contenteditable)에서 DOM을 분석해 텍스트와 서식을 추출하는 마법 함수
-// ----------------------------------------------------
-function extractDataFromEditor() {
-  let textContent = '';
-  let formats = [];
-  
-  // 편집기에 텍스트가 없는 경우 (예시 텍스트 표시 모드)
-  if (editorEl.innerText.trim().length === 0) {
-    let placeholder = editorEl.getAttribute('data-placeholder');
-    return {
-      isPlaceholder: true,
-      text: placeholder,
-      formats: Array.from({length: placeholder.length}, () => makeDefaultFormat())
-    };
-  }
+// 높이 옵션 변경 감지
+heightModeEl.addEventListener('change', (e) => {
+  customHeightWrap.style.display = (e.target.value === 'custom') ? 'block' : 'none';
+  currentPage = 0; 
+  draw();
+});
+[canvasWidthEl, canvasHeightEl].forEach(item => item.addEventListener('input', draw));
 
-  const walk = (node, currentFormat) => {
-    if (node.nodeType === 3) { // 텍스트 노드
-      let val = node.nodeValue.replace(/\u00A0/g, ' '); // 공백 문자 변환
-      textContent += val;
-      for (let i = 0; i < val.length; i++) formats.push({ ...currentFormat });
-    } else if (node.nodeType === 1) { // 요소 노드
-      if (node.tagName === 'BR') {
-        textContent += '\n';
-        formats.push({ ...currentFormat });
-        return;
-      }
-      if ((node.tagName === 'DIV' || node.tagName === 'P') && textContent.length > 0 && !textContent.endsWith('\n')) {
-        textContent += '\n';
-        formats.push({ ...currentFormat });
-      }
+// 시각적 확대/축소
+zoomEl.addEventListener('input', () => { 
+  const zoomPct = parseInt(zoomEl.value, 10);
+  el('canvasZoomVal').textContent = zoomPct + '%';
+  canvas.style.width = Math.round(BASE_PREVIEW_WIDTH * (zoomPct / 100)) + 'px';
+});
 
-      let style = window.getComputedStyle(node);
-      let newFmt = { ...currentFormat };
-      
-      // 서식 판별
-      if (style.fontWeight >= '600' || node.tagName === 'B' || node.tagName === 'STRONG') newFmt.bold = true;
-      if (style.fontStyle === 'italic' || node.tagName === 'I' || node.tagName === 'EM') newFmt.italic = true;
-      if (style.textDecorationLine.includes('underline') || node.tagName === 'U') newFmt.underline = true;
+// 에디터 툴바 기능
+el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); draw(); });
+el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); draw(); });
+el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('underline'); draw(); });
+el('tbFontPretendard').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('fontName', false, 'Pretendard'); draw(); });
+el('tbFontNoto').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('fontName', false, 'Noto Serif KR'); draw(); });
+el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); draw(); });
 
-      // 배경색(형광펜) 판별
-      let bg = node.style.backgroundColor || style.backgroundColor;
-      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') newFmt.highlightColor = bg;
-      
-      // 폰트 판별
-      let face = node.getAttribute ? node.getAttribute('face') : null;
-      if (face === 'Pretendard Variable' || style.fontFamily.includes('Pretendard')) newFmt.font = 'pretendard';
-      if (face === 'Noto Serif KR' || style.fontFamily.includes('Noto')) newFmt.font = 'noto';
+el('tbApplyColor').addEventListener('mousedown', e => { 
+  e.preventDefault(); document.execCommand('foreColor', false, inlineColorPickerEl.value); draw(); 
+});
 
-      for (let child of node.childNodes) walk(child, newFmt);
-    }
-  };
+el('tbHiOn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  const c = highlightColorEl.value;
+  document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
+  draw();
+});
 
-  walk(editorEl, makeDefaultFormat());
-
-  // ★ 정규식을 사용해 * * 사이의 텍스트 포맷을 isAsterisk = true로 업데이트
-  const regex = /\*(.*?)\*/g;
-  let match;
-  while ((match = regex.exec(textContent)) !== null) {
-    for (let i = match.index; i < match.index + match[0].length; i++) {
-      if (formats[i]) formats[i].isAsterisk = true;
-    }
-  }
-
-  return { isPlaceholder: false, text: textContent, formats };
-}
-
-// 서식을 기반으로 캔버스용 CSS Font 문자열 생성
-function buildCharFont(idx, sizePx, extractedFormats) {
-  const fmt = extractedFormats[idx] || {};
-  const familyKey = fmt.font || fontFamilyEl.value;
-  const def = FONT_DEFS[familyKey] || FONT_DEFS['pretendard'];
-  const weightLabel = weightEl.value;
-  const weight = fmt.bold ? def.weights.bold : def.weights[weightLabel];
-  return `${fmt.italic ? 'italic ' : ''}${weight} ${sizePx}px ${def.css}`;
-}
-
-// ----------------------------------------------------
-// 2. 툴바 이벤트 및 에디터 동기화
-// ----------------------------------------------------
 document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
-['tbBold', 'tbItalic', 'tbUnderline'].forEach(id => {
-  el(id).addEventListener('click', () => {
-    document.execCommand(id.replace('tb', '').toLowerCase(), false, null);
+function removeAsterisks(node) {
+  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/\*/g, '');
+  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeAsterisks);
+}
+el('tbRemoveAst').addEventListener('click', () => { removeAsterisks(editorEl); draw(); });
+
+function removeQuotes(node) {
+  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
+  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeQuotes);
+}
+el('tbRemoveQuote').addEventListener('click', () => { removeQuotes(editorEl); draw(); });
+
+// 에디터 텍스트 및 서식 토큰 추출
+function extractDataFromEditor() {
+  const tokens = [];
+  const isEmpty = editorEl.textContent.trim() === '';
+  const rootFormat = makeDefaultFormat();
+  
+  if (isEmpty) {
+    const phText = editorEl.getAttribute('data-placeholder') || '';
+    tokens.push({ text: phText, format: rootFormat, isPlaceholder: true });
+    return tokens;
+  }
+
+  function traverse(node, currentFmt, inAst) {
+    if (node.nodeType === 3) { 
+      let text = node.nodeValue;
+      if (!text) return;
+      const lines = text.split('\n');
+      lines.forEach((lineText, idx) => {
+        let remaining = lineText;
+        while(remaining.length > 0) {
+          if(!inAst) {
+            let nextAstIdx = remaining.indexOf('*');
+            if(nextAstIdx === -1) {
+              if (remaining.length > 0) tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
+              break;
+            } else {
+              if(nextAstIdx > 0) tokens.push({ text: remaining.substring(0, nextAstIdx), format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
+              inAst = true;
+              remaining = remaining.substring(nextAstIdx); 
+            }
+          } else {
+            let nextAstIdx = remaining.indexOf('*', 1);
+            if(nextAstIdx === -1) {
+              tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
+              break;
+            } else {
+              tokens.push({ text: remaining.substring(0, nextAstIdx + 1), format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
+              inAst = false;
+              remaining = remaining.substring(nextAstIdx + 1);
+            }
+          }
+        }
+        if (idx < lines.length - 1) tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
+      });
+      return;
+    }
+    
+    if (node.nodeType === 1) {
+      if (node.tagName === 'BR' && node !== editorEl.lastChild) {
+        tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
+        return;
+      }
+      const newFmt = { ...currentFmt };
+      if (['B', 'STRONG'].includes(node.tagName) || node.style.fontWeight === 'bold' || parseInt(node.style.fontWeight) >= 700) newFmt.bold = true;
+      if (['I', 'EM'].includes(node.tagName) || node.style.fontStyle === 'italic') newFmt.italic = true;
+      if (['U'].includes(node.tagName) || node.style.textDecoration.includes('underline')) newFmt.underline = true;
+      
+      let fg = node.style ? node.style.color : null;
+      if (!fg && node.tagName === 'FONT' && node.hasAttribute('color')) fg = node.getAttribute('color');
+      if (fg && fg !== '' && fg !== 'inherit') newFmt.inlineColor = fg;
+      
+      let bg = node.style.backgroundColor || node.style.background;
+      if (bg) {
+        let bgl = bg.toLowerCase();
+        if (bgl.includes('rgba') && (bgl.includes(', 0)') || bgl.replace(/ /g,'').includes(',0)'))) bg = null;
+        else if (bgl === 'transparent') bg = null;
+      }
+      if (bg) newFmt.highlightColor = bg;
+      
+      let ft = node.style.fontFamily;
+      if (!ft && node.tagName === 'FONT' && node.hasAttribute('face')) ft = node.getAttribute('face');
+      if (ft) {
+        if (ft.toLowerCase().includes('pretendard')) newFmt.font = 'pretendard';
+        else if (ft.toLowerCase().includes('noto')) newFmt.font = 'noto';
+      }
+      
+      let ds = window.getComputedStyle(node).display;
+      if (ds === 'block' && node !== editorEl && node !== editorEl.firstChild) {
+        tokens.push({ text: '\n', format: {...newFmt}, isPlaceholder: false });
+      }
+      Array.from(node.childNodes).forEach(child => traverse(child, newFmt, inAst));
+    }
+  }
+
+  traverse(editorEl, rootFormat, false);
+  return tokens;
+}
+
+function getFontStr(fmt, size) {
+  let fontId = fmt.font || fontFamilyEl.value;
+  let def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
+  let wId = weightEl.value;
+  if (fmt.bold) wId = 'bold';
+  let wNum = def.weights[wId] || 400;
+  let st = fmt.italic ? "italic " : "";
+  return `${st}${wNum} ${size}px ${def.css}`;
+}
+
+// 텍스트 너비 측정
+function processTokens(tokens, size, ls) {
+  let flat = [];
+  tokens.forEach(tok => {
+    if (tok.text === '\n') {
+      flat.push(tok);
+    } else {
+      ctx.font = getFontStr(tok.format, size);
+      
+      if (lineBreakModeEl.value === 'char') {
+        for(let i=0; i<tok.text.length; i++) {
+          let char = tok.text[i];
+          let w = ctx.measureText(char).width + ls;
+          flat.push({ text: char, format: tok.format, w: w, isPlaceholder: tok.isPlaceholder });
+        }
+      } else {
+        let words = tok.text.split(/(\s+)/);
+        words.forEach(wrd => {
+          if (!wrd) return;
+          if (wrd.match(/^\s+$/)) {
+            for(let i=0; i<wrd.length; i++) {
+              flat.push({ text: wrd[i], format: tok.format, w: ctx.measureText(wrd[i]).width, isPlaceholder: tok.isPlaceholder });
+            }
+          } else {
+            let mw = ctx.measureText(wrd).width;
+            mw += ls * (wrd.length - 1);
+            flat.push({ text: wrd, format: tok.format, w: mw, isPlaceholder: tok.isPlaceholder, length: wrd.length });
+          }
+        });
+      }
+    }
+  });
+  return flat;
+}
+
+// 페이지 레이아웃 계산
+function computePages() {
+  const w = parseInt(canvasWidthEl.value, 10) || 800;
+  const hMode = heightModeEl.value;
+  const my = parseInt(marginYEl.value, 10);
+  const mx = parseInt(marginXEl.value, 10);
+  
+  const contentWidth = w - mx*2;
+  const size = parseInt(fontSizeEl.value, 10);
+  const lh = (parseInt(lineHeightEl.value, 10) / 100) * size;
+  const ls = parseFloat(letterSpacingEl.value);
+  
+  const tokens = extractDataFromEditor();
+  const els = processTokens(tokens, size, ls);
+  
+  const pages = [];
+  let currentLines = [];
+  let currentLine = [];
+  let currentX = 0;
+  
+  function breakLine() {
+    currentLines.push(currentLine);
+    currentLine = [];
+    currentX = 0;
+  }
+  
+  els.forEach(el => {
+    if (el.text === '\n') {
+      currentLine.push(el);
+      breakLine();
+      return;
+    }
+    if (currentX + el.w > contentWidth && currentLine.length > 0) {
+      if (lineBreakModeEl.value === 'word' && el.text !== ' ') {
+        breakLine();
+        currentLine.push(el);
+        currentX += el.w;
+      } else {
+        breakLine();
+        if (el.text !== ' ') {
+          currentLine.push(el);
+          currentX += el.w;
+        }
+      }
+    } else {
+      currentLine.push(el);
+      currentX += el.w;
+    }
+  });
+  
+  if (currentLine.length > 0) currentLines.push(currentLine);
+  if (currentLines.length === 0) currentLines.push([]);
+
+  // 높이 계산 준비
+  let presetHeight = 1000;
+  if (hMode === 'custom') {
+    presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
+  } else if (hMode !== 'auto') {
+    const parts = hMode.split(':').map(Number);
+    presetHeight = Math.round(w * (parts[1] / parts[0]));
+  }
+  
+  const contentHeightLimit = presetHeight - my*2 - 40; 
+
+  let p = [];
+  let pY = 0;
+  
+  currentLines.forEach((ln, idx) => {
+    let isNewPara = false;
+    if (idx > 0) {
+      const prevLine = currentLines[idx-1];
+      if (prevLine.length > 0 && prevLine[prevLine.length-1].text === '\n') {
+        isNewPara = true;
+      } else if (prevLine.length === 0) {
+        isNewPara = true;
+      }
+    }
+    
+    let pSpace = isNewPara ? parseInt(paraSpacingEl.value, 10) : 0;
+    
+    if (hMode !== 'auto' && pY + pSpace + lh > contentHeightLimit && p.length > 0) {
+      pages.push(p);
+      p = [];
+      pY = 0;
+      pSpace = 0; 
+    }
+    
+    pY += pSpace;
+    ln.yOffset = pY; 
+    p.push(ln);
+    pY += lh;
+  });
+  
+  if (p.length > 0) pages.push(p);
+  
+  // 최종 높이 결정
+  let finalCanvasHeight = presetHeight;
+  if (hMode === 'auto') {
+    const srcSize = parseInt(sourceFontSizeEl.value, 10);
+    finalCanvasHeight = pY + (my * 2) + srcSize + 20; 
+    if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
+  }
+  
+  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx, contentWidth, ls };
+}
+
+// 캔버스 그리기
+function draw() {
+  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls } = computePages();
+  
+  if (currentPage >= pages.length) currentPage = pages.length - 1;
+  if (currentPage < 0) currentPage = 0;
+  
+  prevBtn.disabled = (currentPage === 0);
+  nextBtn.disabled = (currentPage >= pages.length - 1);
+  pageIndicator.textContent = `${currentPage + 1} / ${pages.length}`;
+  
+  canvas.width = cWidth * DPR;
+  canvas.height = cHeight * DPR;
+  ctx.scale(DPR, DPR);
+  
+  ctx.fillStyle = bgColorEl.value;
+  ctx.fillRect(0, 0, cWidth, cHeight);
+  
+  const align = alignEl.value;
+  const baseColor = textColorEl.value;
+  const astColor = asteriskColorEl.value;
+  const scaleX = parseInt(scaleXEl.value, 10) / 100;
+  
+  const page = pages[currentPage];
+  if (!page) return;
+  
+  let startY = my + (lh - size)/2 + size; 
+  
+  page.forEach((ln, lIdx) => {
+    let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
+    let y = startY + ln.yOffset;
+    
+    if (ln.length > 0 && ln[ln.length-1].text === ' ') {
+      lnWidth -= ln[ln.length-1].w;
+    }
+    
+    let x = mx;
+    let justifySpace = 0;
+    
+    if (align === 'center') x = mx + (contentWidth - lnWidth)/2;
+    else if (align === 'right') x = mx + contentWidth - lnWidth;
+    else if (align === 'justify' && lIdx !== page.length-1 && lnWidth > 0 && ln.length > 1) {
+      const isParaEnd = (lIdx < page.length - 1 && page[lIdx+1].length === 0) || (ln.length > 0 && ln[ln.length-1].text === '\n');
+      if (!isParaEnd) {
+        let spaces = 0;
+        if (lineBreakModeEl.value === 'char') spaces = ln.length - (ln[ln.length-1].text === '\n' ? 2 : 1);
+        else {
+          ln.forEach(e => { if(e.text === ' ') spaces++; });
+        }
+        if (spaces > 0) justifySpace = (contentWidth - lnWidth) / spaces;
+      }
+    }
+    
+    ln.forEach(data => {
+      if (data.text === '\n') return;
+      
+      const fmt = data.format;
+      ctx.font = getFontStr(fmt, size);
+      
+      if (fmt.highlightColor && !data.isPlaceholder) {
+        ctx.fillStyle = fmt.highlightColor;
+        ctx.fillRect(x, y - size*0.8, data.w + justifySpace, lh * 0.9);
+      }
+      
+      ctx.save();
+      if (data.isPlaceholder) ctx.fillStyle = '#cccccc';
+      else if (fmt.isAsterisk) ctx.fillStyle = astColor;
+      else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
+      else ctx.fillStyle = baseColor;
+
+      ctx.translate(x, y);
+      ctx.scale(scaleX, 1);
+      
+      if (lineBreakModeEl.value === 'char') {
+        ctx.fillText(data.text, 0, 0);
+      } else {
+        if (data.text !== ' ') {
+           let cx = 0;
+           for (let i=0; i<data.text.length; i++) {
+             ctx.fillText(data.text[i], cx, 0);
+             cx += ctx.measureText(data.text[i]).width + ls;
+           }
+        }
+      }
+      ctx.restore();
+      
+      if (fmt.underline && !data.isPlaceholder) {
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = Math.max(1, size * 0.05);
+        ctx.beginPath();
+        ctx.moveTo(x, y + size*0.1);
+        ctx.lineTo(x + data.w, y + size*0.1);
+        ctx.stroke();
+      }
+      
+      x += data.w;
+      if (justifySpace > 0) {
+        if (lineBreakModeEl.value === 'char' || data.text === ' ') x += justifySpace;
+      }
+    });
+  });
+  
+  // 출처 그리기
+  const src = sourceEl.value.trim() || sourceEl.getAttribute('placeholder');
+  const srcSize = parseInt(sourceFontSizeEl.value, 10);
+  ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
+  
+  if (!sourceEl.value.trim()) ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  else ctx.fillStyle = sourceColorEl.value;
+  
+  const tw = ctx.measureText(src).width;
+  ctx.fillText(src, cWidth - mx - tw, cHeight - my + srcSize + 10);
+}
+
+// 이벤트 리스너 세팅
+document.querySelectorAll('input[type="range"]').forEach(input => {
+  if(input.id === 'canvasZoom') return; 
+  input.addEventListener('input', (e) => {
+    const valSpan = el(e.target.id + 'Val');
+    if (valSpan) valSpan.textContent = e.target.value;
     draw();
   });
 });
 
-el('tbHiOn').addEventListener('click', () => {
-  document.execCommand('hiliteColor', false, highlightColorEl.value);
-  draw();
-});
-el('tbFontPretendard').addEventListener('click', () => { document.execCommand('fontName', false, 'Pretendard Variable'); draw(); });
-el('tbFontNoto').addEventListener('click', () => { document.execCommand('fontName', false, 'Noto Serif KR'); draw(); });
-el('tbClear').addEventListener('click', () => { document.execCommand('removeFormat', false, null); draw(); });
-
-// 문장 부호 제거 버튼
-function removePunctuation(node) {
-  if (node.nodeType === 3) {
-    node.nodeValue = node.nodeValue.replace(/[*“”"]/g, '');
-  } else if (node.nodeType === 1) {
-    Array.from(node.childNodes).forEach(removePunctuation);
-  }
-}
-el('tbRemovePunct').addEventListener('click', () => {
-  removePunctuation(editorEl);
-  draw();
+[sourceEl, bgColorEl, textColorEl, fontFamilyEl, lineBreakModeEl, weightEl, alignEl, asteriskColorEl, sourceColorEl].forEach(item => {
+  item.addEventListener('input', draw);
 });
 
-editorEl.addEventListener('input', () => { currentPage = 0; draw(); });
+editorEl.addEventListener('input', draw);
 
-ratioEl.addEventListener('change', () => { currentPage = 0; updateCanvasSize(); });
-zoomEl.addEventListener('input', () => { 
-  el('canvasZoomVal').textContent = zoomEl.value + '%';
-  canvas.style.width = zoomEl.value + '%'; 
+prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; draw(); } });
+nextBtn.addEventListener('click', () => { 
+  const p = computePages().pages.length; 
+  if(currentPage < p - 1) { currentPage++; draw(); } 
 });
 
-prevBtn.addEventListener('click', () => { currentPage = Math.max(0, currentPage - 1); draw(); });
-nextBtn.addEventListener('click', () => { currentPage += 1; draw(); });
-
-// 캔버스 크기 초기화 (고해상도 적용)
-function updateCanvasSize() {
-  const [w, h] = ratioEl.value.split(':').map(Number);
-  canvas.width = CANVAS_WIDTH * DPR;
-  canvas.height = Math.round(CANVAS_WIDTH * (h / w)) * DPR;
-  draw();
-}
-
-// ----------------------------------------------------
-// 3. 텍스트 줄바꿈 및 레이아웃 엔진
-// ----------------------------------------------------
-function wrapTextIndexed(ctx, str, maxWidth, spacing, fontSize, scaleX, extractedFormats) {
-  const lines = [];
-  let paraStart = 0;
-
-  function charWidth(idx, ch) {
-    ctx.font = buildCharFont(idx, fontSize, extractedFormats);
-    // 장평(scaleX)이 적용된 실제 글자 폭 반환
-    return ctx.measureText(ch).width * scaleX;
-  }
-
-  for (let i = 0; i <= str.length; i++) {
-    if (i === str.length || str[i] === '\n') {
-      const paraStr = str.slice(paraStart, i);
-      const wordsRaw = [];
-      let wStart = 0;
-      for (let j = 0; j <= paraStr.length; j++) {
-        if (j === paraStr.length || paraStr[j] === ' ') {
-          wordsRaw.push({ str: paraStr.slice(wStart, j), startIdx: paraStart + wStart });
-          wStart = j + 1;
-        }
-      }
-
-      let curChars = [];
-      let curWidth = 0;
-
-      wordsRaw.forEach((w) => {
-        let wordWidth = 0;
-        for (let k = 0; k < w.str.length; k++) wordWidth += charWidth(w.startIdx + k, w.str[k]) + spacing;
-        if (w.str.length > 0) wordWidth -= spacing;
-
-        const hasContent = curChars.length > 0;
-        const spaceIdx = w.startIdx - 1;
-        const spaceWidth = hasContent ? charWidth(spaceIdx, ' ') + spacing : 0;
-        const projected = curWidth + spaceWidth + wordWidth;
-
-        if (hasContent && projected > maxWidth) {
-          lines.push(curChars);
-          curChars = [];
-          for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
-          curWidth = wordWidth;
-        } else {
-          if (hasContent) {
-            curChars.push({ ch: ' ', idx: spaceIdx });
-            curWidth += spaceWidth;
-          }
-          for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
-          curWidth += wordWidth;
-        }
-      });
-      lines.push(curChars);
-      paraStart = i + 1;
-    }
-  }
-  return lines;
-}
-
-function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLine, fontSize, scaleX, extractedFormats) {
-  const contentWidth = boxRight - boxLeft;
-  const widths = chars.map(c => {
-    ctx.font = buildCharFont(c.idx, fontSize, extractedFormats);
-    return ctx.measureText(c.ch).width * scaleX;
+el('copyBtn').addEventListener('click', () => {
+  canvas.toBlob(blob => {
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      .then(() => alert('클립보드에 복사되었습니다.'))
+      .catch(e => alert('복사실패: ' + e));
   });
-  const lineWidth = widths.reduce((s, w, i) => s + w + (i < widths.length - 1 ? spacing : 0), 0);
-
-  if (alignment === 'justify' && !isLastLine) {
-    const wordGroups = [];
-    let curIdxs = [];
-    chars.forEach((c, i) => {
-      if (c.ch === ' ') { wordGroups.push(curIdxs); curIdxs = []; }
-      else curIdxs.push(i);
-    });
-    wordGroups.push(curIdxs);
-
-    if (wordGroups.length > 1) {
-      const wordWidths = wordGroups.map(g => g.reduce((s, i, gi) => s + widths[i] + (gi < g.length - 1 ? spacing : 0), 0));
-      const totalWordsWidth = wordWidths.reduce((a, b) => a + b, 0);
-      const gapWidth = (contentWidth - totalWordsWidth) / (wordGroups.length - 1);
-      const positions = [];
-      let x = boxLeft;
-      wordGroups.forEach((g, gi) => {
-        g.forEach((charI, k) => {
-          positions.push({ idx: chars[charI].idx, ch: chars[charI].ch, x, width: widths[charI] });
-          x += widths[charI] + (k < g.length - 1 ? spacing : 0);
-        });
-        if (gi < wordGroups.length - 1) x += gapWidth;
-      });
-      return { positions, lineWidth: contentWidth };
-    }
-  }
-
-  let startX = boxLeft;
-  if (alignment === 'right') startX = boxRight - lineWidth;
-  else if (alignment === 'center') startX = boxLeft + (contentWidth - lineWidth) / 2;
-
-  const positions = [];
-  let x = startX;
-  chars.forEach((c, i) => {
-    positions.push({ idx: c.idx, ch: c.ch, x, width: widths[i] });
-    x += widths[i] + (i < chars.length - 1 ? spacing : 0);
-  });
-  return { positions, lineWidth };
-}
-
-// ----------------------------------------------------
-// 4. 캔버스 그리기 함수
-// ----------------------------------------------------
-function draw() {
-  const data = extractDataFromEditor();
-  const text = data.text;
-  const formats = data.formats;
-
-  const baseWidth = CANVAS_WIDTH;
-  const baseHeight = canvas.height / DPR;
-  
-  const bg = bgColorEl.value;
-  const baseColor = data.isPlaceholder ? '#c4c4c4' : textColorEl.value; 
-  const astColor = asteriskColorEl.value;
-
-  const fontSize = parseInt(fontSizeEl.value, 10);
-  const spacing = parseFloat(letterSpacingEl.value);
-  const lineHeightPct = parseInt(lineHeightEl.value, 10);
-  const scaleX = parseInt(scaleXEl.value, 10) / 100;
-  
-  const marginY = parseInt(marginYEl.value, 10);
-  const marginX = parseInt(marginXEl.value, 10);
-  const alignment = alignEl.value;
-  
-  const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
-
-  // 값 텍스트 업데이트
-  el('fontSizeVal').textContent = fontSize;
-  el('letterSpacingVal').textContent = spacing.toFixed(1);
-  el('lineHeightVal').textContent = lineHeightPct;
-  el('scaleXVal').textContent = parseInt(scaleXEl.value, 10);
-  el('marginYVal').textContent = marginY;
-  el('marginXVal').textContent = marginX;
-  el('sourceFontSizeVal').textContent = sourceFontSize;
-
-  const boxLeft = marginX;
-  const boxRight = baseWidth - marginX;
-  const contentWidth = boxRight - boxLeft;
-
-  const rawLines = wrapTextIndexed(ctx, text, contentWidth, spacing, fontSize, scaleX, formats);
-  const lineHeight = fontSize * (lineHeightPct / 100);
-
-  const SOURCE_BOTTOM_OFFSET = 50; 
-  const SOURCE_RIGHT_OFFSET = 50; // 여백 옵션에 영향받지 않는 고정 우측 여백
-  const bottomReserve = SOURCE_BOTTOM_OFFSET + sourceFontSize * 1.5;
-  const availableHeight = Math.max(lineHeight, baseHeight - marginY - bottomReserve);
-  
-  const linesPerPage = Math.max(1, Math.floor(availableHeight / lineHeight));
-  const totalPages = Math.max(1, Math.ceil(rawLines.length / linesPerPage));
-
-  if (currentPage > totalPages - 1) currentPage = totalPages - 1;
-  if (currentPage < 0) currentPage = 0;
-
-  pageIndicator.textContent = `${currentPage + 1} / ${totalPages}`;
-  prevBtn.disabled = currentPage === 0;
-  nextBtn.disabled = currentPage >= totalPages - 1;
-
-  const pageLines = rawLines.slice(currentPage * linesPerPage, (currentPage + 1) * linesPerPage);
-  const isLastPage = currentPage === totalPages - 1;
-
-  // 캔버스 초기화 및 스케일 적용 (DPR 적용)
-  ctx.resetTransform();
-  ctx.scale(DPR, DPR);
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, baseWidth, baseHeight);
-
-  const startY = marginY + lineHeight / 2;
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'left';
-
-  const lineLayouts = pageLines.map((chars, i) => {
-    const globalLineIndex = currentPage * linesPerPage + i;
-    const isLastLineOfQuote = globalLineIndex === rawLines.length - 1;
-    return computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLineOfQuote, fontSize, scaleX, formats);
-  });
-
-  // 1. 형광펜 먼저 그리기
-  if (!data.isPlaceholder) {
-    lineLayouts.forEach((layout, i) => {
-      const y = startY + i * lineHeight;
-      let posIdx = 0;
-      while (posIdx < layout.positions.length) {
-        const fmt = formats[layout.positions[posIdx].idx] || {};
-        if (!fmt.highlightColor) { posIdx++; continue; }
-        let endIdx = posIdx;
-        while (endIdx < layout.positions.length && (formats[layout.positions[endIdx].idx] || {}).highlightColor === fmt.highlightColor) endIdx++;
-        
-        const runStartX = layout.positions[posIdx].x;
-        const last = layout.positions[endIdx - 1];
-        const runEndX = last.x + last.width;
-        
-        ctx.fillStyle = fmt.highlightColor;
-        ctx.globalAlpha = 0.55;
-        const padY = fontSize * 0.15;
-        ctx.fillRect(runStartX - 3, y - lineHeight / 2 + padY, (runEndX - runStartX) + 6, lineHeight - padY * 2);
-        ctx.globalAlpha = 1;
-        posIdx = endIdx;
-      }
-    });
-  }
-
-  // 2. 글자 그리기 (장평 적용)
-  lineLayouts.forEach((layout, i) => {
-    const y = startY + i * lineHeight;
-    layout.positions.forEach(p => {
-      const fmt = formats[p.idx] || {};
-      ctx.font = buildCharFont(p.idx, fontSize, formats);
-      // isPlaceholder일때는 색상 오버라이드 무시
-      ctx.fillStyle = (!data.isPlaceholder && fmt.isAsterisk) ? astColor : baseColor;
-      
-      ctx.save();
-      ctx.scale(scaleX, 1);
-      // X좌표도 scaleX에 맞춰 나누어줘야 제 위치에 그려짐
-      ctx.fillText(p.ch, p.x / scaleX, y);
-      ctx.restore();
-    });
-  });
-
-  // 3. 밑줄 그리기
-  if (!data.isPlaceholder) {
-    lineLayouts.forEach((layout, i) => {
-      const y = startY + i * lineHeight;
-      let posIdx = 0;
-      while (posIdx < layout.positions.length) {
-        const fmt = formats[layout.positions[posIdx].idx] || {};
-        if (!fmt.underline) { posIdx++; continue; }
-        let endIdx = posIdx;
-        while (endIdx < layout.positions.length && (formats[layout.positions[endIdx].idx] || {}).underline) endIdx++;
-        
-        const runStartX = layout.positions[posIdx].x;
-        const last = layout.positions[endIdx - 1];
-        const runEndX = last.x + last.width;
-        
-        ctx.strokeStyle = baseColor;
-        ctx.lineWidth = Math.max(1, fontSize * 0.06);
-        const lineY = y + fontSize * 0.4;
-        ctx.beginPath();
-        ctx.moveTo(runStartX, lineY);
-        ctx.lineTo(runEndX, lineY);
-        ctx.stroke();
-        posIdx = endIdx;
-      }
-    });
-  }
-
-  // 4. 출처 그리기
-  if (isLastPage) {
-    let sourceText = sourceEl.value.trim();
-    if (sourceText === '') {
-      sourceText = sourceEl.getAttribute('placeholder');
-      ctx.fillStyle = '#b3b3b3'; // 예시일 때는 연하게
-    } else {
-      ctx.fillStyle = sourceColorEl.value;
-    }
-    
-    const def = FONT_DEFS[fontFamilyEl.value];
-    ctx.font = `${def.weights.regular} ${sourceFontSize}px ${def.css}`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText(sourceText, baseWidth - SOURCE_RIGHT_OFFSET, baseHeight - SOURCE_BOTTOM_OFFSET);
-  }
-}
-
-// ----------------------------------------------------
-// 이벤트 리스너 일괄 바인딩 및 초기화
-// ----------------------------------------------------
-[bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl, letterSpacingEl, lineHeightEl, scaleXEl, marginYEl, marginXEl, asteriskColorEl]
-  .forEach(node => {
-    node.addEventListener('input', () => { currentPage = 0; draw(); });
-    node.addEventListener('change', () => { currentPage = 0; draw(); });
-  });
-
-[sourceEl, sourceFontSizeEl, sourceColorEl].forEach(node => {
-  node.addEventListener('input', draw);
 });
 
-// 이미지 저장
 el('downloadBtn').addEventListener('click', () => {
   const link = document.createElement('a');
-  link.download = `quote-page${currentPage + 1}.png`;
-  link.href = canvas.toDataURL('image/png');
+  link.download = `page_${currentPage + 1}.png`;
+  link.href = canvas.toDataURL();
   link.click();
 });
 
-// 클립보드 복사
-el('copyBtn').addEventListener('click', () => {
-  canvas.toBlob(blob => {
-    if (!blob) return alert('이미지 생성 실패');
-    const item = new ClipboardItem({ 'image/png': blob });
-    navigator.clipboard.write([item])
-      .then(() => alert('현재 페이지가 클립보드에 복사되었습니다!'))
-      .catch(err => alert('복사 실패: ' + err));
+// 패널 크기 조절 (PC)
+const resizer = el('resizer');
+const panelCol = el('panelCol');
+let isResizing = false;
+
+resizer.addEventListener('mousedown', () => {
+  isResizing = true;
+  resizer.classList.add('resizing');
+  document.body.style.cursor = 'col-resize';
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isResizing) return;
+  const newWidth = document.body.clientWidth - e.clientX;
+  if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  if (isResizing) {
+    isResizing = false;
+    resizer.classList.remove('resizing');
+    document.body.style.cursor = 'default';
+  }
+});
+
+window.addEventListener('load', () => { draw(); });
+</script>
+</body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i'm feeling @7ucky!</title>
+<!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap');
+
+  * { box-sizing: border-box; }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    background: #efefef;
+    color: #111;
+  }
+
+  /* 메인 레이아웃 */
+  main {
+    display: flex;
+    flex-direction: column;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100vh;
+  }
+
+  /* 왼쪽: 미리보기(캔버스) 영역 컨테이너 */
+  #previewCol {
+    order: 0;
+    background: #efefef;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 실제 스크롤되는 영역 */
+  #scrollArea {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 10px 120px;
+  }
+
+  /* 종이 느낌의 캔버스 요소 */
+  canvas {
+    display: block;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    width: 460px;
+    max-width: 95vw;
+    height: auto;
+    transition: width 0.05s ease-out;
+  }
+
+  /* 절대 안 움직이는 하단 컨트롤 바 */
+  .bottom-bar {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    flex-wrap: nowrap;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .bottom-bar .divider {
+    width: 1px;
+    height: 14px;
+    background: #e2e2e2;
+  }
+
+  #pageNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  #pageNav button {
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #333;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  #pageNav button:hover:not(:disabled) { background: #f5f5f5; }
+  #pageNav button:disabled { opacity: 0.35; cursor: default; }
+
+  /* 확대/축소 바 디자인 */
+  #zoomControl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #777;
+    user-select: none;
+  }
+  #zoomControl input[type="range"] {
+    width: 70px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #eaeaea;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  #zoomControl input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #aaa;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #zoomControl input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #aaa;
+    cursor: pointer;
+    border: none;
+  }
+
+  #resizer { display: none; }
+
+  /* 오른쪽: 옵션 패널 영역 */
+  #panelCol { 
+    order: 2; 
+    padding: 20px 16px; 
+    background: #fff; 
+    border-top: 1px solid #eee;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .panel { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column;}
+
+  /* PC버전 레이아웃 */
+  @media (min-width: 900px) {
+    main { flex-direction: row; align-items: stretch; }
+    
+    #resizer {
+      order: 1;
+      display: block;
+      width: 8px;
+      background: #e0e0e0;
+      cursor: col-resize;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    #resizer:hover, #resizer.resizing { background: #bbb; }
+
+    #panelCol {
+      order: 2;
+      width: 440px;
+      min-width: 300px;
+      max-width: 800px;
+      flex: none;
+      height: 100vh;
+      border-left: none;
+      border-top: none;
+      padding: 28px 24px;
+    }
+    .panel { max-width: none; }
+  }
+
+  /* 아코디언 패널 */
+  details.panel-section {
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid #e2e2e2;
+  }
+  details.panel-section summary {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    margin: 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  details.panel-section summary::-webkit-details-marker { display: none; }
+  details.panel-section summary::after {
+    content: '';
+    display: block;
+    width: 6px; height: 6px;
+    border-right: 1.5px solid #bbb;
+    border-bottom: 1.5px solid #bbb;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease, margin 0.2s ease;
+    margin-right: 4px; margin-bottom: 2px;
+  }
+  details.panel-section[open] summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
+
+  .details-content { padding: 16px 0 0 0; }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  
+  .field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #777;
+  }
+
+  .field input[type=text],
+  .field input[type=number],
+  .field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #111;
+    font-size: 14px;
+    font-family: inherit;
+    border-radius: 4px;
+  }
+
+  .field select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #999 50%), linear-gradient(135deg, #999 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .field input[type=color] {
+    width: 100%; height: 38px; border: 1px solid #ddd; padding: 2px;
+    background: #fff; cursor: pointer; border-radius: 4px;
+  }
+
+  .swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .swatch {
+    width: 28px; height: 28px; border: 1px solid #ccc;
+    cursor: pointer; border-radius: 4px; padding: 0;
+  }
+
+  .field input[type=range]:not(#canvasZoom) { width: 100%; accent-color: #111; margin-top: 4px; }
+  .hint { font-size: 11px; color: #888; margin: -4px 0 8px; line-height: 1.4; }
+
+  /* 에디터 툴바 */
+  .editor-toolbar {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+    background: #fcfcfc; padding: 8px; border: 1px solid #ddd;
+    border-bottom: none; border-radius: 4px 4px 0 0;
+    align-items: center;
+  }
+
+  .tbtn {
+    padding: 6px 10px; border: 1px solid #ccc; background: #fff;
+    color: #333; font-size: 12px; cursor: pointer; font-family: inherit;
+    border-radius: 3px; transition: 0.2s;
+  }
+  .tbtn:hover { background: #f2f2f2; }
+  .tbtn.danger { color: #d44; border-color: #f0caca; }
+  .tbtn.danger:hover { background: #fdf2f2; }
+
+  /* 통합 에디터 */
+  #editor {
+    width: 100%; min-height: 140px; /* max-height 제거하여 자유로운 세로 확장 허용 */
+    padding: 12px 14px; border: 1px solid #ddd; border-radius: 0 0 4px 4px;
+    background: #fff; color: #111; font-size: 14px; font-family: inherit;
+    line-height: 1.6; outline: none; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    resize: vertical; /* 세로 폭 드래그로 조절 가능하도록 설정 */
+  }
+  #editor:empty::before {
+    content: attr(data-placeholder); color: #aaa; pointer-events: none; display: block;
+  }
+  #editor:focus { border-color: #999; }
+
+  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .btn-primary, .btn-secondary {
+    width: 100%; padding: 14px; border-radius: 4px; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: inherit; transition: 0.2s;
+  }
+  .btn-primary { border: 1px solid #111; background: #111; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-secondary { border: 1px solid #ccc; background: #fff; color: #111; }
+  .btn-secondary:hover { background: #f4f4f4; border-color: #111; }
+
+  .footer-credit { margin-top: 24px; text-align: center; font-size: 12px; color: #ccc; font-weight: 300; padding-bottom: 20px;}
+</style>
+</head>
+<body>
+
+<main>
+  <!-- 캔버스 및 절대 고정 컨트롤 바 영역 -->
+  <div id="previewCol">
+    <div id="scrollArea">
+      <canvas id="canvas"></canvas>
+    </div>
+    
+    <div class="bottom-bar">
+      <div id="pageNav">
+        <button id="prevBtn">&larr; 이전</button>
+        <span id="pageIndicator">1 / 1</span>
+        <button id="nextBtn">다음 &rarr;</button>
+      </div>
+      <div class="divider"></div>
+      <div id="zoomControl">
+        <span>🔍 배율</span>
+        <input type="range" id="canvasZoom" min="40" max="160" step="5" value="100">
+        <span id="canvasZoomVal" style="width:36px; text-align:right;">100%</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="resizer"></div>
+
+  <!-- 설정 패널 영역 -->
+  <div id="panelCol">
+    <div class="panel">
+
+      <!-- 캔버스 옵션 -->
+      <details class="panel-section" open>
+        <summary class="section-title">캔버스 설정</summary>
+        <div class="details-content">
+          <div class="row2">
+            <div class="field">
+              <label>가로 폭 (px)</label>
+              <input type="number" id="canvasWidth" value="800">
+            </div>
+            <div class="field">
+              <label>높이 설정</label>
+              <select id="heightMode">
+                <option value="4:5">비율 (4:5)</option>
+                <option value="3:4">비율 (3:4)</option>
+                <option value="1:1">비율 (1:1)</option>
+                <option value="auto">내용에 맞게 자동 (1장)</option>
+                <option value="custom">세로 높이 직접 입력</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="field" id="customHeightWrap" style="display: none;">
+            <label>세로 높이 (px)</label>
+            <input type="number" id="canvasHeight" value="1000">
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>위·아래 여백 (<span id="marginYVal">70</span>px)</label>
+              <input type="range" id="marginY" min="0" max="200" step="5" value="70">
+            </div>
+            <div class="field">
+              <label>양쪽 여백 (<span id="marginXVal">70</span>px)</label>
+              <input type="range" id="marginX" min="0" max="200" step="5" value="70">
+            </div>
+          </div>
+          <div class="field">
+            <label>배경색</label>
+            <input type="color" id="bgColor" value="#ffffff">
+          </div>
+        </div>
+      </details>
+
+      <!-- 본문 기본값 -->
+      <details class="panel-section" open>
+        <summary class="section-title">본문 기본값</summary>
+        <div class="details-content">
+          <div class="field">
+            <label>기본 폰트</label>
+            <select id="fontFamily">
+              <option value="pretendard">Pretendard Variable</option>
+              <option value="noto">Noto Serif KR (명조체)</option>
+            </select>
+          </div>
+          
+          <div class="row2">
+            <div class="field">
+              <label>줄바꿈 기준</label>
+              <select id="lineBreakMode">
+                <option value="word" selected>단어 단위 (Keep-all)</option>
+                <option value="char">글자 단위</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>정렬</label>
+              <select id="align">
+                <option value="left" selected>왼쪽</option>
+                <option value="center">가운데</option>
+                <option value="right">오른쪽</option>
+                <option value="justify">양쪽 정렬</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="row2">
+            <div class="field">
+              <label>굵기</label>
+              <select id="weight">
+                <option value="thin">Thin (얇게)</option>
+                <option value="regular" selected>Regular (보통)</option>
+                <option value="medium">Medium (중간)</option>
+                <option value="bold">Bold (굵게)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>기본 글자색</label>
+              <input type="color" id="textColor" value="#000000">
+            </div>
+          </div>
+          
+          <div class="field">
+            <label>글자 크기 (<span id="fontSizeVal">20</span>px)</label>
+            <input type="range" id="fontSize" min="10" max="90" value="20">
+          </div>
+          
+          <div class="row2">
+            <div class="field">
+              <label>줄간격 (<span id="lineHeightVal">150</span>%)</label>
+              <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
+            </div>
+            <div class="field">
+              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
+              <input type="range" id="paraSpacing" min="0" max="100" step="5" value="0">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>글자 간격 (<span id="letterSpacingVal">0</span>px)</label>
+              <input type="range" id="letterSpacing" min="-5" max="10" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label>장평 (<span id="scaleXVal">100</span>%)</label>
+              <input type="range" id="scaleX" min="80" max="120" step="1" value="100">
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 본문 편집 및 서식 -->
+      <details class="panel-section" open>
+        <summary class="section-title">본문 편집 및 서식</summary>
+        <div class="details-content">
+          <div class="hint">텍스트를 드래그한 뒤 아래 툴바를 누르면 편집창에 바로 적용됩니다.</div>
+          
+          <div class="editor-toolbar">
+            <button type="button" class="tbtn" id="tbBold"><b>B</b></button>
+            <button type="button" class="tbtn" id="tbItalic"><i>I</i></button>
+            <button type="button" class="tbtn" id="tbUnderline"><u>U</u></button>
+            
+            <div style="display: flex; gap: 4px; align-items: center; border-left: 1px solid #ddd; border-right: 1px solid #ddd; padding: 0 6px; margin: 0 2px;">
+              <button type="button" class="tbtn" id="tbApplyColor">글자색 적용</button>
+              <input type="color" id="inlineColorPicker" value="#358AE8" title="부분 글자색 선택" style="width: 24px; height: 26px; border: 1px solid #ccc; padding: 0; cursor: pointer; border-radius: 3px; background: #fff;">
+            </div>
+
+            <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
+            <button type="button" class="tbtn" id="tbFontPretendard">Pretendard</button>
+            <button type="button" class="tbtn" id="tbFontNoto">Noto Serif</button>
+            <button type="button" class="tbtn danger" id="tbClear">서식 모두 지우기</button>
+          </div>
+
+          <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
+          
+          <div class="row2" style="margin-top: 14px;">
+            <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우기</button>
+            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
+          </div>
+
+          <div class="field" style="margin-top: 14px;">
+            <label>형광펜 색상 (툴바의 '형광펜 적용' 버튼 클릭 시 적용)</label>
+            <input type="color" id="highlightColor" value="#FFE0F9">
+            <div class="swatches">
+              <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
+              <button type="button" class="swatch" data-color="#DBF7FF" style="background:#DBF7FF"></button>
+              <button type="button" class="swatch" data-color="#DBFFDF" style="background:#DBFFDF"></button>
+              <button type="button" class="swatch" data-color="#FCFFBF" style="background:#FCFFBF"></button>
+              <button type="button" class="swatch" data-color="#EDEDED" style="background:#EDEDED"></button>
+            </div>
+          </div>
+          
+          <div class="field">
+            <label>* * (별표) 안의 내용 자동 변경 색상</label>
+            <input type="color" id="asteriskColor" value="#777777">
+          </div>
+        </div>
+      </details>
+
+      <!-- 출처 -->
+      <details class="panel-section">
+        <summary class="section-title">출처 표시</summary>
+        <div class="details-content">
+          <div class="hint">모든 페이지 우측 하단에 공통으로 표시됩니다.</div>
+          <div class="field">
+            <label>출처 / 이름</label>
+            <input type="text" id="source" placeholder="@7ucky" value="">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>글자 크기 (<span id="sourceFontSizeVal">13</span>px)</label>
+              <input type="range" id="sourceFontSize" min="8" max="40" value="13">
+            </div>
+            <div class="field">
+              <label>글자색</label>
+              <input type="color" id="sourceColor" value="#666666">
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <div class="action-btns">
+        <button id="copyBtn" class="btn-secondary">현재 페이지 클립보드 복사</button>
+        <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
+      </div>
+
+      <div class="footer-credit">by @7ucky</div>
+    </div>
+  </div>
+</main>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const el = id => document.getElementById(id);
+
+// 설정 요소들
+const editorEl = el('editor');
+const sourceEl = el('source');
+const bgColorEl = el('bgColor');
+const textColorEl = el('textColor');
+const fontSizeEl = el('fontSize');
+const fontFamilyEl = el('fontFamily');
+const lineBreakModeEl = el('lineBreakMode');
+const weightEl = el('weight');
+const alignEl = el('align');
+const highlightColorEl = el('highlightColor');
+const inlineColorPickerEl = el('inlineColorPicker');
+const asteriskColorEl = el('asteriskColor');
+const letterSpacingEl = el('letterSpacing');
+const paraSpacingEl = el('paraSpacing'); 
+const lineHeightEl = el('lineHeight');
+const scaleXEl = el('scaleX');
+const sourceFontSizeEl = el('sourceFontSize');
+const sourceColorEl = el('sourceColor');
+const marginYEl = el('marginY');
+const marginXEl = el('marginX');
+const zoomEl = el('canvasZoom');
+
+// 크기 설정 요소들
+const canvasWidthEl = el('canvasWidth');
+const heightModeEl = el('heightMode');
+const canvasHeightEl = el('canvasHeight');
+const customHeightWrap = el('customHeightWrap');
+
+const prevBtn = el('prevBtn');
+const nextBtn = el('nextBtn');
+const pageIndicator = el('pageIndicator');
+
+// 폰트 정의
+const FONT_DEFS = {
+  pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
+  noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
+};
+
+let currentPage = 0;
+const DPR = 3; 
+const BASE_PREVIEW_WIDTH = 460; 
+
+function makeDefaultFormat() { 
+  return { bold: false, italic: false, underline: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false }; 
+}
+
+// 높이 옵션 변경 감지
+heightModeEl.addEventListener('change', (e) => {
+  customHeightWrap.style.display = (e.target.value === 'custom') ? 'block' : 'none';
+  currentPage = 0; 
+  draw();
+});
+[canvasWidthEl, canvasHeightEl].forEach(item => item.addEventListener('input', draw));
+
+// 시각적 확대/축소
+zoomEl.addEventListener('input', () => { 
+  const zoomPct = parseInt(zoomEl.value, 10);
+  el('canvasZoomVal').textContent = zoomPct + '%';
+  canvas.style.width = Math.round(BASE_PREVIEW_WIDTH * (zoomPct / 100)) + 'px';
+});
+
+// 에디터 툴바 기능
+el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); draw(); });
+el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); draw(); });
+el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('underline'); draw(); });
+el('tbFontPretendard').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('fontName', false, 'Pretendard'); draw(); });
+el('tbFontNoto').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('fontName', false, 'Noto Serif KR'); draw(); });
+el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); draw(); });
+
+el('tbApplyColor').addEventListener('mousedown', e => { 
+  e.preventDefault(); document.execCommand('foreColor', false, inlineColorPickerEl.value); draw(); 
+});
+
+el('tbHiOn').addEventListener('mousedown', e => {
+  e.preventDefault();
+  const c = highlightColorEl.value;
+  document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
+  draw();
+});
+
+document.querySelectorAll('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
+});
+
+function removeAsterisks(node) {
+  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/\*/g, '');
+  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeAsterisks);
+}
+el('tbRemoveAst').addEventListener('click', () => { removeAsterisks(editorEl); draw(); });
+
+function removeQuotes(node) {
+  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
+  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeQuotes);
+}
+el('tbRemoveQuote').addEventListener('click', () => { removeQuotes(editorEl); draw(); });
+
+// 에디터 텍스트 및 서식 토큰 추출
+function extractDataFromEditor() {
+  const tokens = [];
+  const isEmpty = editorEl.textContent.trim() === '';
+  const rootFormat = makeDefaultFormat();
+  
+  if (isEmpty) {
+    const phText = editorEl.getAttribute('data-placeholder') || '';
+    tokens.push({ text: phText, format: rootFormat, isPlaceholder: true });
+    return tokens;
+  }
+
+  function traverse(node, currentFmt, inAst) {
+    if (node.nodeType === 3) { 
+      let text = node.nodeValue;
+      if (!text) return;
+      const lines = text.split('\n');
+      lines.forEach((lineText, idx) => {
+        let remaining = lineText;
+        while(remaining.length > 0) {
+          if(!inAst) {
+            let nextAstIdx = remaining.indexOf('*');
+            if(nextAstIdx === -1) {
+              if (remaining.length > 0) tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
+              break;
+            } else {
+              if(nextAstIdx > 0) tokens.push({ text: remaining.substring(0, nextAstIdx), format: {...currentFmt, isAsterisk: false}, isPlaceholder: false });
+              inAst = true;
+              remaining = remaining.substring(nextAstIdx); 
+            }
+          } else {
+            let nextAstIdx = remaining.indexOf('*', 1);
+            if(nextAstIdx === -1) {
+              tokens.push({ text: remaining, format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
+              break;
+            } else {
+              tokens.push({ text: remaining.substring(0, nextAstIdx + 1), format: {...currentFmt, isAsterisk: true}, isPlaceholder: false });
+              inAst = false;
+              remaining = remaining.substring(nextAstIdx + 1);
+            }
+          }
+        }
+        if (idx < lines.length - 1) tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
+      });
+      return;
+    }
+    
+    if (node.nodeType === 1) {
+      if (node.tagName === 'BR' && node !== editorEl.lastChild) {
+        tokens.push({ text: '\n', format: {...currentFmt}, isPlaceholder: false });
+        return;
+      }
+      const newFmt = { ...currentFmt };
+      if (['B', 'STRONG'].includes(node.tagName) || node.style.fontWeight === 'bold' || parseInt(node.style.fontWeight) >= 700) newFmt.bold = true;
+      if (['I', 'EM'].includes(node.tagName) || node.style.fontStyle === 'italic') newFmt.italic = true;
+      if (['U'].includes(node.tagName) || node.style.textDecoration.includes('underline')) newFmt.underline = true;
+      
+      let fg = node.style ? node.style.color : null;
+      if (!fg && node.tagName === 'FONT' && node.hasAttribute('color')) fg = node.getAttribute('color');
+      if (fg && fg !== '' && fg !== 'inherit') newFmt.inlineColor = fg;
+      
+      let bg = node.style.backgroundColor || node.style.background;
+      if (bg) {
+        let bgl = bg.toLowerCase();
+        if (bgl.includes('rgba') && (bgl.includes(', 0)') || bgl.replace(/ /g,'').includes(',0)'))) bg = null;
+        else if (bgl === 'transparent') bg = null;
+      }
+      if (bg) newFmt.highlightColor = bg;
+      
+      let ft = node.style.fontFamily;
+      if (!ft && node.tagName === 'FONT' && node.hasAttribute('face')) ft = node.getAttribute('face');
+      if (ft) {
+        if (ft.toLowerCase().includes('pretendard')) newFmt.font = 'pretendard';
+        else if (ft.toLowerCase().includes('noto')) newFmt.font = 'noto';
+      }
+      
+      let ds = window.getComputedStyle(node).display;
+      if (ds === 'block' && node !== editorEl && node !== editorEl.firstChild) {
+        tokens.push({ text: '\n', format: {...newFmt}, isPlaceholder: false });
+      }
+      Array.from(node.childNodes).forEach(child => traverse(child, newFmt, inAst));
+    }
+  }
+
+  traverse(editorEl, rootFormat, false);
+  return tokens;
+}
+
+function getFontStr(fmt, size) {
+  let fontId = fmt.font || fontFamilyEl.value;
+  let def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
+  let wId = weightEl.value;
+  if (fmt.bold) wId = 'bold';
+  let wNum = def.weights[wId] || 400;
+  let st = fmt.italic ? "italic " : "";
+  return `${st}${wNum} ${size}px ${def.css}`;
+}
+
+// 텍스트 너비 측정
+function processTokens(tokens, size, ls) {
+  let flat = [];
+  tokens.forEach(tok => {
+    if (tok.text === '\n') {
+      flat.push(tok);
+    } else {
+      ctx.font = getFontStr(tok.format, size);
+      
+      if (lineBreakModeEl.value === 'char') {
+        for(let i=0; i<tok.text.length; i++) {
+          let char = tok.text[i];
+          let w = ctx.measureText(char).width + ls;
+          flat.push({ text: char, format: tok.format, w: w, isPlaceholder: tok.isPlaceholder });
+        }
+      } else {
+        let words = tok.text.split(/(\s+)/);
+        words.forEach(wrd => {
+          if (!wrd) return;
+          if (wrd.match(/^\s+$/)) {
+            for(let i=0; i<wrd.length; i++) {
+              flat.push({ text: wrd[i], format: tok.format, w: ctx.measureText(wrd[i]).width, isPlaceholder: tok.isPlaceholder });
+            }
+          } else {
+            let mw = ctx.measureText(wrd).width;
+            mw += ls * (wrd.length - 1);
+            flat.push({ text: wrd, format: tok.format, w: mw, isPlaceholder: tok.isPlaceholder, length: wrd.length });
+          }
+        });
+      }
+    }
+  });
+  return flat;
+}
+
+// 페이지 레이아웃 계산
+function computePages() {
+  const w = parseInt(canvasWidthEl.value, 10) || 800;
+  const hMode = heightModeEl.value;
+  const my = parseInt(marginYEl.value, 10);
+  const mx = parseInt(marginXEl.value, 10);
+  
+  const contentWidth = w - mx*2;
+  const size = parseInt(fontSizeEl.value, 10);
+  const lh = (parseInt(lineHeightEl.value, 10) / 100) * size;
+  const ls = parseFloat(letterSpacingEl.value);
+  
+  const tokens = extractDataFromEditor();
+  const els = processTokens(tokens, size, ls);
+  
+  const pages = [];
+  let currentLines = [];
+  let currentLine = [];
+  let currentX = 0;
+  
+  function breakLine() {
+    currentLines.push(currentLine);
+    currentLine = [];
+    currentX = 0;
+  }
+  
+  els.forEach(el => {
+    if (el.text === '\n') {
+      currentLine.push(el);
+      breakLine();
+      return;
+    }
+    if (currentX + el.w > contentWidth && currentLine.length > 0) {
+      if (lineBreakModeEl.value === 'word' && el.text !== ' ') {
+        breakLine();
+        currentLine.push(el);
+        currentX += el.w;
+      } else {
+        breakLine();
+        if (el.text !== ' ') {
+          currentLine.push(el);
+          currentX += el.w;
+        }
+      }
+    } else {
+      currentLine.push(el);
+      currentX += el.w;
+    }
+  });
+  
+  if (currentLine.length > 0) currentLines.push(currentLine);
+  if (currentLines.length === 0) currentLines.push([]);
+
+  // 높이 계산 준비
+  let presetHeight = 1000;
+  if (hMode === 'custom') {
+    presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
+  } else if (hMode !== 'auto') {
+    const parts = hMode.split(':').map(Number);
+    presetHeight = Math.round(w * (parts[1] / parts[0]));
+  }
+  
+  const contentHeightLimit = presetHeight - my*2 - 40; 
+
+  let p = [];
+  let pY = 0;
+  
+  currentLines.forEach((ln, idx) => {
+    let isNewPara = false;
+    if (idx > 0) {
+      const prevLine = currentLines[idx-1];
+      if (prevLine.length > 0 && prevLine[prevLine.length-1].text === '\n') {
+        isNewPara = true;
+      } else if (prevLine.length === 0) {
+        isNewPara = true;
+      }
+    }
+    
+    let pSpace = isNewPara ? parseInt(paraSpacingEl.value, 10) : 0;
+    
+    if (hMode !== 'auto' && pY + pSpace + lh > contentHeightLimit && p.length > 0) {
+      pages.push(p);
+      p = [];
+      pY = 0;
+      pSpace = 0; 
+    }
+    
+    pY += pSpace;
+    ln.yOffset = pY; 
+    p.push(ln);
+    pY += lh;
+  });
+  
+  if (p.length > 0) pages.push(p);
+  
+  // 최종 높이 결정
+  let finalCanvasHeight = presetHeight;
+  if (hMode === 'auto') {
+    const srcSize = parseInt(sourceFontSizeEl.value, 10);
+    finalCanvasHeight = pY + (my * 2) + srcSize + 20; 
+    if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
+  }
+  
+  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx, contentWidth, ls };
+}
+
+// 캔버스 그리기
+function draw() {
+  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls } = computePages();
+  
+  if (currentPage >= pages.length) currentPage = pages.length - 1;
+  if (currentPage < 0) currentPage = 0;
+  
+  prevBtn.disabled = (currentPage === 0);
+  nextBtn.disabled = (currentPage >= pages.length - 1);
+  pageIndicator.textContent = `${currentPage + 1} / ${pages.length}`;
+  
+  canvas.width = cWidth * DPR;
+  canvas.height = cHeight * DPR;
+  ctx.scale(DPR, DPR);
+  
+  ctx.fillStyle = bgColorEl.value;
+  ctx.fillRect(0, 0, cWidth, cHeight);
+  
+  const align = alignEl.value;
+  const baseColor = textColorEl.value;
+  const astColor = asteriskColorEl.value;
+  const scaleX = parseInt(scaleXEl.value, 10) / 100;
+  
+  const page = pages[currentPage];
+  if (!page) return;
+  
+  let startY = my + (lh - size)/2 + size; 
+  
+  page.forEach((ln, lIdx) => {
+    let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
+    let y = startY + ln.yOffset;
+    
+    if (ln.length > 0 && ln[ln.length-1].text === ' ') {
+      lnWidth -= ln[ln.length-1].w;
+    }
+    
+    let x = mx;
+    let justifySpace = 0;
+    
+    if (align === 'center') x = mx + (contentWidth - lnWidth)/2;
+    else if (align === 'right') x = mx + contentWidth - lnWidth;
+    else if (align === 'justify' && lIdx !== page.length-1 && lnWidth > 0 && ln.length > 1) {
+      const isParaEnd = (lIdx < page.length - 1 && page[lIdx+1].length === 0) || (ln.length > 0 && ln[ln.length-1].text === '\n');
+      if (!isParaEnd) {
+        let spaces = 0;
+        if (lineBreakModeEl.value === 'char') spaces = ln.length - (ln[ln.length-1].text === '\n' ? 2 : 1);
+        else {
+          ln.forEach(e => { if(e.text === ' ') spaces++; });
+        }
+        if (spaces > 0) justifySpace = (contentWidth - lnWidth) / spaces;
+      }
+    }
+    
+    ln.forEach(data => {
+      if (data.text === '\n') return;
+      
+      const fmt = data.format;
+      ctx.font = getFontStr(fmt, size);
+      
+      if (fmt.highlightColor && !data.isPlaceholder) {
+        ctx.fillStyle = fmt.highlightColor;
+        ctx.fillRect(x, y - size*0.8, data.w + justifySpace, lh * 0.9);
+      }
+      
+      ctx.save();
+      if (data.isPlaceholder) ctx.fillStyle = '#cccccc';
+      else if (fmt.isAsterisk) ctx.fillStyle = astColor;
+      else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
+      else ctx.fillStyle = baseColor;
+
+      ctx.translate(x, y);
+      ctx.scale(scaleX, 1);
+      
+      if (lineBreakModeEl.value === 'char') {
+        ctx.fillText(data.text, 0, 0);
+      } else {
+        if (data.text !== ' ') {
+           let cx = 0;
+           for (let i=0; i<data.text.length; i++) {
+             ctx.fillText(data.text[i], cx, 0);
+             cx += ctx.measureText(data.text[i]).width + ls;
+           }
+        }
+      }
+      ctx.restore();
+      
+      if (fmt.underline && !data.isPlaceholder) {
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = Math.max(1, size * 0.05);
+        ctx.beginPath();
+        ctx.moveTo(x, y + size*0.1);
+        ctx.lineTo(x + data.w, y + size*0.1);
+        ctx.stroke();
+      }
+      
+      x += data.w;
+      if (justifySpace > 0) {
+        if (lineBreakModeEl.value === 'char' || data.text === ' ') x += justifySpace;
+      }
+    });
+  });
+  
+  // 출처 그리기
+  const src = sourceEl.value.trim() || sourceEl.getAttribute('placeholder');
+  const srcSize = parseInt(sourceFontSizeEl.value, 10);
+  ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
+  
+  if (!sourceEl.value.trim()) ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  else ctx.fillStyle = sourceColorEl.value;
+  
+  const tw = ctx.measureText(src).width;
+  ctx.fillText(src, cWidth - mx - tw, cHeight - my + srcSize + 10);
+}
+
+// 이벤트 리스너 세팅
+document.querySelectorAll('input[type="range"]').forEach(input => {
+  if(input.id === 'canvasZoom') return; 
+  input.addEventListener('input', (e) => {
+    const valSpan = el(e.target.id + 'Val');
+    if (valSpan) valSpan.textContent = e.target.value;
+    draw();
   });
 });
 
-async function loadFontsAndDraw() {
-  try {
-    await Promise.all([
-      document.fonts.load("100 16px 'Pretendard Variable'"),
-      document.fonts.load("400 16px 'Pretendard Variable'"),
-      document.fonts.load("500 16px 'Pretendard Variable'"),
-      document.fonts.load("700 16px 'Pretendard Variable'"),
-      document.fonts.load("300 16px 'Noto Serif KR'"),
-      document.fonts.load("400 16px 'Noto Serif KR'"),
-      document.fonts.load("500 16px 'Noto Serif KR'"),
-      document.fonts.load("700 16px 'Noto Serif KR'"),
-    ]);
-  } catch (e) { console.warn('폰트 로드 경고', e); }
-  updateCanvasSize();
-}
+[sourceEl, bgColorEl, textColorEl, fontFamilyEl, lineBreakModeEl, weightEl, alignEl, asteriskColorEl, sourceColorEl].forEach(item => {
+  item.addEventListener('input', draw);
+});
 
-loadFontsAndDraw();
+editorEl.addEventListener('input', draw);
+
+prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; draw(); } });
+nextBtn.addEventListener('click', () => { 
+  const p = computePages().pages.length; 
+  if(currentPage < p - 1) { currentPage++; draw(); } 
+});
+
+el('copyBtn').addEventListener('click', () => {
+  canvas.toBlob(blob => {
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      .then(() => alert('클립보드에 복사되었습니다.'))
+      .catch(e => alert('복사실패: ' + e));
+  });
+});
+
+el('downloadBtn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = `page_${currentPage + 1}.png`;
+  link.href = canvas.toDataURL();
+  link.click();
+});
+
+// 패널 크기 조절 (PC)
+const resizer = el('resizer');
+const panelCol = el('panelCol');
+let isResizing = false;
+
+resizer.addEventListener('mousedown', () => {
+  isResizing = true;
+  resizer.classList.add('resizing');
+  document.body.style.cursor = 'col-resize';
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isResizing) return;
+  const newWidth = document.body.clientWidth - e.clientX;
+  if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  if (isResizing) {
+    isResizing = false;
+    resizer.classList.remove('resizing');
+    document.body.style.cursor = 'default';
+  }
+});
+
+window.addEventListener('load', () => { draw(); });
 </script>
-
 </body>
 </html>
