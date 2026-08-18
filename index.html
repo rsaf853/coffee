@@ -4,26 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i'm feeling @7ucky!</title>
+<!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <style>
-  @font-face {
-    font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPub Batang_Pro Light.otf') format('opentype');
-    font-weight: 300;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPub Batang_Pro Medium.otf') format('opentype');
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPub Batang_Pro Bold.otf') format('opentype');
-    font-weight: 700;
-    font-display: swap;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap');
 
   * { box-sizing: border-box; }
 
@@ -34,20 +18,16 @@
     color: #111;
   }
 
-  header {
-    padding: 20px 24px 12px;
-    font-size: 13px;
-    color: #999;
-    letter-spacing: 0.02em;
-  }
-
+  /* 메인 레이아웃 */
   main {
     display: flex;
     flex-direction: column;
-    max-width: 1300px;
+    max-width: 1400px;
     margin: 0 auto;
+    min-height: 100vh;
   }
 
+  /* 미리보기(캔버스) 영역 */
   #previewCol {
     order: 0;
     background: #efefef;
@@ -55,22 +35,27 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 60px 20px 40px;
+    padding: 20px 10px;
     gap: 16px;
+    flex: 1;
+    overflow-x: hidden;
   }
 
+  /* 캔버스 감싸는 박스 - 확대/축소 가능하게 설정 */
   #canvasWrap {
-    border: 1px solid #ddd;
+    border: 1px solid #ccc;
     line-height: 0;
     background: #fff;
+    overflow: auto;
+    max-width: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   }
 
   canvas {
     display: block;
-    max-width: 520px;
-    max-height: 82vh;
-    width: auto;
+    width: 100%; 
     height: auto;
+    transform-origin: top center;
   }
 
   #pageNav {
@@ -89,29 +74,73 @@
     cursor: pointer;
     font-family: inherit;
     font-size: 13px;
+    border-radius: 4px;
   }
-
   #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
-  #panelCol { order: 1; padding: 28px 24px 60px; background: #fff; }
+  /* 옵션 조절 패널 영역 */
+  #panelCol { 
+    order: 1; 
+    padding: 16px 16px 60px; 
+    background: #fff; 
+    border-top: 1px solid #eee;
+  }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; }
 
+  /* PC버전 레이아웃 (패널 고정 위치) */
   @media (min-width: 900px) {
     main { flex-direction: row; align-items: stretch; }
-    #previewCol { order: 0; flex: 1; padding: 40px; }
+    #previewCol { padding: 40px; }
     #panelCol {
       order: 1;
-      width: 400px;
+      width: 440px;
       flex-shrink: 0;
       border-left: 1px solid #eee;
-      padding: 28px 28px 60px;
+      border-top: none;
+      padding: 28px 24px 60px;
+      /* 고정 위치 설정 */
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
     }
     .panel { max-width: none; }
   }
 
-  .field { margin-bottom: 18px; }
+  /* 아코디언(접기/펴기) 설정 */
+  details {
+    margin-bottom: 16px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background: #fafafa;
+    overflow: hidden;
+  }
+  details[open] { background: #fff; padding-bottom: 8px; }
+  
+  summary.section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #111;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+    background: #f7f7f7;
+    margin-bottom: 0;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary.section-title::-webkit-details-marker { display: none; }
+  summary.section-title::after { content: '+'; font-size: 16px; color: #888; }
+  details[open] summary.section-title { background: #fff; border-bottom: 1px dashed #eee; margin-bottom: 14px; }
+  details[open] summary.section-title::after { content: '−'; }
 
+  .details-content { padding: 0 16px; }
+
+  .field { margin-bottom: 18px; }
   .field label {
     display: block;
     margin-bottom: 6px;
@@ -121,7 +150,6 @@
   }
 
   .field input[type=text],
-  .field textarea,
   .field select {
     width: 100%;
     padding: 10px 12px;
@@ -130,10 +158,8 @@
     color: #111;
     font-size: 14px;
     font-family: inherit;
-    border-radius: 0;
+    border-radius: 4px;
   }
-
-  .field textarea { height: 90px; resize: vertical; }
 
   .field select {
     appearance: none;
@@ -153,53 +179,34 @@
     padding: 2px;
     background: #fff;
     cursor: pointer;
+    border-radius: 4px;
   }
 
-  .swatches { display: flex; gap: 8px; margin-top: 8px; }
+  .swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .swatch {
     width: 28px;
     height: 28px;
     border: 1px solid #ddd;
     cursor: pointer;
+    border-radius: 4px;
     padding: 0;
   }
 
-  .field input[type=range] { width: 100%; accent-color: #111; }
+  .field input[type=range] { width: 100%; accent-color: #111; margin-top: 4px; }
 
-  .toggle-btn {
-    padding: 10px 0;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #444;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-    text-align: center;
-  }
+  .hint { font-size: 11px; color: #888; margin: -4px 0 8px; line-height: 1.4; }
 
-  .toggle-btn.active { background: #111; color: #fff; border-color: #111; }
-
-  hr.sep { border: none; border-top: 1px solid #eee; margin: 24px 0; }
-
-  .section-title {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #111;
-    margin-bottom: 14px;
-  }
-
-  .hint {
-    font-size: 11px;
-    color: #aaa;
-    margin: -4px 0 8px;
-  }
-
+  /* 에디터 툴바 */
   .editor-toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 8px;
+    background: #fcfcfc;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
   }
 
   .tbtn {
@@ -210,50 +217,73 @@
     font-size: 12px;
     cursor: pointer;
     font-family: inherit;
-    border-radius: 0;
+    border-radius: 3px;
+    transition: 0.2s;
   }
-
   .tbtn:hover { background: #f2f2f2; }
-  .tbtn.danger { color: #b33; border-color: #e0b3b3; }
+  .tbtn.danger { color: #d44; border-color: #f0caca; }
+  .tbtn.danger:hover { background: #fdf2f2; }
 
-  .editor-preview {
+  /* 새 통합 에디터 (입력창 자체) */
+  #editor {
+    width: 100%;
+    min-height: 140px;
+    padding: 12px 14px;
     border: 1px solid #ddd;
+    border-radius: 0 0 4px 4px;
     background: #fff;
-    padding: 10px 12px;
-    min-height: 56px;
+    color: #111;
     font-size: 14px;
+    font-family: inherit;
     line-height: 1.6;
+    outline: none;
+    overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-word;
-    color: #111;
   }
+  #editor:empty::before {
+    content: attr(data-placeholder);
+    color: #aaa;
+    pointer-events: none;
+    display: block;
+  }
+  #editor:focus { border-color: #999; }
 
-  button#downloadBtn {
+  .action-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .btn-primary, .btn-secondary {
     width: 100%;
     padding: 14px;
-    border: 1px solid #111;
-    border-radius: 0;
-    background: #111;
-    color: #fff;
+    border-radius: 4px;
     font-size: 14px;
-    letter-spacing: 0.02em;
+    font-weight: 600;
     cursor: pointer;
     font-family: inherit;
-    margin-top: 8px;
+    transition: 0.2s;
   }
-
-  button#downloadBtn:hover { background: #fff; color: #111; }
+  .btn-primary { border: 1px solid #111; background: #111; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-secondary { border: 1px solid #ccc; background: #fff; color: #111; }
+  .btn-secondary:hover { background: #f4f4f4; border-color: #111; }
 </style>
 </head>
 <body>
 
-<header>by @7ucky</header>
-
 <main>
-
   <div id="previewCol">
-    <div id="canvasWrap">
-      <canvas id="canvas" width="800" height="1000"></canvas>
+    <!-- 캔버스 확대/축소 기능 바 -->
+    <div style="width: 100%; max-width: 520px; display: flex; gap: 10px; align-items: center; justify-content: flex-end; font-size: 12px; color: #666;">
+      <label for="canvasZoom">미리보기 확대:</label>
+      <input type="range" id="canvasZoom" min="50" max="150" step="10" value="100" style="width: 100px;">
+      <span id="canvasZoomVal">100%</span>
+    </div>
+
+    <div id="canvasWrap" style="max-width: 100%;">
+      <canvas id="canvas"></canvas>
     </div>
     <div id="pageNav">
       <button id="prevBtn">&larr; 이전</button>
@@ -265,143 +295,160 @@
   <div id="panelCol">
     <div class="panel">
 
-      <div class="section-title">캔버스</div>
-
-      <div class="field">
-        <label>비율 (가로 800px 고정)</label>
-        <select id="ratio">
-          <option value="4:5">4 : 5</option>
-          <option value="3:4">3 : 4</option>
-        </select>
-      </div>
-
-      <div class="row2">
-        <div class="field">
-          <label>위·아래 여백 (<span id="marginYVal">60</span>px)</label>
-          <input type="range" id="marginY" min="0" max="200" step="5" value="60">
+      <details open>
+        <summary class="section-title">캔버스 옵션</summary>
+        <div class="details-content">
+          <div class="field">
+            <label>비율 (가로 800px 기준)</label>
+            <select id="ratio">
+              <option value="4:5">4 : 5 (세로형)</option>
+              <option value="3:4">3 : 4 (세로형)</option>
+              <option value="1:1">1 : 1 (정방형)</option>
+            </select>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>위·아래 여백 (<span id="marginYVal">70</span>px)</label>
+              <input type="range" id="marginY" min="0" max="200" step="5" value="70">
+            </div>
+            <div class="field">
+              <label>양쪽 여백 (<span id="marginXVal">70</span>px)</label>
+              <input type="range" id="marginX" min="0" max="200" step="5" value="70">
+            </div>
+          </div>
+          <div class="field">
+            <label>배경색</label>
+            <input type="color" id="bgColor" value="#ffffff">
+          </div>
         </div>
-        <div class="field">
-          <label>양쪽 여백 (<span id="marginXVal">60</span>px)</label>
-          <input type="range" id="marginX" min="0" max="200" step="5" value="60">
+      </details>
+
+      <details open>
+        <summary class="section-title">본문 기본값</summary>
+        <div class="details-content">
+          <div class="field">
+            <label>기본 폰트</label>
+            <select id="fontFamily">
+              <option value="pretendard">Pretendard Variable</option>
+              <option value="noto">Noto Serif KR (명조체)</option>
+            </select>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>굵기</label>
+              <select id="weight">
+                <option value="thin">Thin (얇게)</option>
+                <option value="regular" selected>Regular (보통)</option>
+                <option value="medium">Medium (중간)</option>
+                <option value="bold">Bold (굵게)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>정렬</label>
+              <select id="align">
+                <option value="left" selected>왼쪽</option>
+                <option value="center">가운데</option>
+                <option value="right">오른쪽</option>
+                <option value="justify">양쪽 정렬</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>기본 글자색</label>
+            <input type="color" id="textColor" value="#000000">
+          </div>
+          <div class="field">
+            <label>글자 크기 (<span id="fontSizeVal">16</span>px)</label>
+            <input type="range" id="fontSize" min="10" max="90" value="16">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>자간 (<span id="letterSpacingVal">0</span>px)</label>
+              <input type="range" id="letterSpacing" min="-2" max="5" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label>줄간격 (<span id="lineHeightVal">150</span>%)</label>
+              <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
+            </div>
+          </div>
+          <div class="field">
+            <label>장평 (<span id="scaleXVal">100</span>%)</label>
+            <input type="range" id="scaleX" min="80" max="120" step="1" value="100">
+          </div>
         </div>
-      </div>
+      </details>
 
-      <div class="field">
-        <label>배경색</label>
-        <input type="color" id="bgColor" value="#ffffff">
-      </div>
+      <details open>
+        <summary class="section-title">본문 편집 및 서식</summary>
+        <div class="details-content">
+          <div class="hint">텍스트를 드래그한 뒤 아래 툴바를 누르면 편집창에 바로 적용됩니다.</div>
+          
+          <div class="editor-toolbar">
+            <button type="button" class="tbtn" id="tbBold"><b>B</b> 볼드</button>
+            <button type="button" class="tbtn" id="tbItalic"><i>I</i> 이탤릭</button>
+            <button type="button" class="tbtn" id="tbUnderline"><u>U</u> 밑줄</button>
+            <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
+            <button type="button" class="tbtn" id="tbFontPretendard">Pretendard</button>
+            <button type="button" class="tbtn" id="tbFontNoto">Noto Serif</button>
+            <button type="button" class="tbtn danger" id="tbClear">서식/형광펜 지우기</button>
+          </div>
 
-      <hr class="sep">
-      <div class="section-title">본문 — 기본값</div>
+          <!-- 통합 에디터 박스 -->
+          <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
+          
+          <div class="field" style="margin-top: 14px;">
+            <button type="button" class="tbtn" id="tbRemovePunct" style="width: 100%;">문장부호( *, “, ”, " ) 모두 지우기</button>
+          </div>
 
-      <div class="field">
-        <label>기본 폰트</label>
-        <select id="fontFamily">
-          <option value="pretendard">Pretendard Variable</option>
-          <option value="kopub">KoPub World 바탕체</option>
-        </select>
-      </div>
-
-      <div class="row2">
-        <div class="field">
-          <label>굵기</label>
-          <select id="weight">
-            <option value="thin">Thin</option>
-            <option value="regular" selected>Regular</option>
-            <option value="bold">Bold</option>
-          </select>
+          <div class="field" style="margin-top: 14px;">
+            <label>형광펜 색상 선택 (적용 시 사용)</label>
+            <input type="color" id="highlightColor" value="#F9E79F">
+            <div class="swatches">
+              <!-- 기존보다 약간 더 진하고 식별 가능한 색상 배치 -->
+              <button type="button" class="swatch" data-color="#F4D03F" style="background:#F4D03F"></button>
+              <button type="button" class="swatch" data-color="#F5B7B1" style="background:#F5B7B1"></button>
+              <button type="button" class="swatch" data-color="#AED6F1" style="background:#AED6F1"></button>
+              <button type="button" class="swatch" data-color="#F9E79F" style="background:#F9E79F"></button>
+              <button type="button" class="swatch" data-color="#A2D9CE" style="background:#A2D9CE"></button>
+            </div>
+          </div>
+          
+          <div class="field">
+            <label>* * (별표) 안의 내용 자동 변경 색상</label>
+            <input type="color" id="asteriskColor" value="#D32F2F">
+            <div class="hint">* * 기호로 묶인 단어는 캔버스에서 자동으로 이 색상으로 칠해집니다.</div>
+          </div>
         </div>
-        <div class="field">
-          <label>정렬</label>
-          <select id="align">
-            <option value="left" selected>왼쪽</option>
-            <option value="center">가운데</option>
-            <option value="right">오른쪽</option>
-            <option value="justify">양쪽 정렬</option>
-          </select>
+      </details>
+
+      <details open>
+        <summary class="section-title">출처 (우측 하단 고정)</summary>
+        <div class="details-content">
+          <div class="hint">입력하지 않으면 예시(@7ucky)가 연하게 표시됩니다. 여백설정 영향을 받지 않고 우측 여백이 항상 고정됩니다.</div>
+          <div class="field">
+            <label>출처 / 이름</label>
+            <input type="text" id="source" placeholder="@7ucky" value="">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>글자 크기 (<span id="sourceFontSizeVal">13</span>px)</label>
+              <input type="range" id="sourceFontSize" min="8" max="40" value="13">
+            </div>
+            <div class="field">
+              <label>글자색</label>
+              <input type="color" id="sourceColor" value="#666666">
+            </div>
+          </div>
         </div>
+      </details>
+
+      <div class="action-btns">
+        <button id="copyBtn" class="btn-secondary">현재 페이지 클립보드 복사</button>
+        <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
       </div>
 
-      <div class="field">
-        <label>기본 글자색</label>
-        <input type="color" id="textColor" value="#000000">
-      </div>
-
-      <div class="field">
-        <label>글자 크기 (<span id="fontSizeVal">16</span>px)</label>
-        <input type="range" id="fontSize" min="10" max="90" value="16">
-      </div>
-
-      <div class="row2">
-        <div class="field">
-          <label>자간 (<span id="letterSpacingVal">0</span>px)</label>
-          <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="0">
-        </div>
-        <div class="field">
-          <label>줄간격 (<span id="lineHeightVal">140</span>%)</label>
-          <input type="range" id="lineHeight" min="100" max="220" value="140">
-        </div>
-      </div>
-
-      <hr class="sep">
-      <div class="section-title">인용구 — 부분 편집</div>
-      <div class="hint">텍스트를 드래그로 선택한 뒤 버튼을 눌러 선택 영역에만 적용하세요.</div>
-
-      <div class="editor-toolbar">
-        <button type="button" class="tbtn" id="tbBold"><b>B</b> 볼드</button>
-        <button type="button" class="tbtn" id="tbItalic"><i>I</i> 이탤릭</button>
-        <button type="button" class="tbtn" id="tbUnderline"><u>U</u> 밑줄</button>
-        <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
-        <button type="button" class="tbtn" id="tbHiOff">형광펜 해제</button>
-        <button type="button" class="tbtn" id="tbFontPretendard">Pretendard로</button>
-        <button type="button" class="tbtn" id="tbFontKopub">KoPub으로</button>
-        <button type="button" class="tbtn" id="tbFontReset">폰트 기본값</button>
-        <button type="button" class="tbtn danger" id="tbClear">서식 초기화</button>
-      </div>
-
-      <div class="field">
-        <label>적용된 서식 미리보기</label>
-        <div id="editorPreview" class="editor-preview"></div>
-      </div>
-
-      <div class="field">
-        <textarea id="quote">시작이 반이다. 무엇이든 시작하는 순간, 이미 절반은 이루어진 것이다.</textarea>
-      </div>
-
-      <div class="field">
-        <label>형광펜 색상 (위 "형광펜 적용" 버튼에 사용됨)</label>
-        <input type="color" id="highlightColor" value="#fff176">
-        <div class="swatches">
-          <button type="button" class="swatch" data-color="#FFEDFA" style="background:#FFEDFA"></button>
-          <button type="button" class="swatch" data-color="#DEF9FF" style="background:#DEF9FF"></button>
-          <button type="button" class="swatch" data-color="#FDFFDB" style="background:#FDFFDB"></button>
-          <button type="button" class="swatch" data-color="#DFFFDB" style="background:#DFFFDB"></button>
-        </div>
-      </div>
-
-      <hr class="sep">
-      <div class="section-title">출처 (마지막 페이지 하단 우측 고정)</div>
-
-      <div class="field">
-        <label>출처 / 이름</label>
-        <input type="text" id="source" value="- 아리스토텔레스 -">
-      </div>
-
-      <div class="row2">
-        <div class="field">
-          <label>글자 크기 (<span id="sourceFontSizeVal">13</span>px)</label>
-          <input type="range" id="sourceFontSize" min="8" max="40" value="13">
-        </div>
-        <div class="field">
-          <label>글자색</label>
-          <input type="color" id="sourceColor" value="#666666">
-        </div>
-      </div>
-
-      <button id="downloadBtn">현재 페이지 이미지로 저장</button>
     </div>
   </div>
-
 </main>
 
 <script>
@@ -409,254 +456,242 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const el = id => document.getElementById(id);
 
-const quoteEl = el('quote');
+// 설정 요소들
+const editorEl = el('editor');
 const sourceEl = el('source');
 const bgColorEl = el('bgColor');
 const textColorEl = el('textColor');
 const fontSizeEl = el('fontSize');
-const fontSizeVal = el('fontSizeVal');
 const fontFamilyEl = el('fontFamily');
 const weightEl = el('weight');
 const alignEl = el('align');
 const highlightColorEl = el('highlightColor');
+const asteriskColorEl = el('asteriskColor');
 const letterSpacingEl = el('letterSpacing');
-const letterSpacingVal = el('letterSpacingVal');
 const lineHeightEl = el('lineHeight');
-const lineHeightVal = el('lineHeightVal');
+const scaleXEl = el('scaleX');
 const sourceFontSizeEl = el('sourceFontSize');
-const sourceFontSizeVal = el('sourceFontSizeVal');
 const sourceColorEl = el('sourceColor');
 const ratioEl = el('ratio');
 const marginYEl = el('marginY');
-const marginYVal = el('marginYVal');
 const marginXEl = el('marginX');
-const marginXVal = el('marginXVal');
+const zoomEl = el('canvasZoom');
+
 const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
+// 폰트 정의 (Noto Serif KR 추가 및 Weight 4단계 분리)
 const FONT_DEFS = {
-  pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, bold: 700 } },
-  kopub:      { css: "'KoPubWorld Batang', serif",         weights: { thin: 300, regular: 400, bold: 700 } }
+  pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
+  noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
 };
 
 let currentPage = 0;
+const CANVAS_WIDTH = 800;
+const DPR = 3; // ★ 고화질 저장을 위한 픽셀 배율 (3배)
 
-// ---- 텍스트 + 글자별 서식 데이터 모델 ----
-function makeDefaultFormat() { return { bold: false, italic: false, underline: false, highlightColor: null, font: null }; }
-
-let text = quoteEl.value;
-let formats = Array.from({ length: text.length }, makeDefaultFormat);
-
-// 텍스트가 바뀌었을 때, 서식 배열을 최대한 그대로 유지하면서 길이만 맞춰줌
-function syncFormatsWithText(newText) {
-  const oldText = text;
-  let p = 0;
-  const maxP = Math.min(oldText.length, newText.length);
-  while (p < maxP && oldText[p] === newText[p]) p++;
-
-  let s = 0;
-  const maxS = Math.min(oldText.length - p, newText.length - p);
-  while (s < maxS && oldText[oldText.length - 1 - s] === newText[newText.length - 1 - s]) s++;
-
-  const newMiddleLen = newText.length - p - s;
-  formats = formats.slice(0, p)
-    .concat(Array.from({ length: newMiddleLen }, makeDefaultFormat))
-    .concat(formats.slice(oldText.length - s));
-  text = newText;
+// 서식 모델 기본값
+function makeDefaultFormat() { 
+  return { bold: false, italic: false, underline: false, highlightColor: null, font: null, isAsterisk: false }; 
 }
 
-function buildCharFont(idx, sizePx) {
-  const fmt = formats[idx] || {};
+// ----------------------------------------------------
+// 1. 에디터(contenteditable)에서 DOM을 분석해 텍스트와 서식을 추출하는 마법 함수
+// ----------------------------------------------------
+function extractDataFromEditor() {
+  let textContent = '';
+  let formats = [];
+  
+  // 편집기에 텍스트가 없는 경우 (예시 텍스트 표시 모드)
+  if (editorEl.innerText.trim().length === 0) {
+    let placeholder = editorEl.getAttribute('data-placeholder');
+    return {
+      isPlaceholder: true,
+      text: placeholder,
+      formats: Array.from({length: placeholder.length}, () => makeDefaultFormat())
+    };
+  }
+
+  const walk = (node, currentFormat) => {
+    if (node.nodeType === 3) { // 텍스트 노드
+      let val = node.nodeValue.replace(/\u00A0/g, ' '); // 공백 문자 변환
+      textContent += val;
+      for (let i = 0; i < val.length; i++) formats.push({ ...currentFormat });
+    } else if (node.nodeType === 1) { // 요소 노드
+      if (node.tagName === 'BR') {
+        textContent += '\n';
+        formats.push({ ...currentFormat });
+        return;
+      }
+      if ((node.tagName === 'DIV' || node.tagName === 'P') && textContent.length > 0 && !textContent.endsWith('\n')) {
+        textContent += '\n';
+        formats.push({ ...currentFormat });
+      }
+
+      let style = window.getComputedStyle(node);
+      let newFmt = { ...currentFormat };
+      
+      // 서식 판별
+      if (style.fontWeight >= '600' || node.tagName === 'B' || node.tagName === 'STRONG') newFmt.bold = true;
+      if (style.fontStyle === 'italic' || node.tagName === 'I' || node.tagName === 'EM') newFmt.italic = true;
+      if (style.textDecorationLine.includes('underline') || node.tagName === 'U') newFmt.underline = true;
+
+      // 배경색(형광펜) 판별
+      let bg = node.style.backgroundColor || style.backgroundColor;
+      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') newFmt.highlightColor = bg;
+      
+      // 폰트 판별
+      let face = node.getAttribute ? node.getAttribute('face') : null;
+      if (face === 'Pretendard Variable' || style.fontFamily.includes('Pretendard')) newFmt.font = 'pretendard';
+      if (face === 'Noto Serif KR' || style.fontFamily.includes('Noto')) newFmt.font = 'noto';
+
+      for (let child of node.childNodes) walk(child, newFmt);
+    }
+  };
+
+  walk(editorEl, makeDefaultFormat());
+
+  // ★ 정규식을 사용해 * * 사이의 텍스트 포맷을 isAsterisk = true로 업데이트
+  const regex = /\*(.*?)\*/g;
+  let match;
+  while ((match = regex.exec(textContent)) !== null) {
+    for (let i = match.index; i < match.index + match[0].length; i++) {
+      if (formats[i]) formats[i].isAsterisk = true;
+    }
+  }
+
+  return { isPlaceholder: false, text: textContent, formats };
+}
+
+// 서식을 기반으로 캔버스용 CSS Font 문자열 생성
+function buildCharFont(idx, sizePx, extractedFormats) {
+  const fmt = extractedFormats[idx] || {};
   const familyKey = fmt.font || fontFamilyEl.value;
-  const def = FONT_DEFS[familyKey];
+  const def = FONT_DEFS[familyKey] || FONT_DEFS['pretendard'];
   const weightLabel = weightEl.value;
   const weight = fmt.bold ? def.weights.bold : def.weights[weightLabel];
   return `${fmt.italic ? 'italic ' : ''}${weight} ${sizePx}px ${def.css}`;
 }
 
-function sameFormat(a, b) {
-  return a.bold === b.bold && a.italic === b.italic && a.underline === b.underline
-    && a.highlightColor === b.highlightColor && a.font === b.font;
-}
-
-function renderEditorPreview() {
-  const container = el('editorPreview');
-  container.innerHTML = '';
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] === '\n') {
-      container.appendChild(document.createElement('br'));
-      i++;
-      continue;
-    }
-    const fmt = formats[i];
-    let j = i;
-    while (j < text.length && text[j] !== '\n' && sameFormat(formats[j], fmt)) j++;
-    const span = document.createElement('span');
-    span.textContent = text.slice(i, j);
-    if (fmt.bold) span.style.fontWeight = '700';
-    if (fmt.italic) span.style.fontStyle = 'italic';
-    if (fmt.underline) span.style.textDecoration = 'underline';
-    if (fmt.highlightColor) span.style.backgroundColor = fmt.highlightColor;
-    const familyKey = fmt.font || fontFamilyEl.value;
-    span.style.fontFamily = FONT_DEFS[familyKey].css;
-    container.appendChild(span);
-    i = j;
-  }
-}
-
+// ----------------------------------------------------
+// 2. 툴바 이벤트 및 에디터 동기화
+// ----------------------------------------------------
 document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
-ratioEl.addEventListener('change', () => {
-  const [w, h] = ratioEl.value.split(':').map(Number);
-  canvas.width = 800;
-  canvas.height = Math.round(800 * (h / w));
-  currentPage = 0;
+['tbBold', 'tbItalic', 'tbUnderline'].forEach(id => {
+  el(id).addEventListener('click', () => {
+    document.execCommand(id.replace('tb', '').toLowerCase(), false, null);
+    draw();
+  });
+});
+
+el('tbHiOn').addEventListener('click', () => {
+  document.execCommand('hiliteColor', false, highlightColorEl.value);
   draw();
+});
+el('tbFontPretendard').addEventListener('click', () => { document.execCommand('fontName', false, 'Pretendard Variable'); draw(); });
+el('tbFontNoto').addEventListener('click', () => { document.execCommand('fontName', false, 'Noto Serif KR'); draw(); });
+el('tbClear').addEventListener('click', () => { document.execCommand('removeFormat', false, null); draw(); });
+
+// 문장 부호 제거 버튼
+function removePunctuation(node) {
+  if (node.nodeType === 3) {
+    node.nodeValue = node.nodeValue.replace(/[*“”"]/g, '');
+  } else if (node.nodeType === 1) {
+    Array.from(node.childNodes).forEach(removePunctuation);
+  }
+}
+el('tbRemovePunct').addEventListener('click', () => {
+  removePunctuation(editorEl);
+  draw();
+});
+
+editorEl.addEventListener('input', () => { currentPage = 0; draw(); });
+
+ratioEl.addEventListener('change', () => { currentPage = 0; updateCanvasSize(); });
+zoomEl.addEventListener('input', () => { 
+  el('canvasZoomVal').textContent = zoomEl.value + '%';
+  canvas.style.width = zoomEl.value + '%'; 
 });
 
 prevBtn.addEventListener('click', () => { currentPage = Math.max(0, currentPage - 1); draw(); });
 nextBtn.addEventListener('click', () => { currentPage += 1; draw(); });
 
-// ---- 부분 편집 툴바 ----
-function selectionAllTrue(start, end, predicate) {
-  if (start >= end) return false;
-  for (let i = start; i < end; i++) if (!predicate(formats[i])) return false;
-  return true;
-}
-
-function applyToSelection(mutator) {
-  const start = quoteEl.selectionStart;
-  const end = quoteEl.selectionEnd;
-  if (start === end) return;
-  for (let i = start; i < end; i++) mutator(formats[i]);
+// 캔버스 크기 초기화 (고해상도 적용)
+function updateCanvasSize() {
+  const [w, h] = ratioEl.value.split(':').map(Number);
+  canvas.width = CANVAS_WIDTH * DPR;
+  canvas.height = Math.round(CANVAS_WIDTH * (h / w)) * DPR;
   draw();
-  quoteEl.focus();
-  quoteEl.setSelectionRange(start, end);
 }
 
-el('tbBold').addEventListener('click', () => {
-  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
-  if (start === end) return;
-  const allBold = selectionAllTrue(start, end, f => f.bold);
-  applyToSelection(f => { f.bold = !allBold; });
-});
-
-el('tbItalic').addEventListener('click', () => {
-  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
-  if (start === end) return;
-  const allItalic = selectionAllTrue(start, end, f => f.italic);
-  applyToSelection(f => { f.italic = !allItalic; });
-});
-
-el('tbUnderline').addEventListener('click', () => {
-  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
-  if (start === end) return;
-  const allUnderline = selectionAllTrue(start, end, f => f.underline);
-  applyToSelection(f => { f.underline = !allUnderline; });
-});
-
-el('tbHiOn').addEventListener('click', () => {
-  const color = highlightColorEl.value;
-  applyToSelection(f => { f.highlightColor = color; });
-});
-
-el('tbHiOff').addEventListener('click', () => {
-  applyToSelection(f => { f.highlightColor = null; });
-});
-
-el('tbFontPretendard').addEventListener('click', () => {
-  applyToSelection(f => { f.font = 'pretendard'; });
-});
-
-el('tbFontKopub').addEventListener('click', () => {
-  applyToSelection(f => { f.font = 'kopub'; });
-});
-
-el('tbFontReset').addEventListener('click', () => {
-  applyToSelection(f => { f.font = null; });
-});
-
-el('tbClear').addEventListener('click', () => {
-  applyToSelection(f => { f.bold = false; f.italic = false; f.underline = false; f.highlightColor = null; f.font = null; });
-});
-
-quoteEl.addEventListener('input', () => {
-  syncFormatsWithText(quoteEl.value);
-  currentPage = 0;
-  draw();
-});
-
-// ---- 줄바꿈 (글자별 서식을 반영해 폭을 측정) ----
-function wrapParagraph(ctx, paraStr, paraStartIdx, maxWidth, spacing, fontSize) {
-  const wordsRaw = [];
-  let wStart = 0;
-  for (let i = 0; i <= paraStr.length; i++) {
-    if (i === paraStr.length || paraStr[i] === ' ') {
-      wordsRaw.push({ str: paraStr.slice(wStart, i), startIdx: paraStartIdx + wStart });
-      wStart = i + 1;
-    }
-  }
-
-  function charWidth(idx, ch) {
-    ctx.font = buildCharFont(idx, fontSize);
-    return ctx.measureText(ch).width;
-  }
-
-  const outLines = [];
-  let curChars = [];
-  let curWidth = 0;
-
-  wordsRaw.forEach((w) => {
-    let wordWidth = 0;
-    for (let k = 0; k < w.str.length; k++) wordWidth += charWidth(w.startIdx + k, w.str[k]) + spacing;
-    if (w.str.length > 0) wordWidth -= spacing;
-
-    const hasContent = curChars.length > 0;
-    const spaceIdx = w.startIdx - 1;
-    const spaceWidth = hasContent ? charWidth(spaceIdx, ' ') + spacing : 0;
-    const projected = curWidth + spaceWidth + wordWidth;
-
-    if (hasContent && projected > maxWidth) {
-      outLines.push(curChars);
-      curChars = [];
-      for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
-      curWidth = wordWidth;
-    } else {
-      if (hasContent) {
-        curChars.push({ ch: ' ', idx: spaceIdx });
-        curWidth += spaceWidth;
-      }
-      for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
-      curWidth += wordWidth;
-    }
-  });
-  outLines.push(curChars);
-  return outLines;
-}
-
-function wrapTextIndexed(ctx, str, maxWidth, spacing, fontSize) {
+// ----------------------------------------------------
+// 3. 텍스트 줄바꿈 및 레이아웃 엔진
+// ----------------------------------------------------
+function wrapTextIndexed(ctx, str, maxWidth, spacing, fontSize, scaleX, extractedFormats) {
   const lines = [];
   let paraStart = 0;
+
+  function charWidth(idx, ch) {
+    ctx.font = buildCharFont(idx, fontSize, extractedFormats);
+    // 장평(scaleX)이 적용된 실제 글자 폭 반환
+    return ctx.measureText(ch).width * scaleX;
+  }
+
   for (let i = 0; i <= str.length; i++) {
     if (i === str.length || str[i] === '\n') {
       const paraStr = str.slice(paraStart, i);
-      lines.push(...wrapParagraph(ctx, paraStr, paraStart, maxWidth, spacing, fontSize));
+      const wordsRaw = [];
+      let wStart = 0;
+      for (let j = 0; j <= paraStr.length; j++) {
+        if (j === paraStr.length || paraStr[j] === ' ') {
+          wordsRaw.push({ str: paraStr.slice(wStart, j), startIdx: paraStart + wStart });
+          wStart = j + 1;
+        }
+      }
+
+      let curChars = [];
+      let curWidth = 0;
+
+      wordsRaw.forEach((w) => {
+        let wordWidth = 0;
+        for (let k = 0; k < w.str.length; k++) wordWidth += charWidth(w.startIdx + k, w.str[k]) + spacing;
+        if (w.str.length > 0) wordWidth -= spacing;
+
+        const hasContent = curChars.length > 0;
+        const spaceIdx = w.startIdx - 1;
+        const spaceWidth = hasContent ? charWidth(spaceIdx, ' ') + spacing : 0;
+        const projected = curWidth + spaceWidth + wordWidth;
+
+        if (hasContent && projected > maxWidth) {
+          lines.push(curChars);
+          curChars = [];
+          for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
+          curWidth = wordWidth;
+        } else {
+          if (hasContent) {
+            curChars.push({ ch: ' ', idx: spaceIdx });
+            curWidth += spaceWidth;
+          }
+          for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
+          curWidth += wordWidth;
+        }
+      });
+      lines.push(curChars);
       paraStart = i + 1;
     }
   }
   return lines;
 }
 
-// ---- 라인 내 글자 위치 계산 (정렬 + justify 처리) ----
-function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLine, fontSize) {
+function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLine, fontSize, scaleX, extractedFormats) {
   const contentWidth = boxRight - boxLeft;
   const widths = chars.map(c => {
-    ctx.font = buildCharFont(c.idx, fontSize);
-    return ctx.measureText(c.ch).width;
+    ctx.font = buildCharFont(c.idx, fontSize, extractedFormats);
+    return ctx.measureText(c.ch).width * scaleX;
   });
   const lineWidth = widths.reduce((s, w, i) => s + w + (i < widths.length - 1 ? spacing : 0), 0);
 
@@ -686,10 +721,9 @@ function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing,
     }
   }
 
-  let startX;
-  if (alignment === 'left' || alignment === 'justify') startX = boxLeft;
-  else if (alignment === 'right') startX = boxRight - lineWidth;
-  else startX = boxLeft + (contentWidth - lineWidth) / 2;
+  let startX = boxLeft;
+  if (alignment === 'right') startX = boxRight - lineWidth;
+  else if (alignment === 'center') startX = boxLeft + (contentWidth - lineWidth) / 2;
 
   const positions = [];
   let x = startX;
@@ -697,80 +731,56 @@ function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing,
     positions.push({ idx: c.idx, ch: c.ch, x, width: widths[i] });
     x += widths[i] + (i < chars.length - 1 ? spacing : 0);
   });
-
   return { positions, lineWidth };
 }
 
-function drawHighlightsForLine(ctx, positions, y, lineHeight, fontSize) {
-  let i = 0;
-  while (i < positions.length) {
-    const color = formats[positions[i].idx] ? formats[positions[i].idx].highlightColor : null;
-    if (!color) { i++; continue; }
-    let j = i;
-    while (j < positions.length && formats[positions[j].idx] && formats[positions[j].idx].highlightColor === color) j++;
-    const runStartX = positions[i].x;
-    const last = positions[j - 1];
-    const runEndX = last.x + last.width;
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.55;
-    const padY = fontSize * 0.12;
-    ctx.fillRect(runStartX - 3, y - lineHeight / 2 + padY, (runEndX - runStartX) + 6, lineHeight - padY * 2);
-    ctx.globalAlpha = 1;
-    i = j;
-  }
-}
-
-function drawUnderlinesForLine(ctx, positions, y, fontSize, color) {
-  let i = 0;
-  while (i < positions.length) {
-    const on = formats[positions[i].idx] && formats[positions[i].idx].underline;
-    if (!on) { i++; continue; }
-    let j = i;
-    while (j < positions.length && formats[positions[j].idx] && formats[positions[j].idx].underline) j++;
-    const runStartX = positions[i].x;
-    const last = positions[j - 1];
-    const runEndX = last.x + last.width;
-    const lineY = y + fontSize * 0.36;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(1, fontSize * 0.05);
-    ctx.beginPath();
-    ctx.moveTo(runStartX, lineY);
-    ctx.lineTo(runEndX, lineY);
-    ctx.stroke();
-    i = j;
-  }
-}
-
+// ----------------------------------------------------
+// 4. 캔버스 그리기 함수
+// ----------------------------------------------------
 function draw() {
-  renderEditorPreview();
-  const W = canvas.width, H = canvas.height;
+  const data = extractDataFromEditor();
+  const text = data.text;
+  const formats = data.formats;
+
+  const baseWidth = CANVAS_WIDTH;
+  const baseHeight = canvas.height / DPR;
+  
   const bg = bgColorEl.value;
-  const color = textColorEl.value;
+  const baseColor = data.isPlaceholder ? '#c4c4c4' : textColorEl.value; 
+  const astColor = asteriskColorEl.value;
+
   const fontSize = parseInt(fontSizeEl.value, 10);
   const spacing = parseFloat(letterSpacingEl.value);
   const lineHeightPct = parseInt(lineHeightEl.value, 10);
-  const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
+  const scaleX = parseInt(scaleXEl.value, 10) / 100;
+  
   const marginY = parseInt(marginYEl.value, 10);
   const marginX = parseInt(marginXEl.value, 10);
   const alignment = alignEl.value;
+  
+  const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
 
-  fontSizeVal.textContent = fontSize;
-  letterSpacingVal.textContent = spacing.toFixed(1);
-  lineHeightVal.textContent = lineHeightPct;
-  sourceFontSizeVal.textContent = sourceFontSize;
-  marginYVal.textContent = marginY;
-  marginXVal.textContent = marginX;
+  // 값 텍스트 업데이트
+  el('fontSizeVal').textContent = fontSize;
+  el('letterSpacingVal').textContent = spacing.toFixed(1);
+  el('lineHeightVal').textContent = lineHeightPct;
+  el('scaleXVal').textContent = parseInt(scaleXEl.value, 10);
+  el('marginYVal').textContent = marginY;
+  el('marginXVal').textContent = marginX;
+  el('sourceFontSizeVal').textContent = sourceFontSize;
 
   const boxLeft = marginX;
-  const boxRight = W - marginX;
+  const boxRight = baseWidth - marginX;
   const contentWidth = boxRight - boxLeft;
 
-  const rawLines = wrapTextIndexed(ctx, text, contentWidth, spacing, fontSize);
+  const rawLines = wrapTextIndexed(ctx, text, contentWidth, spacing, fontSize, scaleX, formats);
   const lineHeight = fontSize * (lineHeightPct / 100);
 
-  const SOURCE_BOTTOM_OFFSET = 40; // 위·아래 여백 슬라이더와 무관하게 고정
-  const bottomReserve = SOURCE_BOTTOM_OFFSET + sourceFontSize * 1.4;
-  const availableHeight = Math.max(lineHeight, H - marginY - bottomReserve);
+  const SOURCE_BOTTOM_OFFSET = 50; 
+  const SOURCE_RIGHT_OFFSET = 50; // 여백 옵션에 영향받지 않는 고정 우측 여백
+  const bottomReserve = SOURCE_BOTTOM_OFFSET + sourceFontSize * 1.5;
+  const availableHeight = Math.max(lineHeight, baseHeight - marginY - bottomReserve);
+  
   const linesPerPage = Math.max(1, Math.floor(availableHeight / lineHeight));
   const totalPages = Math.max(1, Math.ceil(rawLines.length / linesPerPage));
 
@@ -784,8 +794,11 @@ function draw() {
   const pageLines = rawLines.slice(currentPage * linesPerPage, (currentPage + 1) * linesPerPage);
   const isLastPage = currentPage === totalPages - 1;
 
+  // 캔버스 초기화 및 스케일 적용 (DPR 적용)
+  ctx.resetTransform();
+  ctx.scale(DPR, DPR);
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, baseWidth, baseHeight);
 
   const startY = marginY + lineHeight / 2;
   ctx.textBaseline = 'middle';
@@ -794,39 +807,100 @@ function draw() {
   const lineLayouts = pageLines.map((chars, i) => {
     const globalLineIndex = currentPage * linesPerPage + i;
     const isLastLineOfQuote = globalLineIndex === rawLines.length - 1;
-    return computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLineOfQuote, fontSize);
+    return computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLineOfQuote, fontSize, scaleX, formats);
   });
 
-  lineLayouts.forEach((layout, i) => {
-    const y = startY + i * lineHeight;
-    drawHighlightsForLine(ctx, layout.positions, y, lineHeight, fontSize);
-  });
+  // 1. 형광펜 먼저 그리기
+  if (!data.isPlaceholder) {
+    lineLayouts.forEach((layout, i) => {
+      const y = startY + i * lineHeight;
+      let posIdx = 0;
+      while (posIdx < layout.positions.length) {
+        const fmt = formats[layout.positions[posIdx].idx] || {};
+        if (!fmt.highlightColor) { posIdx++; continue; }
+        let endIdx = posIdx;
+        while (endIdx < layout.positions.length && (formats[layout.positions[endIdx].idx] || {}).highlightColor === fmt.highlightColor) endIdx++;
+        
+        const runStartX = layout.positions[posIdx].x;
+        const last = layout.positions[endIdx - 1];
+        const runEndX = last.x + last.width;
+        
+        ctx.fillStyle = fmt.highlightColor;
+        ctx.globalAlpha = 0.55;
+        const padY = fontSize * 0.15;
+        ctx.fillRect(runStartX - 3, y - lineHeight / 2 + padY, (runEndX - runStartX) + 6, lineHeight - padY * 2);
+        ctx.globalAlpha = 1;
+        posIdx = endIdx;
+      }
+    });
+  }
 
+  // 2. 글자 그리기 (장평 적용)
   lineLayouts.forEach((layout, i) => {
     const y = startY + i * lineHeight;
     layout.positions.forEach(p => {
-      ctx.font = buildCharFont(p.idx, fontSize);
-      ctx.fillStyle = color;
-      ctx.fillText(p.ch, p.x, y);
+      const fmt = formats[p.idx] || {};
+      ctx.font = buildCharFont(p.idx, fontSize, formats);
+      // isPlaceholder일때는 색상 오버라이드 무시
+      ctx.fillStyle = (!data.isPlaceholder && fmt.isAsterisk) ? astColor : baseColor;
+      
+      ctx.save();
+      ctx.scale(scaleX, 1);
+      // X좌표도 scaleX에 맞춰 나누어줘야 제 위치에 그려짐
+      ctx.fillText(p.ch, p.x / scaleX, y);
+      ctx.restore();
     });
   });
 
-  lineLayouts.forEach((layout, i) => {
-    const y = startY + i * lineHeight;
-    drawUnderlinesForLine(ctx, layout.positions, y, fontSize, color);
-  });
+  // 3. 밑줄 그리기
+  if (!data.isPlaceholder) {
+    lineLayouts.forEach((layout, i) => {
+      const y = startY + i * lineHeight;
+      let posIdx = 0;
+      while (posIdx < layout.positions.length) {
+        const fmt = formats[layout.positions[posIdx].idx] || {};
+        if (!fmt.underline) { posIdx++; continue; }
+        let endIdx = posIdx;
+        while (endIdx < layout.positions.length && (formats[layout.positions[endIdx].idx] || {}).underline) endIdx++;
+        
+        const runStartX = layout.positions[posIdx].x;
+        const last = layout.positions[endIdx - 1];
+        const runEndX = last.x + last.width;
+        
+        ctx.strokeStyle = baseColor;
+        ctx.lineWidth = Math.max(1, fontSize * 0.06);
+        const lineY = y + fontSize * 0.4;
+        ctx.beginPath();
+        ctx.moveTo(runStartX, lineY);
+        ctx.lineTo(runEndX, lineY);
+        ctx.stroke();
+        posIdx = endIdx;
+      }
+    });
+  }
 
+  // 4. 출처 그리기
   if (isLastPage) {
+    let sourceText = sourceEl.value.trim();
+    if (sourceText === '') {
+      sourceText = sourceEl.getAttribute('placeholder');
+      ctx.fillStyle = '#b3b3b3'; // 예시일 때는 연하게
+    } else {
+      ctx.fillStyle = sourceColorEl.value;
+    }
+    
     const def = FONT_DEFS[fontFamilyEl.value];
     ctx.font = `${def.weights.regular} ${sourceFontSize}px ${def.css}`;
-    ctx.fillStyle = sourceColorEl.value;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(sourceEl.value, boxRight, H - SOURCE_BOTTOM_OFFSET);
+    ctx.fillText(sourceText, baseWidth - SOURCE_RIGHT_OFFSET, baseHeight - SOURCE_BOTTOM_OFFSET);
   }
 }
 
-[bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl, letterSpacingEl, lineHeightEl, marginYEl, marginXEl]
+// ----------------------------------------------------
+// 이벤트 리스너 일괄 바인딩 및 초기화
+// ----------------------------------------------------
+[bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl, letterSpacingEl, lineHeightEl, scaleXEl, marginYEl, marginXEl, asteriskColorEl]
   .forEach(node => {
     node.addEventListener('input', () => { currentPage = 0; draw(); });
     node.addEventListener('change', () => { currentPage = 0; draw(); });
@@ -834,14 +908,25 @@ function draw() {
 
 [sourceEl, sourceFontSizeEl, sourceColorEl].forEach(node => {
   node.addEventListener('input', draw);
-  node.addEventListener('change', draw);
 });
 
-document.getElementById('downloadBtn').addEventListener('click', () => {
+// 이미지 저장
+el('downloadBtn').addEventListener('click', () => {
   const link = document.createElement('a');
   link.download = `quote-page${currentPage + 1}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
+});
+
+// 클립보드 복사
+el('copyBtn').addEventListener('click', () => {
+  canvas.toBlob(blob => {
+    if (!blob) return alert('이미지 생성 실패');
+    const item = new ClipboardItem({ 'image/png': blob });
+    navigator.clipboard.write([item])
+      .then(() => alert('현재 페이지가 클립보드에 복사되었습니다!'))
+      .catch(err => alert('복사 실패: ' + err));
+  });
 });
 
 async function loadFontsAndDraw() {
@@ -849,16 +934,17 @@ async function loadFontsAndDraw() {
     await Promise.all([
       document.fonts.load("100 16px 'Pretendard Variable'"),
       document.fonts.load("400 16px 'Pretendard Variable'"),
+      document.fonts.load("500 16px 'Pretendard Variable'"),
       document.fonts.load("700 16px 'Pretendard Variable'"),
-      document.fonts.load("300 16px 'KoPubWorld Batang'"),
-      document.fonts.load("400 16px 'KoPubWorld Batang'"),
-      document.fonts.load("700 16px 'KoPubWorld Batang'"),
+      document.fonts.load("300 16px 'Noto Serif KR'"),
+      document.fonts.load("400 16px 'Noto Serif KR'"),
+      document.fonts.load("500 16px 'Noto Serif KR'"),
+      document.fonts.load("700 16px 'Noto Serif KR'"),
     ]);
-  } catch (e) {
-    console.warn('font load issue', e);
-  }
-  draw();
+  } catch (e) { console.warn('폰트 로드 경고', e); }
+  updateCanvasSize();
 }
+
 loadFontsAndDraw();
 </script>
 
