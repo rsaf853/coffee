@@ -1496,15 +1496,7 @@ window.addEventListener('load', () => { loadPresetsList(); updateZoom(); updateA
     });
   })();
   
-  // iOS 등에서 입력창 포커스 시 화면 확대 완화용 이벤트 처리
-document.querySelectorAll('input, select, textarea').forEach(element => {
-  element.addEventListener('focus', () => {
-    // 모바일 브라우저가 확대 뷰 상태로 들어갈 때의 오프셋 보정
-    setTimeout(() => {
-      window.scrollTo(window.scrollX, window.scrollY);
-    }, 100);
-  });
-});
+  
 </script>
 </body>
 </html>
