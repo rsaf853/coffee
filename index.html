@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>i'm feeling @7ucky!</title>
+<title>r♡sie/editor</title>
 <!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700&family=Hahmlet:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&display=swap');
-
   * { box-sizing: border-box; }
 
   body, html {
@@ -250,7 +251,8 @@
     cursor: pointer;
   }
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .row2:last-child { margin-bottom: 0; }
 
   /* 템플릿 저장 전용 레이아웃 (입력창 넓게, 저장 버튼 작게, 패딩 부여) */
   .row-template-save {
@@ -284,17 +286,23 @@
   .field input[type=range] { width: 100%; accent-color: #111; margin-top: 4px; }
   .hint { font-size: 11px; color: #888; margin: -4px 0 8px; line-height: 1.4; }
 
+  .swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .swatch {
+    width: 28px; height: 28px; border: 1px solid #ccc;
+    cursor: pointer; border-radius: 4px; padding: 0;
+  }
+
   .editor-toolbar {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0;
-    background: #fcfcfc; padding: 8px; border: 1px solid #ddd;
+    display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0;
+    background: #fcfcfc; padding: 6px; border: 1px solid #ddd;
     border-bottom: none; border-radius: 4px 4px 0 0;
     align-items: center;
   }
 
   .tbtn {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-    padding: 0 10px; height: 38px; border: 1px solid #ccc; background: #fff;
-    color: #333; font-size: 13px; cursor: pointer; font-family: inherit;
+    padding: 0 9px; height: 28px; border: 1px solid #ccc; background: #fff;
+    color: #333; font-size: 12px; cursor: pointer; font-family: inherit;
     border-radius: 4px; transition: 0.2s; box-sizing: border-box; white-space: nowrap;
   }
   .tbtn:hover { background: #f2f2f2; }
@@ -304,16 +312,16 @@
   .color-picker-wrap {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 8px 0 10px;
+    gap: 5px;
+    padding: 0 7px 0 9px;
   }
 
   .inline-picker {
     appearance: none;
     -webkit-appearance: none;
     border: none;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     padding: 0;
     cursor: pointer;
@@ -331,7 +339,7 @@
     border-radius: 0 0 4px 4px;
     background: #fff; 
     color: #111; 
-    font-size: 14px; 
+    font-size: 12px; 
     font-family: inherit;
     line-height: 1.6; 
     outline: none; 
@@ -382,8 +390,8 @@
           </svg> 
           배율
         </span>
-        <input type="range" id="canvasZoom" min="40" max="160" step="5" value="100">
-        <span id="canvasZoomVal" style="width:36px; text-align:right;">100%</span>
+        <input type="range" id="canvasZoom" min="40" max="160" step="5" value="120">
+        <span id="canvasZoomVal" style="width:36px; text-align:right;">120%</span>
       </div>
     </div>
   </div>
@@ -487,8 +495,10 @@
           <div class="field">
             <label>기본 폰트</label>
             <select id="fontFamily">
-              <option value="pretendard">Pretendard Variable</option>
+              <option value="pretendard" selected>Pretendard Variable (기본)</option>
               <option value="noto">Noto Serif KR (명조체)</option>
+              <option value="gothic">Gothic A1 (고딕)</option>
+              <option value="hahmlet">함렛 (Hahmlet)</option>
             </select>
           </div>
           
@@ -572,9 +582,7 @@
               글자색 <input type="color" id="inlineColorPicker" class="inline-picker" value="#358AE8" title="글자색 선택">
             </button>
 
-            <button type="button" class="tbtn color-picker-wrap" id="tbApplyBgColor">
-              배경색 <input type="color" id="inlineBgColorPicker" class="inline-picker" value="#FFE0F9" title="배경색 선택">
-            </button>
+            <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
 
             <button type="button" class="tbtn danger" id="tbClear">서식 지우기</button>
           </div>
@@ -586,6 +594,18 @@
             <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
           </div>
           
+          <div class="field" style="margin-top: 14px;">
+            <label>형광펜 색상 (툴바의 '형광펜 적용' 버튼 클릭 시 적용)</label>
+            <input type="color" id="highlightColor" value="#FFE0F9">
+            <div class="swatches">
+              <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
+              <button type="button" class="swatch" data-color="#DBF7FF" style="background:#DBF7FF"></button>
+              <button type="button" class="swatch" data-color="#DBFFDF" style="background:#DBFFDF"></button>
+              <button type="button" class="swatch" data-color="#FCFFBF" style="background:#FCFFBF"></button>
+              <button type="button" class="swatch" data-color="#EDEDED" style="background:#EDEDED"></button>
+            </div>
+          </div>
+
           <div class="row2" style="margin-top: 12px;">
             <div class="field" style="margin-bottom: 0;">
               <label>* * (별표) 안 색상</label>
@@ -603,7 +623,7 @@
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
-          <div class="hint">모든 페이지 우측 하단에 고정된 위치로 표시됩니다.</div>
+          <div class="hint">모든 페이지 우측 하단에 고정된 위치로 표시됩니다. (여백 설정과 무관하게 항상 같은 자리에 표시돼요)</div>
           <div class="field">
             <label>출처 / 이름</label>
             <input type="text" id="source" placeholder="@7ucky" value="">
@@ -635,12 +655,12 @@
             <label>템플릿 이름 입력</label>
             <div class="row-template-save">
               <input type="text" id="presetNameInput" placeholder="이름 입력">
-              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%;">저장</button>
+              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%; height:38px;">저장</button>
             </div>
           </div>
-          <div class="row2">
-            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%;">불러오기</button>
-            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%;">삭제</button>
+          <div class="row2" style="margin-bottom: 0;">
+            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%; height:38px;">불러오기</button>
+            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%; height:38px;">삭제</button>
           </div>
         </div>
       </details>
@@ -670,7 +690,7 @@ const lineBreakModeEl = el('lineBreakMode');
 const weightEl = el('weight');
 const alignEl = el('align');
 const inlineColorPickerEl = el('inlineColorPicker');
-const inlineBgColorPickerEl = el('inlineBgColorPicker');
+const highlightColorEl = el('highlightColor');
 const asteriskColorEl = el('asteriskColor');
 const quoteColorEl = el('quoteColor');
 const letterSpacingEl = el('letterSpacing');
@@ -695,7 +715,9 @@ const pageIndicator = el('pageIndicator');
 
 const FONT_DEFS = {
   pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
-  noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
+  noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
+  gothic:     { css: "'Gothic A1', sans-serif",          weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
+  hahmlet:    { css: "'Hahmlet', serif",                 weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
 };
 
 let currentPage = 0;
@@ -714,11 +736,12 @@ heightModeEl.addEventListener('change', (e) => {
 });
 [canvasWidthEl, canvasHeightEl].forEach(item => item.addEventListener('input', draw));
 
-zoomEl.addEventListener('input', () => { 
+function updateZoom() {
   const zoomPct = parseInt(zoomEl.value, 10);
   el('canvasZoomVal').textContent = zoomPct + '%';
   canvas.style.width = Math.round(BASE_PREVIEW_WIDTH * (zoomPct / 100)) + 'px';
-});
+}
+zoomEl.addEventListener('input', updateZoom);
 
 // 툴바 기능 연동
 el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); applyAutoFormat(); draw(); });
@@ -734,12 +757,16 @@ el('tbApplyColor').addEventListener('mousedown', e => {
   draw(); 
 });
 
-el('tbApplyBgColor').addEventListener('mousedown', e => {
+el('tbHiOn').addEventListener('mousedown', e => {
   e.preventDefault();
-  const c = inlineBgColorPickerEl.value;
+  const c = highlightColorEl.value;
   document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
   applyAutoFormat();
   draw();
+});
+
+document.querySelectorAll('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
 // 자동 서식(DOM 갱신) 반영용 파서
@@ -1563,6 +1590,7 @@ document.addEventListener('mouseup', () => {
 
 window.addEventListener('load', () => { 
   loadPresetsList();
+  updateZoom();
   draw(); 
 });
 </script>
