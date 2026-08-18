@@ -43,7 +43,7 @@
   /* 모바일 환경 캔버스 확대 적용 */
   @media (max-width: 899px) {
     #previewCol {
-      flex: 1.5; /* 모바일에서 캔버스가 더 많은 비율(약 60%) 차지 */
+      flex: 1.5;
       min-height: 55vh;
     }
     #panelCol {
@@ -56,7 +56,7 @@
     background: #efefef;
     display: flex;
     flex-direction: column;
-    flex: 1; /* 데스크탑에서는 기본 flex 설정 */
+    flex: 1; 
     position: relative;
     overflow: hidden;
   }
@@ -67,7 +67,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 20px 10px 70px; /* 상하단 패널 여백 약간 축소 */
+    padding: 20px 10px 70px;
   }
 
   canvas {
@@ -78,6 +78,10 @@
     max-width: 95vw;
     height: auto;
     transition: width 0.05s ease-out;
+    cursor: grab;
+  }
+  canvas:active {
+    cursor: grabbing;
   }
 
   .bottom-bar {
@@ -161,7 +165,7 @@
 
   #panelCol { 
     order: 2; 
-    padding: 12px 14px; /* 패딩 축소 */
+    padding: 12px 14px; 
     background: #fff; 
     border-top: 1px solid #eee;
     overflow-y: auto;
@@ -192,12 +196,11 @@
       height: 100vh;
       border-left: none;
       border-top: none;
-      padding: 16px 16px; /* 데스크탑 패딩도 소폭 축소 */
+      padding: 16px 16px; 
     }
     .panel { max-width: none; }
   }
 
-  /* 콤팩트 UI 조정 */
   details.panel-section {
     padding-bottom: 12px;
     margin-bottom: 12px;
@@ -230,7 +233,7 @@
 
   .details-content { padding: 10px 0 0 0; }
 
-  .field { margin-bottom: 10px; } /* 간격 축소 */
+  .field { margin-bottom: 10px; }
   .field:last-child { margin-bottom: 0; }
   
   .field label {
@@ -240,7 +243,6 @@
     color: #777;
   }
 
-  /* 인풋창 상하 패딩 축소 */
   .field input[type=text],
   .field input[type=number],
   .field select {
@@ -263,7 +265,7 @@
     cursor: pointer;
   }
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; } /* gap, margin 축소 */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
   .row2:last-child { margin-bottom: 0; }
 
   .row-template-save {
@@ -278,7 +280,7 @@
     -moz-appearance: none;
     appearance: none;
     width: 100%;
-    height: 34px; /* 컬러피커 높이 소폭 축소 */
+    height: 34px; 
     border: 1px solid #ddd;
     padding: 0;
     background: none;
@@ -340,7 +342,7 @@
 
   #editor {
     width: 100%; 
-    height: 140px; /* 높이 소폭 축소 */
+    height: 140px; 
     padding: 10px 12px; 
     border: 1px solid #ddd; 
     border-radius: 0 0 4px 4px;
@@ -376,7 +378,6 @@
 </head>
 <body>
 
-<!-- 폰트 캔버스 즉시 적용을 위한 사전 로드용 히든 요소 -->
 <div style="position:absolute; width:0; height:0; overflow:hidden; visibility:hidden;">
   <span style="font-family:'Noto Serif KR'">.</span>
   <span style="font-family:'Gothic A1'">.</span>
@@ -452,9 +453,30 @@
             </div>
           </div>
           <div class="field">
-            <label>배경 색상</label>
+            <label>배경 단색 색상</label>
             <input type="color" id="bgColor" value="#ffffff">
           </div>
+          
+          <div class="field" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
+            <label>배경 이미지 첨부</label>
+            <input type="file" id="bgImageInput" accept="image/*" style="font-size: 12px; margin-bottom: 8px;">
+            <button type="button" class="tbtn" id="removeBgImageBtn" style="width: 100%;">이미지 제거</button>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>투명도 (<span id="bgOpacityVal">100</span>%)</label>
+              <input type="range" id="bgOpacity" min="0" max="100" value="100">
+            </div>
+            <div class="field">
+              <label>어둡기 (<span id="bgDarknessVal">0</span>%)</label>
+              <input type="range" id="bgDarkness" min="0" max="100" value="0">
+            </div>
+          </div>
+          <div class="field">
+            <label>이미지 확대 (<span id="bgScaleVal">100</span>%)</label>
+            <input type="range" id="bgScale" min="10" max="300" value="100">
+          </div>
+          <div class="hint">💡 이미지를 등록한 후, 캔버스 위에서 마우스(또는 터치)로 드래그하면 위치를 조절할 수 있습니다.</div>
         </div>
       </details>
       
@@ -562,8 +584,9 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
-              <input type="range" id="paraSpacing" min="0" max="60" step="2" value="10">
+              <!-- 문단 간격 범위 -10 ~ 10, 기본값 0 -->
+              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
+              <input type="range" id="paraSpacing" min="-10" max="10" step="1" value="0">
             </div>
           </div>
 
@@ -580,7 +603,7 @@
         </div>
       </details>
 
-      <!-- 4. 본문 (기본 열림) -->
+      <!-- 4. 본문 -->
       <details class="panel-section" open>
         <summary class="section-title">본문</summary>
         <div class="details-content">
@@ -726,7 +749,19 @@ const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
-// 폰트 정보에 name 속성 추가 (API 연동용)
+let bgImageObj = null;
+let bgOffsetX = 0;
+let bgOffsetY = 0;
+let isDraggingBg = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+const bgImageInput = el('bgImageInput');
+const removeBgImageBtn = el('removeBgImageBtn');
+const bgOpacityEl = el('bgOpacity');
+const bgDarknessEl = el('bgDarkness');
+const bgScaleEl = el('bgScale');
+
 const FONT_DEFS = {
   pretendard: { name: 'Pretendard Variable', css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
   noto:       { name: 'Noto Serif KR', css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
@@ -757,7 +792,79 @@ function updateZoom() {
 }
 zoomEl.addEventListener('input', updateZoom);
 
-// 툴바 기능 연동
+bgImageInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      bgImageObj = img;
+      bgOffsetX = 0; 
+      bgOffsetY = 0; 
+      draw();
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+removeBgImageBtn.addEventListener('click', () => {
+  bgImageObj = null;
+  bgImageInput.value = '';
+  draw();
+});
+
+[bgOpacityEl, bgDarknessEl, bgScaleEl].forEach(input => {
+  input.addEventListener('input', (e) => {
+    el(e.target.id + 'Val').textContent = e.target.value;
+    draw();
+  });
+});
+
+function getPointerPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  
+  const scaleX = (canvas.width / DPR) / rect.width;
+  const scaleY = (canvas.height / DPR) / rect.height;
+  
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
+  };
+}
+
+function startDrag(e) {
+  if (!bgImageObj) return;
+  isDraggingBg = true;
+  const pos = getPointerPos(e);
+  dragStartX = pos.x - bgOffsetX;
+  dragStartY = pos.y - bgOffsetY;
+}
+
+function doDrag(e) {
+  if (!isDraggingBg || !bgImageObj) return;
+  e.preventDefault(); 
+  const pos = getPointerPos(e);
+  bgOffsetX = pos.x - dragStartX;
+  bgOffsetY = pos.y - dragStartY;
+  draw();
+}
+
+function endDrag() {
+  isDraggingBg = false;
+}
+
+canvas.addEventListener('mousedown', startDrag);
+canvas.addEventListener('mousemove', doDrag);
+window.addEventListener('mouseup', endDrag);
+
+canvas.addEventListener('touchstart', startDrag, {passive: false});
+canvas.addEventListener('touchmove', doDrag, {passive: false});
+window.addEventListener('touchend', endDrag);
+
 el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); applyAutoFormat(); draw(); });
 el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); applyAutoFormat(); draw(); });
 el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('underline'); applyAutoFormat(); draw(); });
@@ -1133,6 +1240,27 @@ function draw() {
   ctx.fillStyle = bgColorEl.value;
   ctx.fillRect(0, 0, cWidth, cHeight);
   
+  if (bgImageObj) {
+    ctx.save();
+    
+    const opacity = parseInt(bgOpacityEl.value, 10) / 100;
+    const darkness = parseInt(bgDarknessEl.value, 10) / 100;
+    const brightness = 100 - (darkness * 100); 
+    const scale = parseInt(bgScaleEl.value, 10) / 100;
+    
+    ctx.globalAlpha = opacity;
+    ctx.filter = `brightness(${brightness}%)`;
+    
+    const drawW = bgImageObj.width * scale;
+    const drawH = bgImageObj.height * scale;
+    
+    const centerX = (cWidth - drawW) / 2;
+    const centerY = (cHeight - drawH) / 2;
+    
+    ctx.drawImage(bgImageObj, centerX + bgOffsetX, centerY + bgOffsetY, drawW, drawH);
+    ctx.restore();
+  }
+
   const align = alignEl.value;
   const baseColor = textColorEl.value;
   const astColor = asteriskColorEl.value;
@@ -1267,7 +1395,7 @@ const DEFAULT_PRESET_DATA = {
   canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
-  paraSpacing: '10', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
+  paraSpacing: '0', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
   quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13'
 };
 
@@ -1363,7 +1491,6 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-// 폰트 변경 시 즉시 캔버스에 적용하도록 별도 이벤트 분리 (Font Load API 사용)
 [sourceEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => {
   item.addEventListener('input', draw);
 });
@@ -1372,7 +1499,6 @@ fontFamilyEl.addEventListener('change', async (e) => {
   const def = FONT_DEFS[e.target.value];
   if (def && def.name && document.fonts) {
     try {
-      // 폰트 다운로드가 강제로 완료될 때까지 대기
       await document.fonts.load(`16px "${def.name}"`);
     } catch(err) {
       console.warn("폰트 로드 실패:", err);
