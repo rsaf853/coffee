@@ -11,316 +11,347 @@
 <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700&family=Hahmlet:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
-     r♡sie/editor — design tokens
+     r♡sie/editor — compact theme
      ============================================================ */
-  :root {
-    --bg-canvas-area: #f4f4f3;
+  :root,
+  html[data-theme="light"] {
+    --bg-app: #f4f8ff;
+    --bg-canvas-area: #eaf2ff;
     --bg-panel: #ffffff;
-    --bg-app: #ffffff;
+    --bg-card: #f8fbff;
+    --bg-blob-1: #cfe6ff; /* 파랑 */
+    --bg-blob-2: #dceaff; /* 노랑 제거하고 파랑톤으로 통일 */
 
-    --border-soft: #ececea;
-    --border: #e2e0dd;
-    --border-strong: #d8d5d1;
+    --border-soft: #e6f0ff;
+    --border: #d9e9fd;
+    --border-strong: #bcdaf7;
 
-    --ink: #171614;
-    --ink-soft: #6b6864;
-    --ink-faint: #a5a29d;
-    --ink-placeholder: #c6c3be;
+    --ink: #21324a;
+    --ink-soft: #5c7391;
+    --ink-faint: #93a9c4;
+    --ink-placeholder: #b7c9df;
 
-    --accent: #171614;
-    --accent-hover: #35322e;
-    --accent-quote: #4a86e8;
-    --danger: #d1495b;
-    --danger-bg: #fdf1f2;
+    --accent: #6ea8fe; 
+    --accent-strong: #4f8cf0;
+    --accent-ink: #ffffff;
+    --accent-soft: #dceaff;
+    
+    --danger: #e26a86;
+    --danger-bg: #fff0f4;
+    --heart: #6ea8fe; /* 라이트 모드 하트 파랑 */
 
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
+    --shadow-bar: 0 4px 12px rgba(78, 130, 210, 0.12), 0 1px 2px rgba(78, 130, 210, 0.08);
+    --shadow-card: 0 2px 10px rgba(110, 168, 254, 0.08);
+  }
 
-    --shadow-bar: 0 6px 20px rgba(20, 18, 15, 0.08), 0 1px 2px rgba(20, 18, 15, 0.04);
-    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  html[data-theme="dark"] {
+    --bg-app: #111111;
+    --bg-canvas-area: #000000;
+    --bg-panel: #1a1a1a;
+    --bg-card: #222222;
+    --bg-blob-1: #162438; 
+    --bg-blob-2: #2b2816; 
+
+    --border-soft: #2a2a2a;
+    --border: #333333;
+    --border-strong: #444444;
+
+    --ink: #eeeeee;
+    --ink-soft: #aaaaaa;
+    --ink-faint: #777777;
+    --ink-placeholder: #555555;
+
+    --accent: #fff59d; 
+    --accent-strong: #ffee58;
+    --accent-ink: #000000;
+    --accent-soft: #33321c;
+
+    --danger: #ff9bb3;
+    --danger-bg: #3a2230;
+    --heart: #ffee58; /* 다크 모드 하트 노랑 */
+
+    --shadow-bar: 0 6px 20px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
   }
 
   * { box-sizing: border-box; }
 
   body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     font-family: 'Pretendard Variable', -apple-system, sans-serif;
     background: var(--bg-app);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    transition: background 0.25s ease, color 0.25s ease;
   }
 
   ::placeholder { color: var(--ink-faint); opacity: 1; }
   #titleInput::placeholder { color: var(--ink-placeholder); }
 
-  main {
-    display: flex;
-    flex-direction: column;
-    max-width: 1400px;
-    margin: 0 auto;
-    height: 100vh;
-  }
+  main { display: flex; flex-direction: column; max-width: 1400px; margin: 0 auto; height: 100vh; }
 
-  /* ---------- Preview column ---------- */
   @media (max-width: 899px) {
     #previewCol { flex: 1.5; min-height: 55vh; }
     #panelCol { flex: 1; }
   }
 
+  /* ---------- Preview column ---------- */
   #previewCol {
-    order: 0;
-    background: var(--bg-canvas-area);
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    position: relative;
-    overflow: hidden;
+    order: 0; background: var(--bg-canvas-area);
+    display: flex; flex-direction: column; flex: 1;
+    position: relative; overflow: hidden;
+    transition: background 0.25s ease;
   }
 
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(50px); opacity: 0.55; pointer-events: none;
+    z-index: 0; transition: opacity 0.25s ease, background 0.25s ease;
+  }
+  .blob-1 { width: 280px; height: 280px; top: -60px; left: -80px; background: var(--bg-blob-1); }
+  .blob-2 { width: 240px; height: 240px; bottom: -80px; right: -60px; background: var(--bg-blob-2); }
+
   #scrollArea {
-    flex: 1;
-    overflow: auto;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 28px 16px 76px;
+    flex: 1; overflow: auto; display: flex;
+    justify-content: center; align-items: flex-start;
+    padding: 20px 12px 64px; 
+    position: relative; z-index: 1;
   }
 
   canvas {
-    display: block;
-    background: #fff;
+    display: block; background: #fff;
     border: 1px solid var(--border);
-    border-radius: 2px;
-    width: 460px;
-    max-width: 95vw;
-    height: auto;
-    box-shadow: 0 2px 24px rgba(20, 18, 15, 0.06);
-    transition: width 0.05s ease-out;
+    border-radius: 4px; 
+    width: 460px; max-width: 95vw; height: auto;
+    box-shadow: var(--shadow-card), 0 8px 24px rgba(0,0,0,0.05);
+    transition: width 0.05s ease-out, border-color 0.25s ease;
     cursor: grab;
   }
   canvas:active { cursor: grabbing; }
 
   .bottom-bar {
-    position: absolute;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.92);
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; display: flex; align-items: center; gap: 10px;
+    background: var(--bg-panel);
     backdrop-filter: blur(10px) saturate(1.4);
     -webkit-backdrop-filter: blur(10px) saturate(1.4);
-    padding: 7px 16px;
-    border: 1px solid rgba(20, 18, 15, 0.06);
-    border-radius: 999px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px; 
     box-shadow: var(--shadow-bar);
-    flex-wrap: nowrap;
-    justify-content: center;
-    white-space: nowrap;
+    flex-wrap: nowrap; justify-content: center; white-space: nowrap;
+    transition: background 0.25s ease, border-color 0.25s ease;
   }
 
-  .bottom-bar .divider { width: 1px; height: 14px; background: var(--border-strong); }
+  .bottom-bar .divider { width: 1px; height: 12px; background: var(--border-strong); }
 
-  #pageNav { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
-
+  #pageNav { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); }
   #pageNav button {
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--ink);
-    padding: 5px 10px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 11px;
-    border-radius: 999px;
-    transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--ink);
+    padding: 4px 8px; cursor: pointer; font-family: inherit; font-size: 11px;
+    border-radius: 4px; transition: background 0.15s ease, border-color 0.15s ease;
   }
-  #pageNav button:hover:not(:disabled) { background: #f4f4f3; border-color: var(--border-strong); }
+  #pageNav button:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
   #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
-  #zoomControl { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-faint); user-select: none; }
-  #zoomControl input[type="range"] {
-    width: 72px; height: 4px; -webkit-appearance: none; appearance: none;
-    background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
-  }
-  #zoomControl input[type="range"]::-webkit-slider-thumb {
+  #zoomControl { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-faint); user-select: none; }
+  
+  /* range 인풋(슬라이더) 전체 스타일 공통 적용 - 안 채워진 부분 밝게 */
+  input[type="range"] {
     -webkit-appearance: none; appearance: none;
-    width: 13px; height: 13px; border-radius: 50%;
-    background: var(--ink); cursor: pointer; transition: transform 0.15s var(--ease);
+    width: 100%; height: 6px; border-radius: 3px;
+    background: var(--border-soft); outline: none; margin-top: 4px; cursor: pointer;
   }
-  #zoomControl input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent-strong); cursor: pointer; transition: transform 0.15s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  
+  #zoomControl input[type="range"] { width: 60px; margin-top: 0; }
 
   #resizer { display: none; }
 
   /* ---------- Panel column ---------- */
   #panelCol {
-    order: 2;
-    padding: 14px 16px;
+    order: 2; padding: 12px;
     background: var(--bg-panel);
     border-top: 1px solid var(--border-soft);
     overflow-y: auto;
+    transition: background 0.25s ease, border-color 0.25s ease;
   }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; }
 
   @media (min-width: 900px) {
     main { flex-direction: row; align-items: stretch; }
-
     #resizer {
-      order: 1;
-      display: block;
-      width: 1px;
-      background: var(--border-soft);
-      cursor: col-resize;
-      flex-shrink: 0;
-      position: relative;
-      transition: background 0.15s var(--ease);
+      order: 1; display: block; width: 1px; background: var(--border-soft);
+      cursor: col-resize; flex-shrink: 0; position: relative; transition: background 0.15s ease;
     }
-    #resizer::after {
-      content: '';
-      position: absolute;
-      top: 0; bottom: 0; left: -3px; right: -3px;
-    }
-    #resizer:hover, #resizer.resizing { background: var(--border-strong); }
-
+    #resizer::after { content: ''; position: absolute; top: 0; bottom: 0; left: -3px; right: -3px; }
+    #resizer:hover, #resizer.resizing { background: var(--accent); }
     #panelCol {
-      order: 2;
-      width: 440px;
-      min-width: 300px;
-      max-width: 800px;
-      flex: none;
-      height: 100vh;
-      border-left: none;
-      border-top: none;
-      padding: 20px 20px;
+      order: 2; width: 400px; min-width: 300px; max-width: 800px; flex: none;
+      height: 100vh; border-left: none; border-top: none; padding: 14px;
     }
     .panel { max-width: none; }
   }
 
-  /* ---------- Sections ---------- */
-  details.panel-section {
-    padding-bottom: 14px;
-    margin-bottom: 14px;
+  /* ---------- Brand header + theme toggle ---------- */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 0 10px; margin-bottom: 10px;
     border-bottom: 1px solid var(--border-soft);
   }
+  .app-brand {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em;
+  }
+  .app-brand-name { display: inline-flex; align-items: center; }
+  .app-brand .heart { color: var(--heart); transition: color 0.25s ease; }
+  /* 가운데 점 제거 */
+  .app-brand small { font-weight: 400; color: var(--ink-faint); font-size: 11px; margin-left: 2px; }
+
+  .theme-toggle {
+    position: relative;
+    width: 44px; height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: var(--accent-soft);
+    cursor: pointer; padding: 0; flex-shrink: 0;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  .theme-toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: var(--accent);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), background 0.25s ease;
+  }
+  html[data-theme="dark"] .theme-toggle-thumb { transform: translateX(20px); background: var(--accent-strong); }
+
+  /* ---------- Sections as soft cards ---------- */
+  details.panel-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
   details.panel-section summary {
-    font-size: 13.5px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-    margin: 0;
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    justify-space: space-between;
-    align-items: center;
-    user-select: none;
-    padding: 2px 0;
+    font-size: 12.5px; font-weight: 700; color: var(--ink);
+    margin: 0; cursor: pointer; list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+    user-select: none; padding: 1px 0;
+    transition: color 0.2s ease;
   }
   details.panel-section summary::-webkit-details-marker { display: none; }
   details.panel-section summary::after {
     content: '';
-    display: block;
-    width: 6px; height: 6px;
-    border-right: 1.5px solid var(--ink-faint);
-    border-bottom: 1.5px solid var(--ink-faint);
+    display: block; width: 5px; height: 5px;
+    border-right: 1.5px solid var(--accent);
+    border-bottom: 1.5px solid var(--accent);
     transform: rotate(45deg);
-    transition: transform 0.2s var(--ease), margin 0.2s var(--ease);
-    margin-right: 4px; margin-bottom: 2px;
+    transition: transform 0.2s ease, margin 0.2s ease, border-color 0.2s ease;
+    margin-right: 2px; margin-bottom: 2px;
   }
-  details.panel-section[open] summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
+  
+  /* 열린 탭 헤더 색상 파란색/노란색 처리 */
+  details.panel-section[open] summary { color: var(--accent-strong); }
+  details.panel-section[open] summary::after { 
+    transform: rotate(-135deg); margin-bottom: -4px; 
+    border-color: var(--accent-strong); 
+  }
+  details.panel-section[open] { border-color: var(--border-strong); }
 
-  .details-content { padding: 12px 0 0 0; }
+  .details-content { padding: 8px 0 0 0; }
 
-  .field { margin-bottom: 10px; }
+  .field { margin-bottom: 8px; }
   .field:last-child { margin-bottom: 0; }
-
-  .field label { display: block; margin-bottom: 5px; font-size: 11.5px; color: var(--ink-soft); }
+  .field label { display: block; margin-bottom: 4px; font-size: 11px; color: var(--ink-soft); }
 
   .field input[type=text],
   .field input[type=number],
   .field select {
-    width: 100%;
-    padding: 8px 10px;
+    width: 100%; padding: 6px 8px;
     border: 1px solid var(--border);
-    background: #fff;
+    background: var(--bg-panel);
     color: var(--ink);
-    font-size: 13px;
-    font-family: inherit;
-    border-radius: var(--radius-sm);
-    transition: border-color 0.15s var(--ease);
+    font-size: 12px; font-family: inherit;
+    border-radius: 4px;
+    transition: border-color 0.15s ease, background 0.25s ease;
   }
   .field input[type=text]:focus,
   .field input[type=number]:focus,
-  .field select:focus { outline: none; border-color: var(--ink-faint); }
+  .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
   .field select {
     appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--ink-faint) 50%), linear-gradient(135deg, var(--ink-faint) 50%, transparent 50%);
-    background-position: calc(100% - 16px) center, calc(100% - 11px) center;
-    background-size: 5px 5px, 5px 5px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%);
+    background-position: calc(100% - 12px) center, calc(100% - 8px) center;
+    background-size: 4px 4px, 4px 4px;
     background-repeat: no-repeat;
     cursor: pointer;
   }
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
   .row2:last-child { margin-bottom: 0; }
-
-  .row-template-save { display: grid; grid-template-columns: 1fr 88px; gap: 8px; align-items: center; }
+  .row-template-save { display: grid; grid-template-columns: 1fr 70px; gap: 6px; align-items: center; }
 
   input[type="color"]:not(.inline-picker) {
     -webkit-appearance: none; -moz-appearance: none; appearance: none;
-    width: 100%; height: 34px;
+    width: 100%; height: 28px;
     border: 1px solid var(--border);
     padding: 0; background: none; cursor: pointer;
-    border-radius: var(--radius-sm); overflow: hidden;
+    border-radius: 4px; overflow: hidden;
   }
   input[type="color"]:not(.inline-picker)::-webkit-color-swatch-wrapper { padding: 0; }
   input[type="color"]:not(.inline-picker)::-webkit-color-swatch { border: none; }
   input[type="color"]:not(.inline-picker)::-moz-color-swatch { border: none; }
 
-  .field input[type=range] { width: 100%; accent-color: var(--ink); margin-top: 4px; }
-  .hint { font-size: 11px; color: var(--ink-faint); margin: -4px 0 8px; line-height: 1.4; }
+  .hint { font-size: 10.5px; color: var(--ink-faint); margin: -2px 0 6px; line-height: 1.3; }
 
-  .swatches { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .swatches { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
   .swatch {
-    width: 26px; height: 26px;
+    width: 22px; height: 22px;
     border: 1px solid var(--border-strong);
-    cursor: pointer; border-radius: var(--radius-sm); padding: 0;
-    transition: transform 0.15s var(--ease);
+    cursor: pointer; border-radius: 4px; padding: 0;
+    transition: transform 0.15s ease;
   }
-  .swatch:hover { transform: scale(1.08); }
+  .swatch:hover { transform: scale(1.1); }
 
   /* ---------- Editor toolbar ---------- */
   .editor-toolbar {
-    display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0;
-    background: #fafafa; padding: 7px; border: 1px solid var(--border);
-    border-bottom: none; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0;
+    background: var(--bg-panel); padding: 5px;
+    border: 1px solid var(--border);
+    border-bottom: none; border-radius: 4px 4px 0 0;
     align-items: center;
   }
 
   .tbtn {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-    padding: 0 9px; height: 28px; border: 1px solid var(--border-strong); background: #fff;
-    color: var(--ink); font-size: 12px; cursor: pointer; font-family: inherit;
-    border-radius: var(--radius-sm); transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+    padding: 0 8px; height: 26px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-panel);
+    color: var(--ink); font-size: 11.5px; cursor: pointer; font-family: inherit;
+    border-radius: 4px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     box-sizing: border-box; white-space: nowrap;
   }
-  .tbtn:hover { background: #f2f2f0; }
-  .tbtn.danger { color: var(--danger); border-color: #f0cdd2; }
-  .tbtn.danger:hover { background: var(--danger-bg); }
+  .tbtn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .tbtn.danger { color: var(--danger); border-color: #f3c9d5; }
+  .tbtn.danger:hover { background: var(--danger-bg); border-color: var(--danger); }
 
-  .color-picker-wrap { display: inline-flex; align-items: center; gap: 5px; padding: 0 7px 0 9px; }
+  .color-picker-wrap { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 8px; }
 
   .inline-picker {
     appearance: none; -webkit-appearance: none;
-    border: none; width: 14px; height: 14px; border-radius: 50%;
+    border: none; width: 12px; height: 12px; border-radius: 50%;
     padding: 0; cursor: pointer; background: none;
   }
   .inline-picker::-webkit-color-swatch-wrapper { padding: 0; }
@@ -328,42 +359,36 @@
   .inline-picker::-moz-color-swatch { border: none; border-radius: 50%; }
 
   #editor {
-    width: 100%;
-    min-height: 140px;
-    height: 140px;
-    padding: 11px 12px;
+    width: 100%; min-height: 120px; height: 120px;
+    padding: 8px 10px;
     border: 1px solid var(--border);
-    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-    background: #fff;
+    border-radius: 0 0 4px 4px;
+    background: var(--bg-panel);
     color: var(--ink);
-    font-size: 12.5px;
-    font-family: inherit;
-    line-height: 1.6;
-    outline: none;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-    resize: vertical;
-    margin-top: 0;
-    transition: border-color 0.15s var(--ease);
+    font-size: 12px; font-family: inherit; line-height: 1.5;
+    outline: none; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    resize: vertical; margin-top: 0; margin-bottom: 4px;
+    transition: border-color 0.15s ease, background 0.25s ease;
   }
   #editor:empty::before { content: attr(data-placeholder); color: var(--ink-placeholder); pointer-events: none; display: block; }
-  #editor:focus { border-color: var(--ink-faint); }
+  #editor:focus { border-color: var(--accent); }
 
-  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  /* 템플릿 영역 아래 잘림 현상 방지를 위해 여백 추가 */
+  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 12px; }
   .btn-primary, .btn-secondary {
-    width: 100%; padding: 11px; border-radius: var(--radius-sm); font-size: 13px;
+    width: 100%; padding: 8px; border-radius: 4px; font-size: 12px;
     font-weight: 600; cursor: pointer; font-family: inherit;
-    transition: background 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.1s var(--ease);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   }
-  .btn-primary { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
   .btn-primary:active { transform: scale(0.99); }
-  .btn-secondary { border: 1px solid var(--border-strong); background: #fff; color: var(--ink); }
-  .btn-secondary:hover { background: #f4f4f3; border-color: var(--ink); }
+  .btn-secondary { border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--ink); }
+  .btn-secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
   .btn-secondary:active { transform: scale(0.99); }
 
-  .footer-credit { margin-top: 18px; text-align: right; font-size: 11.5px; color: var(--ink-faint); font-weight: 300; padding-bottom: 20px; }
+  .footer-credit { text-align: right; font-size: 11px; color: var(--ink-faint); font-weight: 400; padding-bottom: 14px; }
 </style>
 </head>
 <body>
@@ -376,6 +401,8 @@
 
 <main>
   <div id="previewCol">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
     <div id="scrollArea">
       <canvas id="canvas"></canvas>
     </div>
@@ -388,15 +415,9 @@
       </div>
       <div class="divider"></div>
       <div id="zoomControl">
-        <span style="display:flex; align-items:center; gap:4px;">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg> 
-          배율
-        </span>
+        <span style="display:flex; align-items:center; gap:4px;">배율</span>
         <input type="range" id="canvasZoom" min="40" max="160" step="5" value="120">
-        <span id="canvasZoomVal" style="width:36px; text-align:right;">120%</span>
+        <span id="canvasZoomVal" style="width:32px; text-align:right;">120%</span>
       </div>
     </div>
   </div>
@@ -405,6 +426,16 @@
 
   <div id="panelCol">
     <div class="panel">
+
+      <div class="app-header">
+        <div class="app-brand">
+          <!-- 기호(.) 제거됨 -->
+          <span class="app-brand-name">r<span class="heart">♡</span>sie</span><small>editor</small>
+        </div>
+        <button type="button" id="themeToggle" class="theme-toggle" aria-label="테마 모드 전환" title="테마 모드 전환">
+          <span class="theme-toggle-thumb"></span>
+        </button>
+      </div>
 
       <!-- 1. 배경 -->
       <details class="panel-section">
@@ -447,9 +478,9 @@
             <input type="color" id="bgColor" value="#ffffff">
           </div>
           
-          <div class="field" style="margin-top: 12px; border-top: 1px dashed #ddd; padding-top: 12px;">
+          <div class="field" style="margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
             <label>배경 이미지 첨부</label>
-            <input type="file" id="bgImageInput" accept="image/*" style="font-size: 12px; margin-bottom: 8px;">
+            <input type="file" id="bgImageInput" accept="image/*" style="font-size: 11px; margin-bottom: 6px;">
             <button type="button" class="tbtn" id="removeBgImageBtn" style="width: 100%;">이미지 제거</button>
           </div>
           <div class="row2">
@@ -466,7 +497,7 @@
             <label>이미지 확대 (<span id="bgScaleVal">100</span>%)</label>
             <input type="range" id="bgScale" min="10" max="300" value="100">
           </div>
-          <div class="hint">💡 이미지를 등록한 후, 캔버스 위에서 마우스(또는 터치)로 드래그하면 위치를 조절할 수 있습니다.</div>
+          <div class="hint">이미지를 등록한 후 캔버스 위에서 드래그하면 위치를 조절할 수 있습니다.</div>
         </div>
       </details>
       
@@ -614,12 +645,13 @@
 
           <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
           
-          <div class="row2" style="margin-top: 10px;">
+          <div class="row2">
             <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* * (별표) 지우기</button>
             <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
           </div>
           
-          <div class="field" style="margin-top: 12px;">
+          <div class="field" style="margin-top: 10px;">
+            <!-- 하이라이터 색상 수정 부분 -->
             <label>형광펜 색상</label>
             <input type="color" id="highlightColor" value="#FFE0F9">
             <div class="swatches">
@@ -631,13 +663,13 @@
             </div>
           </div>
 
-          <div class="row2" style="margin-top: 10px;">
+          <div class="row2" style="margin-top: 8px;">
             <div class="field" style="margin-bottom: 0;">
-              <label>* * (별표) 안 색상</label>
+              <label>* * 안 색상</label>
               <input type="color" id="asteriskColor" value="#777777">
             </div>
             <div class="field" style="margin-bottom: 0;">
-              <label>따옴표( “ ” " ) 안 색상</label>
+              <label>따옴표( “ ” ) 안 색상</label>
               <input type="color" id="quoteColor" value="#358AE8">
             </div>
           </div>
@@ -667,9 +699,9 @@
       </details>
 
       <!-- 6. 템플릿 -->
-      <details class="panel-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+      <details class="panel-section">
         <summary class="section-title">템플릿</summary>
-        <div class="details-content" style="padding-top: 8px;">
+        <div class="details-content">
           <div class="field">
             <label>템플릿 선택</label>
             <select id="presetSelect">
@@ -680,21 +712,22 @@
             <label>템플릿 이름 입력</label>
             <div class="row-template-save">
               <input type="text" id="presetNameInput" placeholder="이름 입력">
-              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%; height:34px;">저장</button>
+              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%;">저장</button>
             </div>
           </div>
           <div class="row2" style="margin-bottom: 0;">
-            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%; height:34px;">불러오기</button>
-            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%; height:34px;">삭제</button>
+            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%;">불러오기</button>
+            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%;">삭제</button>
           </div>
         </div>
       </details>
 
-      <div class="action-btns" style="margin-top: 12px;">
+      <div class="action-btns">
         <button id="copyBtn" class="btn-secondary">현재 페이지 클립보드 복사</button>
         <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
       </div>
 
+      <!-- 하트 없이 작성자 정보만 기재 -->
       <div class="footer-credit">by @7ucky</div>
     </div>
   </div>
@@ -789,14 +822,11 @@ bgImageInput.addEventListener('change', (e) => {
     const img = new Image();
     img.onload = () => {
       bgImageObj = img;
-      bgOffsetX = 0; 
-      bgOffsetY = 0; 
-      
+      bgOffsetX = 0; bgOffsetY = 0; 
       const currentCanvasWidth = parseInt(canvasWidthEl.value, 10) || 800;
       const initialScale = (currentCanvasWidth / img.width) * 100;
       bgScaleEl.value = Math.max(10, Math.min(300, Math.round(initialScale)));
       el('bgScaleVal').textContent = bgScaleEl.value;
-
       draw();
     };
     img.src = event.target.result;
@@ -805,30 +835,20 @@ bgImageInput.addEventListener('change', (e) => {
 });
 
 removeBgImageBtn.addEventListener('click', () => {
-  bgImageObj = null;
-  bgImageInput.value = '';
-  draw();
+  bgImageObj = null; bgImageInput.value = ''; draw();
 });
 
 [bgOpacityEl, bgDarknessEl, bgScaleEl].forEach(input => {
-  input.addEventListener('input', (e) => {
-    el(e.target.id + 'Val').textContent = e.target.value;
-    draw();
-  });
+  input.addEventListener('input', (e) => { el(e.target.id + 'Val').textContent = e.target.value; draw(); });
 });
 
 function getPointerPos(e) {
   const rect = canvas.getBoundingClientRect();
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  
   const scaleX = (canvas.width / DPR) / rect.width;
   const scaleY = (canvas.height / DPR) / rect.height;
-  
-  return {
-    x: (clientX - rect.left) * scaleX,
-    y: (clientY - rect.top) * scaleY
-  };
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
 }
 
 function startDrag(e) {
@@ -838,27 +858,16 @@ function startDrag(e) {
   dragStartX = pos.x - bgOffsetX;
   dragStartY = pos.y - bgOffsetY;
 }
-
 function doDrag(e) {
   if (!isDraggingBg || !bgImageObj) return;
   e.preventDefault(); 
   const pos = getPointerPos(e);
-  bgOffsetX = pos.x - dragStartX;
-  bgOffsetY = pos.y - dragStartY;
-  draw();
+  bgOffsetX = pos.x - dragStartX; bgOffsetY = pos.y - dragStartY; draw();
 }
+function endDrag() { isDraggingBg = false; }
 
-function endDrag() {
-  isDraggingBg = false;
-}
-
-canvas.addEventListener('mousedown', startDrag);
-canvas.addEventListener('mousemove', doDrag);
-window.addEventListener('mouseup', endDrag);
-
-canvas.addEventListener('touchstart', startDrag, {passive: false});
-canvas.addEventListener('touchmove', doDrag, {passive: false});
-window.addEventListener('touchend', endDrag);
+canvas.addEventListener('mousedown', startDrag); canvas.addEventListener('mousemove', doDrag); window.addEventListener('mouseup', endDrag);
+canvas.addEventListener('touchstart', startDrag, {passive: false}); canvas.addEventListener('touchmove', doDrag, {passive: false}); window.addEventListener('touchend', endDrag);
 
 el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); applyAutoFormat(); draw(); });
 el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); applyAutoFormat(); draw(); });
@@ -867,18 +876,14 @@ el('tbStrike').addEventListener('mousedown', e => { e.preventDefault(); document
 el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); applyAutoFormat(); draw(); });
 
 el('tbApplyColor').addEventListener('mousedown', e => { 
-  e.preventDefault(); 
-  document.execCommand('foreColor', false, inlineColorPickerEl.value); 
-  applyAutoFormat();
-  draw(); 
+  e.preventDefault(); document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw(); 
 });
 
 el('tbHiOn').addEventListener('mousedown', e => {
   e.preventDefault();
   const c = highlightColorEl.value;
   document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
-  applyAutoFormat();
-  draw();
+  applyAutoFormat(); draw();
 });
 
 document.querySelectorAll('.swatch').forEach(btn => {
@@ -902,17 +907,12 @@ function extractDataFromEditor() {
     if (node.nodeType === 3) {
       let text = node.nodeValue;
       if (!text) return;
-
       let curBuf = "";
       let curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
 
       function flush() {
         if (curBuf.length > 0) {
-          tokens.push({
-            text: curBuf,
-            format: { ...currentFmt, isAsterisk: curFmtState.inAst, isQuote: curFmtState.inQuote },
-            isPlaceholder: false
-          });
+          tokens.push({ text: curBuf, format: { ...currentFmt, isAsterisk: curFmtState.inAst, isQuote: curFmtState.inQuote }, isPlaceholder: false });
           curBuf = "";
         }
       }
@@ -920,10 +920,8 @@ function extractDataFromEditor() {
       for (let i = 0; i < text.length; i++) {
         let ch = text[i];
         if (ch === '\n') {
-          flush();
-          tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
-          curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-          continue;
+          flush(); tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
+          curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; continue;
         }
 
         let isAst = (ch === '*');
@@ -936,15 +934,11 @@ function extractDataFromEditor() {
           if (!state.inQuote) { flush(); state.inQuote = true; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; curBuf += ch; }
           else { curBuf += ch; flush(); state.inQuote = false; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; }
         } else {
-          if (curFmtState.inAst !== state.inAst || curFmtState.inQuote !== state.inQuote) {
-            flush();
-            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-          }
+          if (curFmtState.inAst !== state.inAst || curFmtState.inQuote !== state.inQuote) { flush(); curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; }
           curBuf += ch;
         }
       }
-      flush();
-      return;
+      flush(); return;
     }
 
     if (node.nodeType === 1) {
@@ -972,12 +966,9 @@ function extractDataFromEditor() {
       if (bg) newFmt.highlightColor = bg;
       
       const isBlock = ['DIV', 'P', 'SECTION'].includes(node.tagName);
-      if (isBlock && node !== editorEl && node !== editorEl.firstChild) {
-        tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
-      }
+      if (isBlock && node !== editorEl && node !== editorEl.firstChild) { tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); }
       if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
-        if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
-        return;
+        if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); return;
       }
 
       Array.from(node.childNodes).forEach(child => traverse(child, newFmt));
@@ -996,45 +987,33 @@ function applyAutoFormat() {
     if (sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
         hasSelection = true;
         const range = sel.getRangeAt(0);
-        
-        const startMarker = document.createElement('span');
-        startMarker.id = 'start-marker';
-        const endMarker = document.createElement('span');
-        endMarker.id = 'end-marker';
+        const startMarker = document.createElement('span'); startMarker.id = 'start-marker';
+        const endMarker = document.createElement('span'); endMarker.id = 'end-marker';
         
         const rangeClone = range.cloneRange();
-        rangeClone.collapse(false);
-        rangeClone.insertNode(endMarker);
-        range.insertNode(startMarker);
+        rangeClone.collapse(false); rangeClone.insertNode(endMarker); range.insertNode(startMarker);
     }
 
     const tokens = extractDataFromEditor();
-    
-    let html = '';
-    let currentBlock = '';
+    let html = ''; let currentBlock = '';
     
     tokens.forEach(tok => {
         if (tok.isStartMarker) { currentBlock += '<span id="start-marker"></span>'; return; }
         if (tok.isEndMarker) { currentBlock += '<span id="end-marker"></span>'; return; }
         if (tok.isPlaceholder) return;
-        
         if (tok.text === '\n') {
             if (!currentBlock) currentBlock = '<br>';
-            html += '<div>' + currentBlock + '</div>';
-            currentBlock = '';
-            return;
+            html += '<div>' + currentBlock + '</div>'; currentBlock = ''; return;
         }
         
         let spanHtml = tok.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        
         let css = '';
         if (tok.format.bold) css += 'font-weight:bold;';
         if (tok.format.italic) css += 'font-style:italic;';
         if (tok.format.underline) css += 'text-decoration:underline;';
         if (tok.format.strike) css += 'text-decoration:line-through;';
         
-        let dataAttrs = '';
-        let color = '';
+        let dataAttrs = ''; let color = '';
         if (tok.format.isQuote) { color = quoteColorEl.value; dataAttrs = 'data-auto-quote="true"'; } 
         else if (tok.format.isAsterisk) { color = asteriskColorEl.value; dataAttrs = 'data-auto-ast="true"'; } 
         else if (tok.format.inlineColor) { color = tok.format.inlineColor; }
@@ -1047,7 +1026,6 @@ function applyAutoFormat() {
     });
     
     if (currentBlock) html += '<div>' + currentBlock + '</div>';
-    
     editorEl.innerHTML = html || '';
     
     if (hasSelection) {
@@ -1055,12 +1033,9 @@ function applyAutoFormat() {
         const eMarker = document.getElementById('end-marker');
         if (sMarker && eMarker) {
             const newRange = document.createRange();
-            newRange.setStartAfter(sMarker);
-            newRange.setEndBefore(eMarker);
-            sel.removeAllRanges();
-            sel.addRange(newRange);
-            sMarker.remove();
-            eMarker.remove();
+            newRange.setStartAfter(sMarker); newRange.setEndBefore(eMarker);
+            sel.removeAllRanges(); sel.addRange(newRange);
+            sMarker.remove(); eMarker.remove();
         }
     }
 }
@@ -1068,23 +1043,15 @@ function applyAutoFormat() {
 el('tbRemoveAst').addEventListener('click', () => {
     editorEl.querySelectorAll('[data-auto-ast]').forEach(node => node.removeAttribute('data-auto-ast'));
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    while (node = walker.nextNode()) {
-        if (node.nodeValue.includes('*')) node.nodeValue = node.nodeValue.replace(/\*/g, '');
-    }
-    applyAutoFormat();
-    draw();
+    let node; while (node = walker.nextNode()) { if (node.nodeValue.includes('*')) node.nodeValue = node.nodeValue.replace(/\*/g, ''); }
+    applyAutoFormat(); draw();
 });
 
 el('tbRemoveQuote').addEventListener('click', () => {
     editorEl.querySelectorAll('[data-auto-quote]').forEach(node => node.removeAttribute('data-auto-quote'));
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    while (node = walker.nextNode()) {
-        if (/[“”"]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
-    }
-    applyAutoFormat();
-    draw();
+    let node; while (node = walker.nextNode()) { if (/[“”"]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/[“”"]/g, ''); }
+    applyAutoFormat(); draw();
 });
 
 let isComposing = false;
@@ -1095,26 +1062,21 @@ editorEl.addEventListener('input', () => { if (!isComposing) applyAutoFormat(); 
 function getFontStr(fmt, size) {
   let fontId = fontFamilyEl.value;
   let def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
-  let wId = weightEl.value;
-  if (fmt.bold) wId = 'bold';
+  let wId = weightEl.value; if (fmt.bold) wId = 'bold';
   let wNum = def.weights[wId] || 400;
   let st = fmt.italic ? "italic " : "";
   return `${st}${wNum} ${size}px ${def.css}`;
 }
 
-function processTokens(tokens, size, ls, scaleX = 1) {
+function processTokens(tokens, size, ls) {
   let flat = [];
   tokens.forEach(tok => {
-    if (tok.text === '\n') {
-      flat.push(tok);
-    } else {
+    if (tok.text === '\n') { flat.push(tok); } else {
       ctx.font = getFontStr(tok.format, size);
-      
       if (lineBreakModeEl.value === 'char') {
         for(let i=0; i<tok.text.length; i++) {
-          let char = tok.text[i];
-          let w = (ctx.measureText(char).width + ls) * scaleX;
-          if (char === ' ') w += (WORD_SPACING_OFFSET * scaleX); 
+          let char = tok.text[i]; let w = ctx.measureText(char).width + ls;
+          if (char === ' ') w += WORD_SPACING_OFFSET; 
           flat.push({ text: char, format: tok.format, w: w, isPlaceholder: tok.isPlaceholder });
         }
       } else {
@@ -1123,13 +1085,12 @@ function processTokens(tokens, size, ls, scaleX = 1) {
           if (!wrd) return;
           if (wrd.match(/^\s+$/)) {
             for(let i=0; i<wrd.length; i++) {
-              let spaceW = (ctx.measureText(wrd[i]).width + WORD_SPACING_OFFSET) * scaleX; 
+              let spaceW = ctx.measureText(wrd[i]).width + WORD_SPACING_OFFSET; 
               flat.push({ text: wrd[i], format: tok.format, w: spaceW, isPlaceholder: tok.isPlaceholder });
             }
           } else {
-            let mw = ctx.measureText(wrd).width;
-            mw += ls * (wrd.length - 1);
-            flat.push({ text: wrd, format: tok.format, w: mw * scaleX, isPlaceholder: tok.isPlaceholder, length: wrd.length });
+            let mw = ctx.measureText(wrd).width; mw += ls * (wrd.length - 1);
+            flat.push({ text: wrd, format: tok.format, w: mw, isPlaceholder: tok.isPlaceholder, length: wrd.length });
           }
         });
       }
@@ -1143,26 +1104,20 @@ function computePages() {
   const hMode = heightModeEl.value;
   const my = parseInt(marginYEl.value, 10);
   const mx = parseInt(marginXEl.value, 10);
-  
   const contentWidth = w - mx*2;
   const size = parseInt(fontSizeEl.value, 10);
   const lh = (parseInt(lineHeightEl.value, 10) / 100) * size;
   const ls = parseFloat(letterSpacingEl.value);
-  const scaleX = parseInt(scaleXEl.value, 10) / 100;
   
   const tokens = extractDataFromEditor();
-  const els = processTokens(tokens, size, ls, scaleX);
+  const els = processTokens(tokens, size, ls);
   
   const titleText = el('titleInput').value.trim();
   const titleSize = parseInt(el('titleFontSize').value, 10);
   const titleSpacing = parseInt(el('titleSpacing').value, 10);
   let titleHeightSpace = titleText ? (titleSize * 1.5 + titleSpacing) : 0;
 
-  const pages = [];
-  let currentLines = [];
-  let currentLine = [];
-  let currentX = 0;
-  
+  const pages = []; let currentLines = []; let currentLine = []; let currentX = 0;
   function breakLine() { currentLines.push(currentLine); currentLine = []; currentX = 0; }
   
   els.forEach(el => {
@@ -1170,9 +1125,7 @@ function computePages() {
     if (currentX + el.w > contentWidth && currentLine.length > 0) {
       if (lineBreakModeEl.value === 'word' && el.text !== ' ') { breakLine(); currentLine.push(el); currentX += el.w; }
       else { breakLine(); if (el.text !== ' ') { currentLine.push(el); currentX += el.w; } }
-    } else {
-      currentLine.push(el); currentX += el.w;
-    }
+    } else { currentLine.push(el); currentX += el.w; }
   });
   
   if (currentLine.length > 0) currentLines.push(currentLine);
@@ -1184,9 +1137,7 @@ function computePages() {
   
   const contentHeightLimit = presetHeight - my*2 - 40; 
 
-  let p = [];
-  let pY = 0;
-  let isFirstPage = true;
+  let p = []; let pY = 0; let isFirstPage = true;
   const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
   currentLines.forEach((ln, idx) => {
@@ -1203,7 +1154,6 @@ function computePages() {
     if (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0) {
       pages.push(p); p = []; pY = 0; pSpace = 0; isFirstPage = false;
     }
-    
     pY += pSpace; ln.yOffset = pY; p.push(ln); pY += lh;
   });
   
@@ -1229,8 +1179,7 @@ function draw() {
   nextBtn.disabled = (currentPage >= pages.length - 1);
   pageIndicator.textContent = `${currentPage + 1} / ${pages.length}`;
   
-  canvas.width = cWidth * DPR;
-  canvas.height = cHeight * DPR;
+  canvas.width = cWidth * DPR; canvas.height = cHeight * DPR;
   ctx.scale(DPR, DPR);
   
   ctx.fillStyle = bgColorEl.value;
@@ -1238,29 +1187,20 @@ function draw() {
   
   if (bgImageObj) {
     ctx.save();
-    
     const opacity = parseInt(bgOpacityEl.value, 10) / 100;
     const darkness = parseInt(bgDarknessEl.value, 10) / 100;
     const brightness = 100 - (darkness * 100); 
     const scale = parseInt(bgScaleEl.value, 10) / 100;
     
-    ctx.globalAlpha = opacity;
-    ctx.filter = `brightness(${brightness}%)`;
-    
-    const drawW = bgImageObj.width * scale;
-    const drawH = bgImageObj.height * scale;
-    
-    const centerX = (cWidth - drawW) / 2;
-    const centerY = (cHeight - drawH) / 2;
-    
+    ctx.globalAlpha = opacity; ctx.filter = `brightness(${brightness}%)`;
+    const drawW = bgImageObj.width * scale; const drawH = bgImageObj.height * scale;
+    const centerX = (cWidth - drawW) / 2; const centerY = (cHeight - drawH) / 2;
     ctx.drawImage(bgImageObj, centerX + bgOffsetX, centerY + bgOffsetY, drawW, drawH);
     ctx.restore();
   }
 
-  const align = alignEl.value;
-  const baseColor = textColorEl.value;
-  const astColor = asteriskColorEl.value;
-  const quoteColor = quoteColorEl.value;
+  const align = alignEl.value; const baseColor = textColorEl.value;
+  const astColor = asteriskColorEl.value; const quoteColor = quoteColorEl.value;
   const scaleX = parseInt(scaleXEl.value, 10) / 100;
   
   let startY = my + (lh - size)/2 + size; 
@@ -1268,8 +1208,7 @@ function draw() {
   const titleText = el('titleInput').value.trim();
   if (currentPage === 0 && titleText) {
      const tSize = parseInt(el('titleFontSize').value, 10);
-     const tAlign = el('titleAlign').value;
-     const tWeightId = el('titleWeight').value;
+     const tAlign = el('titleAlign').value; const tWeightId = el('titleWeight').value;
      
      ctx.save();
      let def = FONT_DEFS[fontFamilyEl.value] || FONT_DEFS['pretendard'];
@@ -1277,25 +1216,20 @@ function draw() {
      ctx.font = `${tWNum} ${tSize}px ${def.css}`;
      ctx.fillStyle = el('titleColor').value;
      
-     let tw = 0;
-     for(let i=0; i<titleText.length; i++) tw += ctx.measureText(titleText[i]).width + ls;
+     let tw = 0; for(let i=0; i<titleText.length; i++) tw += ctx.measureText(titleText[i]).width + ls;
      
      const totalScaledWidth = tw * scaleX; 
      let titleX = mx;
      if (tAlign === 'center') titleX = mx + (contentWidth - totalScaledWidth)/2;
      else if (tAlign === 'right') titleX = mx + contentWidth - totalScaledWidth;
      
-     let cx = titleX;
-     ctx.translate(0, my + tSize);
-     ctx.scale(scaleX, 1);
+     let cx = titleX; ctx.translate(0, my + tSize); ctx.scale(scaleX, 1);
      
      for(let i=0; i<titleText.length; i++) {
        ctx.fillText(titleText[i], cx / scaleX, 0);
        cx += (ctx.measureText(titleText[i]).width + ls) * scaleX;
      }
-     ctx.restore();
-     
-     startY += titleHeightSpace;
+     ctx.restore(); startY += titleHeightSpace;
   }
   
   const page = pages[currentPage];
@@ -1304,11 +1238,9 @@ function draw() {
   page.forEach((ln, lIdx) => {
     let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
     let y = startY + ln.yOffset;
-    
     if (ln.length > 0 && ln[ln.length-1].text === ' ') lnWidth -= ln[ln.length-1].w;
     
-    let x = mx;
-    let justifySpace = 0;
+    let x = mx; let justifySpace = 0;
     
     if (align === 'center') x = mx + (contentWidth - lnWidth)/2;
     else if (align === 'right') x = mx + contentWidth - lnWidth;
@@ -1324,20 +1256,12 @@ function draw() {
     
     ln.forEach(data => {
       if (data.text === '\n') return;
-      
       const fmt = data.format;
       ctx.font = getFontStr(fmt, size);
       
       if (fmt.highlightColor && !data.isPlaceholder) {
         ctx.fillStyle = fmt.highlightColor;
-        let bgWidth = data.w;
-        if (justifySpace > 0 && (lineBreakModeEl.value === 'char' || data.text === ' ')) {
-          bgWidth += justifySpace;
-        }
-        // 줄간격(lh) 대신 글자 크기(size) 기준으로 높이 계산 (아래 삐짐 방지)
-        const hiHeight = size * 1.15;
-        const hiY = y - size * 0.85;
-        ctx.fillRect(x, hiY, bgWidth, hiHeight);
+        ctx.fillRect(x - 0.5, y - size * 0.85, data.w + justifySpace + 1, size * 1.15);
       }
       
       ctx.save();
@@ -1347,17 +1271,13 @@ function draw() {
       else if (fmt.isAsterisk) ctx.fillStyle = astColor;
       else ctx.fillStyle = baseColor;
 
-      ctx.translate(x, y);
-      ctx.scale(scaleX, 1);
+      ctx.translate(x, y); ctx.scale(scaleX, 1);
       
-      if (lineBreakModeEl.value === 'char') {
-        ctx.fillText(data.text, 0, 0);
-      } else {
+      if (lineBreakModeEl.value === 'char') { ctx.fillText(data.text, 0, 0); } else {
         if (data.text !== ' ') {
            let cx = 0;
            for (let i=0; i<data.text.length; i++) {
-             ctx.fillText(data.text[i], cx, 0);
-             cx += ctx.measureText(data.text[i]).width + ls;
+             ctx.fillText(data.text[i], cx, 0); cx += ctx.measureText(data.text[i]).width + ls;
            }
         }
       }
@@ -1374,15 +1294,11 @@ function draw() {
       }
       
       x += data.w;
-      if (justifySpace > 0) {
-        if (lineBreakModeEl.value === 'char' || data.text === ' ') x += justifySpace;
-      }
+      if (justifySpace > 0) { if (lineBreakModeEl.value === 'char' || data.text === ' ') x += justifySpace; }
     });
   });
   
-  const fixedPaddingRight = 50;
-  const fixedPaddingBottom = 40;
-
+  const fixedPaddingRight = 50; const fixedPaddingBottom = 40;
   const src = sourceEl.value.trim() || sourceEl.getAttribute('placeholder');
   const srcSize = parseInt(sourceFontSizeEl.value, 10);
   ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
@@ -1413,8 +1329,7 @@ function loadPresetsList() {
     const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
     Object.keys(dataMap).forEach(name => {
       if (name !== '기본값') {
-        const opt = document.createElement('option');
-        opt.value = name; opt.textContent = name; select.appendChild(opt);
+        const opt = document.createElement('option'); opt.value = name; opt.textContent = name; select.appendChild(opt);
       }
     });
   } catch(e) {}
@@ -1424,13 +1339,10 @@ function loadPresetsList() {
 }
 
 el('savePresetBtn').addEventListener('click', () => {
-  const nameInput = el('presetNameInput');
-  const name = nameInput.value.trim();
+  const nameInput = el('presetNameInput'); const name = nameInput.value.trim();
   if (!name) { alert('템플릿 이름을 입력해주세요.'); nameInput.focus(); return; }
-  
   let dataMap = {};
   try { dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); } catch(e) {}
-
   dataMap[name] = {
     canvasWidth: canvasWidthEl.value, heightMode: heightModeEl.value, canvasHeight: canvasHeightEl.value,
     marginY: marginYEl.value, marginX: marginXEl.value, bgColor: bgColorEl.value,
@@ -1440,36 +1352,27 @@ el('savePresetBtn').addEventListener('click', () => {
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
     sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value
   };
-
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
-  nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name;
-  alert(`"${name}" 템플릿이 저장되었습니다.`);
+  nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name; alert(`"${name}" 템플릿이 저장되었습니다.`);
 });
 
 el('loadPresetBtn').addEventListener('click', () => {
   const name = el('presetSelect').value;
   if (!name) { alert('불러올 템플릿을 선택해주세요.'); return; }
-  
   let data = null;
   if (name === '기본값') data = DEFAULT_PRESET_DATA;
-  else {
-    try { const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); data = dataMap[name]; } catch(e) {}
-  }
-
+  else { try { const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); data = dataMap[name]; } catch(e) {} }
   if (!data) { alert('해당 템플릿을 찾을 수 없습니다.'); return; }
   
-  canvasWidthEl.value = data.canvasWidth; heightModeEl.value = data.heightMode;
-  customHeightWrap.style.display = (heightModeEl.value === 'custom') ? 'block' : 'none';
+  canvasWidthEl.value = data.canvasWidth; heightModeEl.value = data.heightMode; customHeightWrap.style.display = (heightModeEl.value === 'custom') ? 'block' : 'none';
   canvasHeightEl.value = data.canvasHeight; marginYEl.value = data.marginY; el('marginYVal').textContent = marginYEl.value;
   marginXEl.value = data.marginX; el('marginXVal').textContent = marginXEl.value; bgColorEl.value = data.bgColor;
   fontFamilyEl.value = data.fontFamily; lineBreakModeEl.value = data.lineBreakMode; alignEl.value = data.align;
-  weightEl.value = data.weight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize;
-  el('fontSizeVal').textContent = fontSizeEl.value; lineHeightEl.value = data.lineHeight; el('lineHeightVal').textContent = lineHeightEl.value;
-  paraSpacingEl.value = data.paraSpacing; paraSpacingValEl.textContent = paraSpacingEl.value; letterSpacingEl.value = data.letterSpacing;
-  el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
+  weightEl.value = data.weight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize; el('fontSizeVal').textContent = fontSizeEl.value;
+  lineHeightEl.value = data.lineHeight; el('lineHeightVal').textContent = lineHeightEl.value; paraSpacingEl.value = data.paraSpacing; paraSpacingValEl.textContent = paraSpacingEl.value;
+  letterSpacingEl.value = data.letterSpacing; el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
   sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
-
   draw(); alert(`"${name}" 템플릿을 불러왔습니다.`);
 });
 
@@ -1478,7 +1381,6 @@ el('deletePresetBtn').addEventListener('click', () => {
   if (!name) { alert('삭제할 템플릿을 선택해주세요.'); return; }
   if (name === '기본값') { alert('기본값 템플릿은 삭제할 수 없습니다.'); return; }
   if (!confirm(`"${name}" 템플릿을 삭제하시겠습니까?`)) return;
-  
   try {
     const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); delete dataMap[name];
     localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap)); loadPresetsList(); alert('삭제되었습니다.');
@@ -1494,79 +1396,57 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => {
-  item.addEventListener('input', draw);
-});
+[sourceEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', draw); });
 
 fontFamilyEl.addEventListener('change', async (e) => {
   const def = FONT_DEFS[e.target.value];
-  if (def && def.name && document.fonts) {
-    try {
-      await document.fonts.load(`16px "${def.name}"`);
-    } catch(err) {
-      console.warn("폰트 로드 실패:", err);
-    }
-  }
+  if (def && def.name && document.fonts) { try { await document.fonts.load(`16px "${def.name}"`); } catch(err) { console.warn("폰트 로드 실패:", err); } }
   draw();
 });
 
-asteriskColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); });
-quoteColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); });
-
-['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing'].forEach(id => {
-  if(el(id)) el(id).addEventListener('input', draw);
-});
-
+asteriskColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); }); quoteColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); });
+['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing'].forEach(id => { if(el(id)) el(id).addEventListener('input', draw); });
 prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; draw(); } });
-nextBtn.addEventListener('click', () => { 
-  const p = computePages().pages.length; 
-  if(currentPage < p - 1) { currentPage++; draw(); } 
-});
+nextBtn.addEventListener('click', () => { const p = computePages().pages.length; if(currentPage < p - 1) { currentPage++; draw(); } });
 
 el('copyBtn').addEventListener('click', () => {
-  canvas.toBlob(blob => {
-    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      .then(() => alert('클립보드에 복사되었습니다.'))
-      .catch(e => alert('복사실패: ' + e));
-  });
+  canvas.toBlob(blob => { navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => alert('클립보드에 복사되었습니다.')).catch(e => alert('복사실패: ' + e)); });
 });
 
 el('downloadBtn').addEventListener('click', () => {
-  const link = document.createElement('a');
-  link.download = `page_${currentPage + 1}.png`;
-  link.href = canvas.toDataURL();
-  link.click();
+  const link = document.createElement('a'); link.download = `page_${currentPage + 1}.png`; link.href = canvas.toDataURL(); link.click();
 });
 
-const resizer = el('resizer');
-const panelCol = el('panelCol');
-let isResizing = false;
+const resizer = el('resizer'); const panelCol = el('panelCol'); let isResizing = false;
+resizer.addEventListener('mousedown', () => { isResizing = true; resizer.classList.add('resizing'); document.body.style.cursor = 'col-resize'; });
+document.addEventListener('mousemove', (e) => { if (!isResizing) return; const newWidth = document.body.clientWidth - e.clientX; if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px'; });
+document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; resizer.classList.remove('resizing'); document.body.style.cursor = 'default'; } });
 
-resizer.addEventListener('mousedown', () => {
-  isResizing = true;
-  resizer.classList.add('resizing');
-  document.body.style.cursor = 'col-resize';
-});
+window.addEventListener('load', () => { loadPresetsList(); updateZoom(); draw(); });
+</script>
 
-document.addEventListener('mousemove', (e) => {
-  if (!isResizing) return;
-  const newWidth = document.body.clientWidth - e.clientX;
-  if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px';
-});
+<script>
+  // ---- 라이트 / 다크 테마 토글 ----
+  (function () {
+    const root = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const STORAGE_KEY = 'rosie_editor_theme';
 
-document.addEventListener('mouseup', () => {
-  if (isResizing) {
-    isResizing = false;
-    resizer.classList.remove('resizing');
-    document.body.style.cursor = 'default';
-  }
-});
+    function applyTheme(theme) {
+      root.setAttribute('data-theme', theme);
+      toggleBtn.setAttribute('aria-pressed', theme === 'dark');
+    }
 
-window.addEventListener('load', () => { 
-  loadPresetsList();
-  updateZoom();
-  draw(); 
-});
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+
+    toggleBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem(STORAGE_KEY, next);
+    });
+  })();
 </script>
 </body>
 </html>
