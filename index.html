@@ -618,8 +618,8 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
-              <input type="range" id="paraSpacing" min="0" max="20" step="1" value="10">
+              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
+              <input type="range" id="paraSpacing" min="0" max="10" step="1" value="5">
             </div>
           </div>
 
@@ -988,13 +988,8 @@ function extractDataFromEditor() {
       if (bg) newFmt.highlightColor = bg;
       
       const isBlock = ['DIV', 'P', 'SECTION'].includes(node.tagName);
-      // 문단 간격 버그 수정: 줄바꿈(\n) 토큰은 반드시 "editor의 바로 아래 자식(top-level)" 블록에서만 생성해야 함.
-      // 브라우저에서 Enter를 칠 때 <div> 안에 <div>가 중첩되는 경우가 흔하게 발생하는데,
-      // 예전 코드는 중첩된 내부 div까지 블록으로 인식해서 같은 줄바꿈 지점에 \n을 두 번(또는 그 이상) 추가했음.
-      // 그 결과 실제로는 빈 줄이 아닌데도 "빈 줄"로 인식되어 문단 간격(paraSpacing)이 불필요하게 추가로 붙었던 것.
-      const isTopLevelBlock = isBlock && node.parentNode === editorEl;
-      if (isTopLevelBlock && node !== editorEl.firstChild) { tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); }
-      if (isTopLevelBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
+      if (isBlock && node !== editorEl && node !== editorEl.firstChild) { tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); }
+      if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
         if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); return;
       }
 
@@ -1172,7 +1167,7 @@ function computePages() {
   const contentHeightLimit = presetHeight - my*2 - 40; 
 
   let p = []; let pY = 0; let isFirstPage = true;
-  const actualParaSpacing = (parseInt(paraSpacingEl.value, 10) - 10) * 3;
+  const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
   currentLines.forEach((ln, idx) => {
     let isNewPara = false;
@@ -1182,7 +1177,7 @@ function computePages() {
       if (prevIsBlank) isNewPara = true;
     }
     
-    let pSpace = (isNewPara && idx > 0) ? actualParaSpacing : 0;
+    let pSpace = (isNewPara && idx > 0) ? (actualParaSpacing - lh) : 0;
     let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0);
 
     if (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0) {
@@ -1374,7 +1369,7 @@ const DEFAULT_PRESET_DATA = {
   canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
-  paraSpacing: '0', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
+  paraSpacing: '5', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
   quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right'
 };
 
