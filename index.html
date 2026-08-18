@@ -6,22 +6,21 @@
 <title>i'm feeling @7ucky!</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <style>
-  /* 저장소 안의 fonts 폴더에 올려둔 파일을 직접 가리킴 (상대경로) */
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPubWorld-Batang-Light.otf') format('opentype');
+    src: url('./fonts/KoPub Batang_Pro Light.otf') format('opentype');
     font-weight: 300;
     font-display: swap;
   }
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPubWorld-Batang-Medium.otf') format('opentype');
+    src: url('./fonts/KoPub Batang_Pro Medium.otf') format('opentype');
     font-weight: 400;
     font-display: swap;
   }
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('./fonts/KoPubWorld-Batang-Bold.otf') format('opentype');
+    src: url('./fonts/KoPub Batang_Pro Bold.otf') format('opentype');
     font-weight: 700;
     font-display: swap;
   }
@@ -49,7 +48,6 @@
     margin: 0 auto;
   }
 
-  /* ===== 미리보기 영역 ===== */
   #previewCol {
     order: 0;
     background: #efefef;
@@ -95,7 +93,6 @@
 
   #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
-  /* ===== 설정 패널 ===== */
   #panelCol { order: 1; padding: 28px 24px 60px; }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; }
@@ -136,7 +133,7 @@
     border-radius: 0;
   }
 
-  .field textarea { height: 70px; resize: vertical; }
+  .field textarea { height: 90px; resize: vertical; }
 
   .field select {
     appearance: none;
@@ -182,16 +179,6 @@
 
   .toggle-btn.active { background: #111; color: #fff; border-color: #111; }
 
-  .checkbox-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .checkbox-row input { accent-color: #111; width: 16px; height: 16px; }
-  .checkbox-row label { font-size: 12px; color: #777; margin: 0; }
-
   hr.sep { border: none; border-top: 1px solid #eee; margin: 24px 0; }
 
   .section-title {
@@ -201,6 +188,33 @@
     color: #111;
     margin-bottom: 14px;
   }
+
+  .hint {
+    font-size: 11px;
+    color: #aaa;
+    margin: -4px 0 8px;
+  }
+
+  .editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tbtn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    border-radius: 0;
+  }
+
+  .tbtn:hover { background: #f2f2f2; }
+  .tbtn.danger { color: #b33; border-color: #e0b3b3; }
 
   button#downloadBtn {
     width: 100%;
@@ -266,18 +280,13 @@
       </div>
 
       <hr class="sep">
-      <div class="section-title">본문</div>
+      <div class="section-title">본문 — 기본값</div>
 
       <div class="field">
-        <label>인용구 (길면 자동으로 다음 페이지로 넘어감)</label>
-        <textarea id="quote">시작이 반이다. 무엇이든 시작하는 순간, 이미 절반은 이루어진 것이다.</textarea>
-      </div>
-
-      <div class="field">
-        <label>폰트</label>
+        <label>기본 폰트</label>
         <select id="fontFamily">
-          <option value="'Pretendard Variable', sans-serif">Pretendard Variable</option>
-          <option value="'KoPubWorld Batang', serif">KoPub World 바탕체</option>
+          <option value="pretendard">Pretendard Variable</option>
+          <option value="kopub">KoPub World 바탕체</option>
         </select>
       </div>
 
@@ -285,11 +294,9 @@
         <div class="field">
           <label>굵기</label>
           <select id="weight">
-            <option value="100">Thin</option>
-            <option value="400" selected>Regular</option>
-            <option value="500">Medium</option>
-            <option value="700">Bold</option>
-            <option value="900">Black</option>
+            <option value="thin">Thin</option>
+            <option value="regular" selected>Regular</option>
+            <option value="bold">Bold</option>
           </select>
         </div>
         <div class="field">
@@ -304,27 +311,13 @@
       </div>
 
       <div class="field">
-        <label>기울임</label>
+        <label>기울임 (전체 적용)</label>
         <div class="toggle-btn" id="italicBtn"><i>I</i> 기울임 적용</div>
       </div>
 
       <div class="field">
-        <label>글자색</label>
+        <label>기본 글자색</label>
         <input type="color" id="textColor" value="#000000">
-      </div>
-
-      <div class="checkbox-row">
-        <input type="checkbox" id="highlightOn">
-        <label for="highlightOn">형광펜 효과</label>
-      </div>
-      <div class="field">
-        <input type="color" id="highlightColor" value="#fff176">
-        <div class="swatches">
-          <button type="button" class="swatch" data-color="#FFEDFA" style="background:#FFEDFA"></button>
-          <button type="button" class="swatch" data-color="#DEF9FF" style="background:#DEF9FF"></button>
-          <button type="button" class="swatch" data-color="#FDFFDB" style="background:#FDFFDB"></button>
-          <button type="button" class="swatch" data-color="#DFFFDB" style="background:#DFFFDB"></button>
-        </div>
       </div>
 
       <div class="field">
@@ -340,6 +333,35 @@
         <div class="field">
           <label>줄간격 (<span id="lineHeightVal">140</span>%)</label>
           <input type="range" id="lineHeight" min="100" max="220" value="140">
+        </div>
+      </div>
+
+      <hr class="sep">
+      <div class="section-title">인용구 — 부분 편집</div>
+      <div class="hint">텍스트를 드래그로 선택한 뒤 버튼을 눌러 선택 영역에만 적용하세요.</div>
+
+      <div class="editor-toolbar">
+        <button type="button" class="tbtn" id="tbBold"><b>B</b> 볼드</button>
+        <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
+        <button type="button" class="tbtn" id="tbHiOff">형광펜 해제</button>
+        <button type="button" class="tbtn" id="tbFontPretendard">Pretendard로</button>
+        <button type="button" class="tbtn" id="tbFontKopub">KoPub으로</button>
+        <button type="button" class="tbtn" id="tbFontReset">폰트 기본값</button>
+        <button type="button" class="tbtn danger" id="tbClear">서식 초기화</button>
+      </div>
+
+      <div class="field">
+        <textarea id="quote">시작이 반이다. 무엇이든 시작하는 순간, 이미 절반은 이루어진 것이다.</textarea>
+      </div>
+
+      <div class="field">
+        <label>형광펜 색상 (위 "형광펜 적용" 버튼에 사용됨)</label>
+        <input type="color" id="highlightColor" value="#fff176">
+        <div class="swatches">
+          <button type="button" class="swatch" data-color="#FFEDFA" style="background:#FFEDFA"></button>
+          <button type="button" class="swatch" data-color="#DEF9FF" style="background:#DEF9FF"></button>
+          <button type="button" class="swatch" data-color="#FDFFDB" style="background:#FDFFDB"></button>
+          <button type="button" class="swatch" data-color="#DFFFDB" style="background:#DFFFDB"></button>
         </div>
       </div>
 
@@ -371,8 +393,8 @@
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-
 const el = id => document.getElementById(id);
+
 const quoteEl = el('quote');
 const sourceEl = el('source');
 const bgColorEl = el('bgColor');
@@ -383,7 +405,6 @@ const fontFamilyEl = el('fontFamily');
 const weightEl = el('weight');
 const alignEl = el('align');
 const italicBtn = el('italicBtn');
-const highlightOnEl = el('highlightOn');
 const highlightColorEl = el('highlightColor');
 const letterSpacingEl = el('letterSpacing');
 const letterSpacingVal = el('letterSpacingVal');
@@ -401,88 +422,212 @@ const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
+const FONT_DEFS = {
+  pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, bold: 700 } },
+  kopub:      { css: "'KoPubWorld Batang', serif",         weights: { thin: 300, regular: 400, bold: 700 } }
+};
+
 let italic = false;
 let currentPage = 0;
 
-italicBtn.addEventListener('click', () => { italic = !italic; italicBtn.classList.toggle('active', italic); update(); });
+// ---- 텍스트 + 글자별 서식 데이터 모델 ----
+let text = quoteEl.value;
+let formats = Array.from({ length: text.length }, () => ({ bold: false, highlightColor: null, font: null }));
+
+function makeDefaultFormat() { return { bold: false, highlightColor: null, font: null }; }
+
+// 텍스트가 바뀌었을 때, 서식 배열을 최대한 그대로 유지하면서 길이만 맞춰줌
+function syncFormatsWithText(newText) {
+  const oldText = text;
+  let p = 0;
+  const maxP = Math.min(oldText.length, newText.length);
+  while (p < maxP && oldText[p] === newText[p]) p++;
+
+  let s = 0;
+  const maxS = Math.min(oldText.length - p, newText.length - p);
+  while (s < maxS && oldText[oldText.length - 1 - s] === newText[newText.length - 1 - s]) s++;
+
+  const newMiddleLen = newText.length - p - s;
+  formats = formats.slice(0, p)
+    .concat(Array.from({ length: newMiddleLen }, makeDefaultFormat))
+    .concat(formats.slice(oldText.length - s));
+  text = newText;
+}
+
+function buildCharFont(idx, sizePx) {
+  const fmt = formats[idx] || {};
+  const familyKey = fmt.font || fontFamilyEl.value;
+  const def = FONT_DEFS[familyKey];
+  const weightLabel = weightEl.value;
+  const weight = fmt.bold ? def.weights.bold : def.weights[weightLabel];
+  return `${italic ? 'italic ' : ''}${weight} ${sizePx}px ${def.css}`;
+}
+
+italicBtn.addEventListener('click', () => { italic = !italic; italicBtn.classList.toggle('active', italic); draw(); });
 
 document.querySelectorAll('.swatch').forEach(btn => {
-  btn.addEventListener('click', () => {
-    highlightColorEl.value = btn.dataset.color;
-    highlightOnEl.checked = true;
-    draw();
-  });
+  btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
 ratioEl.addEventListener('change', () => {
   const [w, h] = ratioEl.value.split(':').map(Number);
   canvas.width = 800;
   canvas.height = Math.round(800 * (h / w));
-  update();
+  currentPage = 0;
+  draw();
 });
 
 prevBtn.addEventListener('click', () => { currentPage = Math.max(0, currentPage - 1); draw(); });
 nextBtn.addEventListener('click', () => { currentPage += 1; draw(); });
 
-function buildFont(sizePx, family) {
-  const weight = weightEl.value;
-  return `${italic ? 'italic ' : ''}${weight} ${sizePx}px ${family}`;
+// ---- 부분 편집 툴바 ----
+function selectionAllTrue(start, end, predicate) {
+  if (start >= end) return false;
+  for (let i = start; i < end; i++) if (!predicate(formats[i])) return false;
+  return true;
 }
 
-function measureLineWidth(ctx, text, spacing) {
-  let w = 0;
-  for (const ch of text) w += ctx.measureText(ch).width + spacing;
-  if (text.length > 0) w -= spacing;
-  return w;
+function applyToSelection(mutator) {
+  const start = quoteEl.selectionStart;
+  const end = quoteEl.selectionEnd;
+  if (start === end) return;
+  for (let i = start; i < end; i++) mutator(formats[i]);
+  draw();
+  quoteEl.focus();
+  quoteEl.setSelectionRange(start, end);
 }
 
-function wrapText(ctx, text, maxWidth, spacing) {
-  const paragraphs = text.split('\n');
-  const lines = [];
-  paragraphs.forEach(para => {
-    const words = para.split(' ');
-    let line = '';
-    words.forEach(word => {
-      const test = line ? line + ' ' + word : word;
-      if (measureLineWidth(ctx, test, spacing) > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
+el('tbBold').addEventListener('click', () => {
+  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
+  if (start === end) return;
+  const allBold = selectionAllTrue(start, end, f => f.bold);
+  applyToSelection(f => { f.bold = !allBold; });
+});
+
+el('tbHiOn').addEventListener('click', () => {
+  const color = highlightColorEl.value;
+  applyToSelection(f => { f.highlightColor = color; });
+});
+
+el('tbHiOff').addEventListener('click', () => {
+  applyToSelection(f => { f.highlightColor = null; });
+});
+
+el('tbFontPretendard').addEventListener('click', () => {
+  applyToSelection(f => { f.font = 'pretendard'; });
+});
+
+el('tbFontKopub').addEventListener('click', () => {
+  applyToSelection(f => { f.font = 'kopub'; });
+});
+
+el('tbFontReset').addEventListener('click', () => {
+  applyToSelection(f => { f.font = null; });
+});
+
+el('tbClear').addEventListener('click', () => {
+  applyToSelection(f => { f.bold = false; f.highlightColor = null; f.font = null; });
+});
+
+quoteEl.addEventListener('input', () => {
+  syncFormatsWithText(quoteEl.value);
+  currentPage = 0;
+  draw();
+});
+
+// ---- 줄바꿈 (글자별 서식을 반영해 폭을 측정) ----
+function wrapParagraph(ctx, paraStr, paraStartIdx, maxWidth, spacing, fontSize) {
+  const wordsRaw = [];
+  let wStart = 0;
+  for (let i = 0; i <= paraStr.length; i++) {
+    if (i === paraStr.length || paraStr[i] === ' ') {
+      wordsRaw.push({ str: paraStr.slice(wStart, i), startIdx: paraStartIdx + wStart });
+      wStart = i + 1;
+    }
+  }
+
+  function charWidth(idx, ch) {
+    ctx.font = buildCharFont(idx, fontSize);
+    return ctx.measureText(ch).width;
+  }
+
+  const outLines = [];
+  let curChars = [];
+  let curWidth = 0;
+
+  wordsRaw.forEach((w) => {
+    let wordWidth = 0;
+    for (let k = 0; k < w.str.length; k++) wordWidth += charWidth(w.startIdx + k, w.str[k]) + spacing;
+    if (w.str.length > 0) wordWidth -= spacing;
+
+    const hasContent = curChars.length > 0;
+    const spaceIdx = w.startIdx - 1;
+    const spaceWidth = hasContent ? charWidth(spaceIdx, ' ') + spacing : 0;
+    const projected = curWidth + spaceWidth + wordWidth;
+
+    if (hasContent && projected > maxWidth) {
+      outLines.push(curChars);
+      curChars = [];
+      for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
+      curWidth = wordWidth;
+    } else {
+      if (hasContent) {
+        curChars.push({ ch: ' ', idx: spaceIdx });
+        curWidth += spaceWidth;
       }
-    });
-    lines.push(line);
+      for (let k = 0; k < w.str.length; k++) curChars.push({ ch: w.str[k], idx: w.startIdx + k });
+      curWidth += wordWidth;
+    }
   });
+  outLines.push(curChars);
+  return outLines;
+}
+
+function wrapTextIndexed(ctx, str, maxWidth, spacing, fontSize) {
+  const lines = [];
+  let paraStart = 0;
+  for (let i = 0; i <= str.length; i++) {
+    if (i === str.length || str[i] === '\n') {
+      const paraStr = str.slice(paraStart, i);
+      lines.push(...wrapParagraph(ctx, paraStr, paraStart, maxWidth, spacing, fontSize));
+      paraStart = i + 1;
+    }
+  }
   return lines;
 }
 
-function drawCharsFrom(ctx, text, x, y, spacing) {
-  const prevAlign = ctx.textAlign;
-  ctx.textAlign = 'left';
-  let cx = x;
-  for (const ch of text) {
-    ctx.fillText(ch, cx, y);
-    cx += ctx.measureText(ch).width + spacing;
-  }
-  ctx.textAlign = prevAlign;
-}
-
-function layoutLine(ctx, line, alignment, boxLeft, boxRight, spacing, isLastLine) {
+// ---- 라인 내 글자 위치 계산 (정렬 + justify 처리) ----
+function computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLine, fontSize) {
   const contentWidth = boxRight - boxLeft;
-  const lineWidth = measureLineWidth(ctx, line, spacing);
+  const widths = chars.map(c => {
+    ctx.font = buildCharFont(c.idx, fontSize);
+    return ctx.measureText(c.ch).width;
+  });
+  const lineWidth = widths.reduce((s, w, i) => s + w + (i < widths.length - 1 ? spacing : 0), 0);
 
   if (alignment === 'justify' && !isLastLine) {
-    const words = line.split(' ');
-    if (words.length > 1) {
-      const wordsWidth = words.reduce((s, w) => s + measureLineWidth(ctx, w, spacing), 0);
-      const gapWidth = (contentWidth - wordsWidth) / (words.length - 1);
-      return { draw: (y) => {
-        let x = boxLeft;
-        words.forEach(w => {
-          drawCharsFrom(ctx, w, x, y, spacing);
-          x += measureLineWidth(ctx, w, spacing) + gapWidth;
+    const wordGroups = [];
+    let curIdxs = [];
+    chars.forEach((c, i) => {
+      if (c.ch === ' ') { wordGroups.push(curIdxs); curIdxs = []; }
+      else curIdxs.push(i);
+    });
+    wordGroups.push(curIdxs);
+
+    if (wordGroups.length > 1) {
+      const wordWidths = wordGroups.map(g => g.reduce((s, i, gi) => s + widths[i] + (gi < g.length - 1 ? spacing : 0), 0));
+      const totalWordsWidth = wordWidths.reduce((a, b) => a + b, 0);
+      const gapWidth = (contentWidth - totalWordsWidth) / (wordGroups.length - 1);
+      const positions = [];
+      let x = boxLeft;
+      wordGroups.forEach((g, gi) => {
+        g.forEach((charI, k) => {
+          positions.push({ idx: chars[charI].idx, ch: chars[charI].ch, x, width: widths[charI] });
+          x += widths[charI] + (k < g.length - 1 ? spacing : 0);
         });
-      }, boxX: boxLeft, boxW: contentWidth };
+        if (gi < wordGroups.length - 1) x += gapWidth;
+      });
+      return { positions, lineWidth: contentWidth };
     }
   }
 
@@ -491,17 +636,40 @@ function layoutLine(ctx, line, alignment, boxLeft, boxRight, spacing, isLastLine
   else if (alignment === 'right') startX = boxRight - lineWidth;
   else startX = boxLeft + (contentWidth - lineWidth) / 2;
 
-  return { draw: (y) => drawCharsFrom(ctx, line, startX, y, spacing), boxX: startX, boxW: lineWidth };
+  const positions = [];
+  let x = startX;
+  chars.forEach((c, i) => {
+    positions.push({ idx: c.idx, ch: c.ch, x, width: widths[i] });
+    x += widths[i] + (i < chars.length - 1 ? spacing : 0);
+  });
+
+  return { positions, lineWidth };
 }
 
-function update() { currentPage = 0; draw(); }
+function drawHighlightsForLine(ctx, positions, y, lineHeight, fontSize) {
+  let i = 0;
+  while (i < positions.length) {
+    const color = formats[positions[i].idx] ? formats[positions[i].idx].highlightColor : null;
+    if (!color) { i++; continue; }
+    let j = i;
+    while (j < positions.length && formats[positions[j].idx] && formats[positions[j].idx].highlightColor === color) j++;
+    const runStartX = positions[i].x;
+    const last = positions[j - 1];
+    const runEndX = last.x + last.width;
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.55;
+    const padY = fontSize * 0.12;
+    ctx.fillRect(runStartX - 3, y - lineHeight / 2 + padY, (runEndX - runStartX) + 6, lineHeight - padY * 2);
+    ctx.globalAlpha = 1;
+    i = j;
+  }
+}
 
 function draw() {
   const W = canvas.width, H = canvas.height;
   const bg = bgColorEl.value;
-  const textColor = textColorEl.value;
+  const color = textColorEl.value;
   const fontSize = parseInt(fontSizeEl.value, 10);
-  const fontFamily = fontFamilyEl.value;
   const spacing = parseInt(letterSpacingEl.value, 10);
   const lineHeightPct = parseInt(lineHeightEl.value, 10);
   const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
@@ -520,14 +688,13 @@ function draw() {
   const boxRight = W - marginX;
   const contentWidth = boxRight - boxLeft;
 
-  ctx.font = buildFont(fontSize, fontFamily);
-  const lines = wrapText(ctx, quoteEl.value, contentWidth, spacing);
+  const rawLines = wrapTextIndexed(ctx, text, contentWidth, spacing, fontSize);
   const lineHeight = fontSize * (lineHeightPct / 100);
 
   const sourceReserve = sourceFontSize * 2.2;
   const availableHeight = Math.max(lineHeight, H - marginY * 2 - sourceReserve);
   const linesPerPage = Math.max(1, Math.floor(availableHeight / lineHeight));
-  const totalPages = Math.max(1, Math.ceil(lines.length / linesPerPage));
+  const totalPages = Math.max(1, Math.ceil(rawLines.length / linesPerPage));
 
   if (currentPage > totalPages - 1) currentPage = totalPages - 1;
   if (currentPage < 0) currentPage = 0;
@@ -536,37 +703,39 @@ function draw() {
   prevBtn.disabled = currentPage === 0;
   nextBtn.disabled = currentPage >= totalPages - 1;
 
-  const pageLines = lines.slice(currentPage * linesPerPage, (currentPage + 1) * linesPerPage);
+  const pageLines = rawLines.slice(currentPage * linesPerPage, (currentPage + 1) * linesPerPage);
   const isLastPage = currentPage === totalPages - 1;
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.font = buildFont(fontSize, fontFamily);
-  const layouts = pageLines.map((line, i) => {
-    const isLastLineOfQuote = (currentPage * linesPerPage + i) === lines.length - 1;
-    return layoutLine(ctx, line, alignment, boxLeft, boxRight, spacing, isLastLineOfQuote);
+  const startY = marginY + lineHeight / 2;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+
+  const lineLayouts = pageLines.map((chars, i) => {
+    const globalLineIndex = currentPage * linesPerPage + i;
+    const isLastLineOfQuote = globalLineIndex === rawLines.length - 1;
+    return computeLinePositions(ctx, chars, alignment, boxLeft, boxRight, spacing, isLastLineOfQuote, fontSize);
   });
 
-  const startY = marginY + lineHeight / 2;
+  lineLayouts.forEach((layout, i) => {
+    const y = startY + i * lineHeight;
+    drawHighlightsForLine(ctx, layout.positions, y, lineHeight, fontSize);
+  });
 
-  if (highlightOnEl.checked) {
-    ctx.fillStyle = highlightColorEl.value;
-    ctx.globalAlpha = 0.55;
-    const padY = fontSize * 0.12;
-    layouts.forEach((L, i) => {
-      const y = startY + i * lineHeight;
-      ctx.fillRect(L.boxX - 6, y - lineHeight / 2 + padY, L.boxW + 12, lineHeight - padY * 2);
+  lineLayouts.forEach((layout, i) => {
+    const y = startY + i * lineHeight;
+    layout.positions.forEach(p => {
+      ctx.font = buildCharFont(p.idx, fontSize);
+      ctx.fillStyle = color;
+      ctx.fillText(p.ch, p.x, y);
     });
-    ctx.globalAlpha = 1;
-  }
-
-  ctx.fillStyle = textColor;
-  ctx.textBaseline = 'middle';
-  layouts.forEach((L, i) => L.draw(startY + i * lineHeight));
+  });
 
   if (isLastPage) {
-    ctx.font = buildFont(sourceFontSize, fontFamily);
+    const def = FONT_DEFS[fontFamilyEl.value];
+    ctx.font = `${def.weights[weightEl.value]} ${sourceFontSize}px ${def.css}`;
     ctx.fillStyle = sourceColorEl.value;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'alphabetic';
@@ -574,12 +743,11 @@ function draw() {
   }
 }
 
-[quoteEl, bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl,
- highlightOnEl, highlightColorEl, letterSpacingEl, lineHeightEl,
- marginYEl, marginXEl].forEach(node => {
-  node.addEventListener('input', update);
-  node.addEventListener('change', update);
-});
+[bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl, letterSpacingEl, lineHeightEl, marginYEl, marginXEl]
+  .forEach(node => {
+    node.addEventListener('input', () => { currentPage = 0; draw(); });
+    node.addEventListener('change', () => { currentPage = 0; draw(); });
+  });
 
 [sourceEl, sourceFontSizeEl, sourceColorEl].forEach(node => {
   node.addEventListener('input', draw);
@@ -598,9 +766,8 @@ async function loadFontsAndDraw() {
     await Promise.all([
       document.fonts.load("100 16px 'Pretendard Variable'"),
       document.fonts.load("400 16px 'Pretendard Variable'"),
-      document.fonts.load("500 16px 'Pretendard Variable'"),
       document.fonts.load("700 16px 'Pretendard Variable'"),
-      document.fonts.load("900 16px 'Pretendard Variable'"),
+      document.fonts.load("300 16px 'KoPubWorld Batang'"),
       document.fonts.load("400 16px 'KoPubWorld Batang'"),
       document.fonts.load("700 16px 'KoPubWorld Batang'"),
     ]);
