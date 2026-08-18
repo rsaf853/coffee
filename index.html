@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>rosie/quote</title>
+<title>i'm feeling @7ucky!</title>
 <!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <style>
@@ -532,7 +532,6 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <!-- 문단 간격 기본값 및 계산식 정상화 -->
               <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
               <input type="range" id="paraSpacing" min="0" max="60" step="2" value="10">
             </div>
@@ -574,8 +573,8 @@
           <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
           
           <div class="row2" style="margin-top: 14px;">
-            <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우기</button>
-            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
+            <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우고 색상 고정</button>
+            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표 지우고 색상 고정</button>
           </div>
 
           <div class="field" style="margin-top: 14px;">
@@ -723,19 +722,93 @@ document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
-function removeAsterisks(node) {
-  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/\*/g, '');
-  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeAsterisks);
-}
-el('tbRemoveAst').addEventListener('click', () => { removeAsterisks(editorEl); draw(); });
+// DOM 기반으로 별표 내부 텍스트에 지정 색상을 서식(Inline style)으로 직접 주입 후 별표 제거
+el('tbRemoveAst').addEventListener('click', () => {
+  const targetColor = asteriskColorEl.value;
+  
+  function processAstNode(node) {
+    if (node.nodeType === 3) {
+      let text = node.nodeValue;
+      if (!text.includes('*')) return;
+      
+      let parts = text.split('*');
+      if (parts.length < 3) {
+        node.nodeValue = text.replace(/\*/g, '');
+        return;
+      }
+      
+      let frag = document.createDocumentFragment();
+      for (let i = 0; i < parts.length; i++) {
+        if (i % 2 === 1) { // 별표 안의 내용
+          let span = document.createElement('span');
+          span.style.color = targetColor;
+          span.textContent = parts[i];
+          frag.appendChild(span);
+        } else {
+          if (parts[i]) frag.appendChild(document.createTextNode(parts[i]));
+        }
+      }
+      node.parentNode.replaceChild(frag, node);
+    } else if (node.nodeType === 1) {
+      Array.from(node.childNodes).forEach(processAstNode);
+    }
+  }
 
-function removeQuotes(node) {
-  if (node.nodeType === 3) node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
-  else if (node.nodeType === 1) Array.from(node.childNodes).forEach(removeQuotes);
-}
-el('tbRemoveQuote').addEventListener('click', () => { removeQuotes(editorEl); draw(); });
+  processAstNode(editorEl);
+  draw();
+});
 
-// HTML DOM 트래버스 및 줄바꿈 보정 파서
+// DOM 기반으로 따옴표 내부 텍스트에 지정 색상을 서식(Inline style)으로 직접 주입 후 따옴표 제거
+el('tbRemoveQuote').addEventListener('click', () => {
+  const targetColor = quoteColorEl.value;
+
+  function processQuoteNode(node) {
+    if (node.nodeType === 3) {
+      let text = node.nodeValue;
+      if (!/[“”"]/.test(text)) return;
+      
+      let parts = text.split(/([“”"])/);
+      let frag = document.createDocumentFragment();
+      let inQ = false;
+      let currentSpan = null;
+
+      for (let i = 0; i < parts.length; i++) {
+        let p = parts[i];
+        if (p === '“' || p === '"') {
+          if (!inQ) {
+            inQ = true;
+            currentSpan = document.createElement('span');
+            currentSpan.style.color = targetColor;
+          } else {
+            inQ = false;
+            if (currentSpan) frag.appendChild(currentSpan);
+            currentSpan = null;
+          }
+        } else if (p === '”') {
+          if (inQ) {
+            inQ = false;
+            if (currentSpan) frag.appendChild(currentSpan);
+            currentSpan = null;
+          }
+        } else if (p) {
+          if (inQ && currentSpan) {
+            currentSpan.textContent += p;
+          } else {
+            frag.appendChild(document.createTextNode(p));
+          }
+        }
+      }
+      if (inQ && currentSpan) frag.appendChild(currentSpan);
+      node.parentNode.replaceChild(frag, node);
+    } else if (node.nodeType === 1) {
+      Array.from(node.childNodes).forEach(processQuoteNode);
+    }
+  }
+
+  processQuoteNode(editorEl);
+  draw();
+});
+
 function extractDataFromEditor() {
   const tokens = [];
   const isEmpty = editorEl.textContent.trim() === '';
@@ -849,7 +922,6 @@ function extractDataFromEditor() {
         tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
       }
 
-      // 블록 태그 내에 단순 <br>만 들어있는 경우의 이중 줄바꿈 방지
       if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
         if (node === editorEl.firstChild) {
           tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
@@ -981,8 +1053,6 @@ function computePages() {
   let p = [];
   let pY = 0;
   let isFirstPage = true;
-  
-  // 문단 간격 수식 정상화 (음수 버그 제거)
   const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
   currentLines.forEach((ln, idx) => {
@@ -1124,9 +1194,9 @@ function draw() {
       
       ctx.save();
       if (data.isPlaceholder) ctx.fillStyle = '#cccccc';
+      else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
       else if (fmt.isQuote) ctx.fillStyle = quoteColor; 
       else if (fmt.isAsterisk) ctx.fillStyle = astColor;
-      else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
       else ctx.fillStyle = baseColor;
 
       ctx.translate(x, y);
