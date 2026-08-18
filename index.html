@@ -30,7 +30,7 @@
   body {
     margin: 0;
     font-family: 'Pretendard Variable', -apple-system, sans-serif;
-    background: #ffffff;
+    background: #efefef;
     color: #111;
   }
 
@@ -93,7 +93,7 @@
 
   #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
-  #panelCol { order: 1; padding: 28px 24px 60px; }
+  #panelCol { order: 1; padding: 28px 24px 60px; background: #fff; }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; }
 
@@ -216,6 +216,18 @@
   .tbtn:hover { background: #f2f2f2; }
   .tbtn.danger { color: #b33; border-color: #e0b3b3; }
 
+  .editor-preview {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 10px 12px;
+    min-height: 56px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #111;
+  }
+
   button#downloadBtn {
     width: 100%;
     padding: 14px;
@@ -266,11 +278,11 @@
       <div class="row2">
         <div class="field">
           <label>위·아래 여백 (<span id="marginYVal">60</span>px)</label>
-          <input type="range" id="marginY" min="0" max="200" value="60">
+          <input type="range" id="marginY" min="0" max="200" step="5" value="60">
         </div>
         <div class="field">
           <label>양쪽 여백 (<span id="marginXVal">60</span>px)</label>
-          <input type="range" id="marginX" min="0" max="200" value="60">
+          <input type="range" id="marginX" min="0" max="200" step="5" value="60">
         </div>
       </div>
 
@@ -311,11 +323,6 @@
       </div>
 
       <div class="field">
-        <label>기울임 (전체 적용)</label>
-        <div class="toggle-btn" id="italicBtn"><i>I</i> 기울임 적용</div>
-      </div>
-
-      <div class="field">
         <label>기본 글자색</label>
         <input type="color" id="textColor" value="#000000">
       </div>
@@ -328,7 +335,7 @@
       <div class="row2">
         <div class="field">
           <label>자간 (<span id="letterSpacingVal">0</span>px)</label>
-          <input type="range" id="letterSpacing" min="-3" max="20" value="0">
+          <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="0">
         </div>
         <div class="field">
           <label>줄간격 (<span id="lineHeightVal">140</span>%)</label>
@@ -342,12 +349,19 @@
 
       <div class="editor-toolbar">
         <button type="button" class="tbtn" id="tbBold"><b>B</b> 볼드</button>
+        <button type="button" class="tbtn" id="tbItalic"><i>I</i> 이탤릭</button>
+        <button type="button" class="tbtn" id="tbUnderline"><u>U</u> 밑줄</button>
         <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
         <button type="button" class="tbtn" id="tbHiOff">형광펜 해제</button>
         <button type="button" class="tbtn" id="tbFontPretendard">Pretendard로</button>
         <button type="button" class="tbtn" id="tbFontKopub">KoPub으로</button>
         <button type="button" class="tbtn" id="tbFontReset">폰트 기본값</button>
         <button type="button" class="tbtn danger" id="tbClear">서식 초기화</button>
+      </div>
+
+      <div class="field">
+        <label>적용된 서식 미리보기</label>
+        <div id="editorPreview" class="editor-preview"></div>
       </div>
 
       <div class="field">
@@ -404,7 +418,6 @@ const fontSizeVal = el('fontSizeVal');
 const fontFamilyEl = el('fontFamily');
 const weightEl = el('weight');
 const alignEl = el('align');
-const italicBtn = el('italicBtn');
 const highlightColorEl = el('highlightColor');
 const letterSpacingEl = el('letterSpacing');
 const letterSpacingVal = el('letterSpacingVal');
@@ -427,14 +440,13 @@ const FONT_DEFS = {
   kopub:      { css: "'KoPubWorld Batang', serif",         weights: { thin: 300, regular: 400, bold: 700 } }
 };
 
-let italic = false;
 let currentPage = 0;
 
 // ---- 텍스트 + 글자별 서식 데이터 모델 ----
-let text = quoteEl.value;
-let formats = Array.from({ length: text.length }, () => ({ bold: false, highlightColor: null, font: null }));
+function makeDefaultFormat() { return { bold: false, italic: false, underline: false, highlightColor: null, font: null }; }
 
-function makeDefaultFormat() { return { bold: false, highlightColor: null, font: null }; }
+let text = quoteEl.value;
+let formats = Array.from({ length: text.length }, makeDefaultFormat);
 
 // 텍스트가 바뀌었을 때, 서식 배열을 최대한 그대로 유지하면서 길이만 맞춰줌
 function syncFormatsWithText(newText) {
@@ -460,10 +472,39 @@ function buildCharFont(idx, sizePx) {
   const def = FONT_DEFS[familyKey];
   const weightLabel = weightEl.value;
   const weight = fmt.bold ? def.weights.bold : def.weights[weightLabel];
-  return `${italic ? 'italic ' : ''}${weight} ${sizePx}px ${def.css}`;
+  return `${fmt.italic ? 'italic ' : ''}${weight} ${sizePx}px ${def.css}`;
 }
 
-italicBtn.addEventListener('click', () => { italic = !italic; italicBtn.classList.toggle('active', italic); draw(); });
+function sameFormat(a, b) {
+  return a.bold === b.bold && a.italic === b.italic && a.underline === b.underline
+    && a.highlightColor === b.highlightColor && a.font === b.font;
+}
+
+function renderEditorPreview() {
+  const container = el('editorPreview');
+  container.innerHTML = '';
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] === '\n') {
+      container.appendChild(document.createElement('br'));
+      i++;
+      continue;
+    }
+    const fmt = formats[i];
+    let j = i;
+    while (j < text.length && text[j] !== '\n' && sameFormat(formats[j], fmt)) j++;
+    const span = document.createElement('span');
+    span.textContent = text.slice(i, j);
+    if (fmt.bold) span.style.fontWeight = '700';
+    if (fmt.italic) span.style.fontStyle = 'italic';
+    if (fmt.underline) span.style.textDecoration = 'underline';
+    if (fmt.highlightColor) span.style.backgroundColor = fmt.highlightColor;
+    const familyKey = fmt.font || fontFamilyEl.value;
+    span.style.fontFamily = FONT_DEFS[familyKey].css;
+    container.appendChild(span);
+    i = j;
+  }
+}
 
 document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
@@ -504,6 +545,20 @@ el('tbBold').addEventListener('click', () => {
   applyToSelection(f => { f.bold = !allBold; });
 });
 
+el('tbItalic').addEventListener('click', () => {
+  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
+  if (start === end) return;
+  const allItalic = selectionAllTrue(start, end, f => f.italic);
+  applyToSelection(f => { f.italic = !allItalic; });
+});
+
+el('tbUnderline').addEventListener('click', () => {
+  const start = quoteEl.selectionStart, end = quoteEl.selectionEnd;
+  if (start === end) return;
+  const allUnderline = selectionAllTrue(start, end, f => f.underline);
+  applyToSelection(f => { f.underline = !allUnderline; });
+});
+
 el('tbHiOn').addEventListener('click', () => {
   const color = highlightColorEl.value;
   applyToSelection(f => { f.highlightColor = color; });
@@ -526,7 +581,7 @@ el('tbFontReset').addEventListener('click', () => {
 });
 
 el('tbClear').addEventListener('click', () => {
-  applyToSelection(f => { f.bold = false; f.highlightColor = null; f.font = null; });
+  applyToSelection(f => { f.bold = false; f.italic = false; f.underline = false; f.highlightColor = null; f.font = null; });
 });
 
 quoteEl.addEventListener('input', () => {
@@ -665,12 +720,34 @@ function drawHighlightsForLine(ctx, positions, y, lineHeight, fontSize) {
   }
 }
 
+function drawUnderlinesForLine(ctx, positions, y, fontSize, color) {
+  let i = 0;
+  while (i < positions.length) {
+    const on = formats[positions[i].idx] && formats[positions[i].idx].underline;
+    if (!on) { i++; continue; }
+    let j = i;
+    while (j < positions.length && formats[positions[j].idx] && formats[positions[j].idx].underline) j++;
+    const runStartX = positions[i].x;
+    const last = positions[j - 1];
+    const runEndX = last.x + last.width;
+    const lineY = y + fontSize * 0.36;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1, fontSize * 0.05);
+    ctx.beginPath();
+    ctx.moveTo(runStartX, lineY);
+    ctx.lineTo(runEndX, lineY);
+    ctx.stroke();
+    i = j;
+  }
+}
+
 function draw() {
+  renderEditorPreview();
   const W = canvas.width, H = canvas.height;
   const bg = bgColorEl.value;
   const color = textColorEl.value;
   const fontSize = parseInt(fontSizeEl.value, 10);
-  const spacing = parseInt(letterSpacingEl.value, 10);
+  const spacing = parseFloat(letterSpacingEl.value);
   const lineHeightPct = parseInt(lineHeightEl.value, 10);
   const sourceFontSize = parseInt(sourceFontSizeEl.value, 10);
   const marginY = parseInt(marginYEl.value, 10);
@@ -678,7 +755,7 @@ function draw() {
   const alignment = alignEl.value;
 
   fontSizeVal.textContent = fontSize;
-  letterSpacingVal.textContent = spacing;
+  letterSpacingVal.textContent = spacing.toFixed(1);
   lineHeightVal.textContent = lineHeightPct;
   sourceFontSizeVal.textContent = sourceFontSize;
   marginYVal.textContent = marginY;
@@ -691,8 +768,9 @@ function draw() {
   const rawLines = wrapTextIndexed(ctx, text, contentWidth, spacing, fontSize);
   const lineHeight = fontSize * (lineHeightPct / 100);
 
-  const sourceReserve = sourceFontSize * 2.2;
-  const availableHeight = Math.max(lineHeight, H - marginY * 2 - sourceReserve);
+  const SOURCE_BOTTOM_OFFSET = 40; // 위·아래 여백 슬라이더와 무관하게 고정
+  const bottomReserve = SOURCE_BOTTOM_OFFSET + sourceFontSize * 1.4;
+  const availableHeight = Math.max(lineHeight, H - marginY - bottomReserve);
   const linesPerPage = Math.max(1, Math.floor(availableHeight / lineHeight));
   const totalPages = Math.max(1, Math.ceil(rawLines.length / linesPerPage));
 
@@ -733,13 +811,18 @@ function draw() {
     });
   });
 
+  lineLayouts.forEach((layout, i) => {
+    const y = startY + i * lineHeight;
+    drawUnderlinesForLine(ctx, layout.positions, y, fontSize, color);
+  });
+
   if (isLastPage) {
     const def = FONT_DEFS[fontFamilyEl.value];
-    ctx.font = `${def.weights[weightEl.value]} ${sourceFontSize}px ${def.css}`;
+    ctx.font = `${def.weights.regular} ${sourceFontSize}px ${def.css}`;
     ctx.fillStyle = sourceColorEl.value;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(sourceEl.value, boxRight, H - marginY);
+    ctx.fillText(sourceEl.value, boxRight, H - SOURCE_BOTTOM_OFFSET);
   }
 }
 
