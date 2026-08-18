@@ -1294,16 +1294,20 @@ function draw() {
     });
   });
   
+  /* ---- 출처(@source) : 값이 비어있으면 캔버스에 아무것도 그리지 않음 ----
+     기존에는 입력값이 없을 때 input의 placeholder("@7ucky")를 캔버스에
+     흐리게라도 그렸는데, 요청에 따라 입력창에만 보이고 캔버스(및 다운로드/
+     복사되는 이미지)에는 절대 노출되지 않도록 변경함. */
   const fixedPaddingRight = 50; const fixedPaddingBottom = 40;
-  const src = sourceEl.value.trim() || sourceEl.getAttribute('placeholder');
-  const srcSize = parseInt(sourceFontSizeEl.value, 10);
-  ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
-  
-  if (!sourceEl.value.trim()) ctx.fillStyle = 'rgba(0,0,0,0.15)';
-  else ctx.fillStyle = sourceColorEl.value;
-  
-  const tw = ctx.measureText(src).width;
-  ctx.fillText(src, cWidth - fixedPaddingRight - tw, cHeight - fixedPaddingBottom);
+  const src = sourceEl.value.trim();
+
+  if (src) {
+    const srcSize = parseInt(sourceFontSizeEl.value, 10);
+    ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
+    ctx.fillStyle = sourceColorEl.value;
+    const tw = ctx.measureText(src).width;
+    ctx.fillText(src, cWidth - fixedPaddingRight - tw, cHeight - fixedPaddingBottom);
+  }
 }
 
 const DEFAULT_PRESET_DATA = {
