@@ -3,24 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>발췌 이미지 만들기</title>
+<title>i'm feeling @7ucky!</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <style>
+  /* 저장소 안의 fonts 폴더에 올려둔 파일을 직접 가리킴 (상대경로) */
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('https://cdn.jsdelivr.net/gh/adrinerDP/font-kopubworld@master/fonts/KoPubWorld-Batang-Light.woff2') format('woff2');
+    src: url('./fonts/KoPubWorld-Batang-Light.woff2') format('woff2');
     font-weight: 300;
     font-display: swap;
   }
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('https://cdn.jsdelivr.net/gh/adrinerDP/font-kopubworld@master/fonts/KoPubWorld-Batang-Medium.woff') format('woff');
+    src: url('./fonts/KoPubWorld-Batang-Medium.woff') format('woff');
     font-weight: 400;
     font-display: swap;
   }
   @font-face {
     font-family: 'KoPubWorld Batang';
-    src: url('https://cdn.jsdelivr.net/gh/adrinerDP/font-kopubworld@master/fonts/KoPubWorld-Batang-Bold.woff') format('woff');
+    src: url('./fonts/KoPubWorld-Batang-Bold.woff') format('woff');
     font-weight: 700;
     font-display: swap;
   }
@@ -55,8 +56,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
+    justify-content: flex-start;
+    padding: 60px 20px 40px;
     gap: 16px;
   }
 
@@ -68,7 +69,9 @@
 
   canvas {
     display: block;
-    max-width: 100%;
+    max-width: 520px;
+    max-height: 82vh;
+    width: auto;
     height: auto;
   }
 
@@ -90,16 +93,10 @@
     font-size: 13px;
   }
 
-  #pageNav button:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
+  #pageNav button:disabled { opacity: 0.35; cursor: default; }
 
   /* ===== 설정 패널 ===== */
-  #panelCol {
-    order: 1;
-    padding: 28px 24px 60px;
-  }
+  #panelCol { order: 1; padding: 28px 24px 60px; }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; }
 
@@ -151,7 +148,6 @@
   }
 
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 
   .field input[type=color] {
     width: 100%;
@@ -160,6 +156,15 @@
     padding: 2px;
     background: #fff;
     cursor: pointer;
+  }
+
+  .swatches { display: flex; gap: 8px; margin-top: 8px; }
+  .swatch {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    padding: 0;
   }
 
   .field input[type=range] { width: 100%; accent-color: #111; }
@@ -255,6 +260,11 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>배경색</label>
+        <input type="color" id="bgColor" value="#ffffff">
+      </div>
+
       <hr class="sep">
       <div class="section-title">본문</div>
 
@@ -273,32 +283,34 @@
 
       <div class="row2">
         <div class="field">
-          <label>스타일</label>
-          <div class="row2">
-            <div class="toggle-btn" id="boldBtn">B 볼드체</div>
-            <div class="toggle-btn" id="italicBtn"><i>I</i> 기울임</div>
-          </div>
+          <label>굵기</label>
+          <select id="weight">
+            <option value="100">Thin</option>
+            <option value="400" selected>Regular</option>
+            <option value="500">Medium</option>
+            <option value="700">Bold</option>
+            <option value="900">Black</option>
+          </select>
         </div>
         <div class="field">
           <label>정렬</label>
           <select id="align">
-            <option value="left">왼쪽</option>
-            <option value="center" selected>가운데</option>
+            <option value="left" selected>왼쪽</option>
+            <option value="center">가운데</option>
             <option value="right">오른쪽</option>
             <option value="justify">양쪽 정렬</option>
           </select>
         </div>
       </div>
 
-      <div class="row2">
-        <div class="field">
-          <label>배경색</label>
-          <input type="color" id="bgColor" value="#ffffff">
-        </div>
-        <div class="field">
-          <label>글자색</label>
-          <input type="color" id="textColor" value="#000000">
-        </div>
+      <div class="field">
+        <label>기울임</label>
+        <div class="toggle-btn" id="italicBtn"><i>I</i> 기울임 적용</div>
+      </div>
+
+      <div class="field">
+        <label>글자색</label>
+        <input type="color" id="textColor" value="#000000">
       </div>
 
       <div class="checkbox-row">
@@ -306,13 +318,18 @@
         <label for="highlightOn">형광펜 효과</label>
       </div>
       <div class="field">
-        <label>형광펜 색</label>
         <input type="color" id="highlightColor" value="#fff176">
+        <div class="swatches">
+          <button type="button" class="swatch" data-color="#FFEDFA" style="background:#FFEDFA"></button>
+          <button type="button" class="swatch" data-color="#DEF9FF" style="background:#DEF9FF"></button>
+          <button type="button" class="swatch" data-color="#FDFFDB" style="background:#FDFFDB"></button>
+          <button type="button" class="swatch" data-color="#DFFFDB" style="background:#DFFFDB"></button>
+        </div>
       </div>
 
       <div class="field">
-        <label>글자 크기 (<span id="fontSizeVal">14</span>px)</label>
-        <input type="range" id="fontSize" min="10" max="90" value="14">
+        <label>글자 크기 (<span id="fontSizeVal">16</span>px)</label>
+        <input type="range" id="fontSize" min="10" max="90" value="16">
       </div>
 
       <div class="row2">
@@ -363,8 +380,8 @@ const textColorEl = el('textColor');
 const fontSizeEl = el('fontSize');
 const fontSizeVal = el('fontSizeVal');
 const fontFamilyEl = el('fontFamily');
+const weightEl = el('weight');
 const alignEl = el('align');
-const boldBtn = el('boldBtn');
 const italicBtn = el('italicBtn');
 const highlightOnEl = el('highlightOn');
 const highlightColorEl = el('highlightColor');
@@ -384,12 +401,18 @@ const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
-let bold = false;
 let italic = false;
 let currentPage = 0;
 
-boldBtn.addEventListener('click', () => { bold = !bold; boldBtn.classList.toggle('active', bold); update(); });
 italicBtn.addEventListener('click', () => { italic = !italic; italicBtn.classList.toggle('active', italic); update(); });
+
+document.querySelectorAll('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => {
+    highlightColorEl.value = btn.dataset.color;
+    highlightOnEl.checked = true;
+    draw();
+  });
+});
 
 ratioEl.addEventListener('change', () => {
   const [w, h] = ratioEl.value.split(':').map(Number);
@@ -402,7 +425,8 @@ prevBtn.addEventListener('click', () => { currentPage = Math.max(0, currentPage 
 nextBtn.addEventListener('click', () => { currentPage += 1; draw(); });
 
 function buildFont(sizePx, family) {
-  return `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${sizePx}px ${family}`;
+  const weight = weightEl.value;
+  return `${italic ? 'italic ' : ''}${weight} ${sizePx}px ${family}`;
 }
 
 function measureLineWidth(ctx, text, spacing) {
@@ -415,7 +439,7 @@ function measureLineWidth(ctx, text, spacing) {
 function wrapText(ctx, text, maxWidth, spacing) {
   const paragraphs = text.split('\n');
   const lines = [];
-  paragraphs.forEach((para, pi) => {
+  paragraphs.forEach(para => {
     const words = para.split(' ');
     let line = '';
     words.forEach(word => {
@@ -432,7 +456,6 @@ function wrapText(ctx, text, maxWidth, spacing) {
   return lines;
 }
 
-// 한 글자씩 정확한 위치에 그리기 (자간 반영), x는 텍스트 시작 지점(왼쪽)
 function drawCharsFrom(ctx, text, x, y, spacing) {
   const prevAlign = ctx.textAlign;
   ctx.textAlign = 'left';
@@ -444,7 +467,6 @@ function drawCharsFrom(ctx, text, x, y, spacing) {
   ctx.textAlign = prevAlign;
 }
 
-// 정렬 방식에 따라 한 줄의 시작 x좌표 계산 후 그리기. 형광펜용 박스 정보도 반환.
 function layoutLine(ctx, line, alignment, boxLeft, boxRight, spacing, isLastLine) {
   const contentWidth = boxRight - boxLeft;
   const lineWidth = measureLineWidth(ctx, line, spacing);
@@ -517,11 +539,9 @@ function draw() {
   const pageLines = lines.slice(currentPage * linesPerPage, (currentPage + 1) * linesPerPage);
   const isLastPage = currentPage === totalPages - 1;
 
-  // 배경
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // 줄별 레이아웃 계산 (위쪽 정렬로 흐르는 방식)
   ctx.font = buildFont(fontSize, fontFamily);
   const layouts = pageLines.map((line, i) => {
     const isLastLineOfQuote = (currentPage * linesPerPage + i) === lines.length - 1;
@@ -530,7 +550,6 @@ function draw() {
 
   const startY = marginY + lineHeight / 2;
 
-  // 형광펜 (텍스트보다 먼저)
   if (highlightOnEl.checked) {
     ctx.fillStyle = highlightColorEl.value;
     ctx.globalAlpha = 0.55;
@@ -542,12 +561,10 @@ function draw() {
     ctx.globalAlpha = 1;
   }
 
-  // 본문
   ctx.fillStyle = textColor;
   ctx.textBaseline = 'middle';
   layouts.forEach((L, i) => L.draw(startY + i * lineHeight));
 
-  // 출처 - 마지막 페이지 하단 우측 고정
   if (isLastPage) {
     ctx.font = buildFont(sourceFontSize, fontFamily);
     ctx.fillStyle = sourceColorEl.value;
@@ -557,7 +574,7 @@ function draw() {
   }
 }
 
-[quoteEl, bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, alignEl,
+[quoteEl, bgColorEl, textColorEl, fontSizeEl, fontFamilyEl, weightEl, alignEl,
  highlightOnEl, highlightColorEl, letterSpacingEl, lineHeightEl,
  marginYEl, marginXEl].forEach(node => {
   node.addEventListener('input', update);
@@ -576,12 +593,14 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   link.click();
 });
 
-// 웹폰트를 실제로 미리 로드한 뒤 그려야 캔버스에 정확히 반영됨
 async function loadFontsAndDraw() {
   try {
     await Promise.all([
+      document.fonts.load("100 16px 'Pretendard Variable'"),
       document.fonts.load("400 16px 'Pretendard Variable'"),
+      document.fonts.load("500 16px 'Pretendard Variable'"),
       document.fonts.load("700 16px 'Pretendard Variable'"),
+      document.fonts.load("900 16px 'Pretendard Variable'"),
       document.fonts.load("400 16px 'KoPubWorld Batang'"),
       document.fonts.load("700 16px 'KoPubWorld Batang'"),
     ]);
