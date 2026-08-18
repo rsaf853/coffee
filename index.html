@@ -40,12 +40,23 @@
     height: 100vh;
   }
 
+  /* 모바일 환경 캔버스 확대 적용 */
+  @media (max-width: 899px) {
+    #previewCol {
+      flex: 1.5; /* 모바일에서 캔버스가 더 많은 비율(약 60%) 차지 */
+      min-height: 55vh;
+    }
+    #panelCol {
+      flex: 1;
+    }
+  }
+
   #previewCol {
     order: 0;
     background: #efefef;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1; /* 데스크탑에서는 기본 flex 설정 */
     position: relative;
     overflow: hidden;
   }
@@ -56,7 +67,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 30px 10px 80px;
+    padding: 20px 10px 70px; /* 상하단 패널 여백 약간 축소 */
   }
 
   canvas {
@@ -71,13 +82,13 @@
 
   .bottom-bar {
     position: absolute;
-    bottom: 24px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(4px);
     padding: 6px 14px;
@@ -98,7 +109,7 @@
   #pageNav {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-size: 12px;
     color: #555;
   }
@@ -107,7 +118,7 @@
     border: 1px solid #e0e0e0;
     background: #fff;
     color: #333;
-    padding: 4px 10px;
+    padding: 4px 8px;
     cursor: pointer;
     font-family: inherit;
     font-size: 11px;
@@ -150,11 +161,10 @@
 
   #panelCol { 
     order: 2; 
-    padding: 16px 14px; 
+    padding: 12px 14px; /* 패딩 축소 */
     background: #fff; 
     border-top: 1px solid #eee;
     overflow-y: auto;
-    flex: 1;
   }
 
   .panel { width: 100%; max-width: 460px; margin: 0 auto; display: flex; flex-direction: column;}
@@ -182,14 +192,15 @@
       height: 100vh;
       border-left: none;
       border-top: none;
-      padding: 20px 20px;
+      padding: 16px 16px; /* 데스크탑 패딩도 소폭 축소 */
     }
     .panel { max-width: none; }
   }
 
+  /* 콤팩트 UI 조정 */
   details.panel-section {
-    padding-bottom: 16px;
-    margin-bottom: 16px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
     border-bottom: 1px solid #e2e2e2;
   }
   details.panel-section summary {
@@ -217,27 +228,28 @@
   }
   details.panel-section[open] summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
 
-  .details-content { padding: 16px 0 0 0; }
+  .details-content { padding: 10px 0 0 0; }
 
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: 10px; } /* 간격 축소 */
   .field:last-child { margin-bottom: 0; }
   
   .field label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     font-size: 12px;
     color: #777;
   }
 
+  /* 인풋창 상하 패딩 축소 */
   .field input[type=text],
   .field input[type=number],
   .field select {
     width: 100%;
-    padding: 10px 12px;
+    padding: 8px 10px; 
     border: 1px solid #ddd;
     background: #fff;
     color: #111;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
     border-radius: 4px;
   }
@@ -245,25 +257,20 @@
   .field select {
     appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, #999 50%), linear-gradient(135deg, #999 50%, transparent 50%);
-    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-position: calc(100% - 16px) center, calc(100% - 11px) center;
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
     cursor: pointer;
   }
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; } /* gap, margin 축소 */
   .row2:last-child { margin-bottom: 0; }
 
-  /* 템플릿 저장 전용 레이아웃 (입력창 넓게, 저장 버튼 작게, 패딩 부여) */
   .row-template-save {
     display: grid;
     grid-template-columns: 1fr 88px;
     gap: 8px;
     align-items: center;
-  }
-  
-  .row-template-save input[type="text"] {
-    padding: 8px 12px;
   }
 
   input[type="color"]:not(.inline-picker) {
@@ -271,7 +278,7 @@
     -moz-appearance: none;
     appearance: none;
     width: 100%;
-    height: 38px;
+    height: 34px; /* 컬러피커 높이 소폭 축소 */
     border: 1px solid #ddd;
     padding: 0;
     background: none;
@@ -284,11 +291,11 @@
   input[type="color"]:not(.inline-picker)::-moz-color-swatch { border: none; }
 
   .field input[type=range] { width: 100%; accent-color: #111; margin-top: 4px; }
-  .hint { font-size: 11px; color: #888; margin: -4px 0 8px; line-height: 1.4; }
+  .hint { font-size: 11px; color: #888; margin: -4px 0 6px; line-height: 1.3; }
 
-  .swatches { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .swatches { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
   .swatch {
-    width: 28px; height: 28px; border: 1px solid #ccc;
+    width: 26px; height: 26px; border: 1px solid #ccc;
     cursor: pointer; border-radius: 4px; padding: 0;
   }
 
@@ -301,7 +308,7 @@
 
   .tbtn {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-    padding: 0 9px; height: 28px; border: 1px solid #ccc; background: #fff;
+    padding: 0 8px; height: 28px; border: 1px solid #ccc; background: #fff;
     color: #333; font-size: 12px; cursor: pointer; font-family: inherit;
     border-radius: 4px; transition: 0.2s; box-sizing: border-box; white-space: nowrap;
   }
@@ -333,7 +340,7 @@
 
   #editor {
     width: 100%; 
-    height: 160px;
+    height: 140px; /* 높이 소폭 축소 */
     padding: 10px 12px; 
     border: 1px solid #ddd; 
     border-radius: 0 0 4px 4px;
@@ -341,7 +348,7 @@
     color: #111; 
     font-size: 12px; 
     font-family: inherit;
-    line-height: 1.6; 
+    line-height: 1.5; 
     outline: none; 
     overflow-y: auto;
     white-space: pre-wrap; 
@@ -354,9 +361,9 @@
   }
   #editor:focus { border-color: #999; }
 
-  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .action-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
   .btn-primary, .btn-secondary {
-    width: 100%; padding: 12px; border-radius: 4px; font-size: 14px;
+    width: 100%; padding: 10px; border-radius: 4px; font-size: 13px;
     font-weight: 600; cursor: pointer; font-family: inherit; transition: 0.2s;
   }
   .btn-primary { border: 1px solid #111; background: #111; color: #fff; }
@@ -364,10 +371,17 @@
   .btn-secondary { border: 1px solid #ccc; background: #fff; color: #111; }
   .btn-secondary:hover { background: #f4f4f4; border-color: #111; }
 
-  .footer-credit { margin-top: 20px; text-align: right; font-size: 12px; color: #aaa; font-weight: 300; padding-bottom: 20px;}
+  .footer-credit { margin-top: 16px; text-align: right; font-size: 12px; color: #aaa; font-weight: 300; padding-bottom: 20px;}
 </style>
 </head>
 <body>
+
+<!-- 폰트 캔버스 즉시 적용을 위한 사전 로드용 히든 요소 -->
+<div style="position:absolute; width:0; height:0; overflow:hidden; visibility:hidden;">
+  <span style="font-family:'Noto Serif KR'">.</span>
+  <span style="font-family:'Gothic A1'">.</span>
+  <span style="font-family:'Hahmlet'">.</span>
+</div>
 
 <main>
   <div id="previewCol">
@@ -449,7 +463,7 @@
         <summary class="section-title">제목</summary>
         <div class="details-content">
           <div class="field">
-            <label>제목 내용 (입력 시 첫 페이지 상단에 노출됩니다)</label>
+            <label>제목 내용 (첫 페이지 상단 노출)</label>
             <input type="text" id="titleInput" placeholder="제목을 입력하세요">
           </div>
           <div class="row2">
@@ -474,14 +488,14 @@
             <div class="field">
               <label>굵기</label>
               <select id="titleWeight">
-                <option value="thin">Thin (얇게)</option>
-                <option value="regular">Regular (보통)</option>
-                <option value="medium">Medium (중간)</option>
-                <option value="bold" selected>Bold (굵게)</option>
+                <option value="thin">Thin</option>
+                <option value="regular">Regular</option>
+                <option value="medium">Medium</option>
+                <option value="bold" selected>Bold</option>
               </select>
             </div>
           </div>
-          <div class="field" style="margin-top: 12px;">
+          <div class="field">
             <label>본문과의 간격 (<span id="titleSpacingVal">20</span>px)</label>
             <input type="range" id="titleSpacing" min="0" max="200" step="5" value="20">
           </div>
@@ -525,10 +539,10 @@
             <div class="field">
               <label>굵기</label>
               <select id="weight">
-                <option value="thin">Thin (얇게)</option>
-                <option value="regular" selected>Regular (보통)</option>
-                <option value="medium">Medium (중간)</option>
-                <option value="bold">Bold (굵게)</option>
+                <option value="thin">Thin</option>
+                <option value="regular" selected>Regular</option>
+                <option value="medium">Medium</option>
+                <option value="bold">Bold</option>
               </select>
             </div>
             <div class="field">
@@ -570,7 +584,7 @@
       <details class="panel-section" open>
         <summary class="section-title">본문</summary>
         <div class="details-content">
-          <div class="hint">텍스트를 드래그한 뒤 아래 툴바를 누르면 적용됩니다. (기호 서식은 에디터에 자동 반영됩니다)</div>
+          <div class="hint">텍스트를 드래그한 뒤 툴바를 누르면 적용됩니다.</div>
           
           <div class="editor-toolbar">
             <button type="button" class="tbtn" id="tbBold"><b>B</b></button>
@@ -583,19 +597,18 @@
             </button>
 
             <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
-
             <button type="button" class="tbtn danger" id="tbClear">서식 지우기</button>
           </div>
 
           <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
           
-          <div class="row2" style="margin-top: 12px;">
+          <div class="row2" style="margin-top: 10px;">
             <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* * (별표) 지우기</button>
             <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
           </div>
           
-          <div class="field" style="margin-top: 14px;">
-            <label>형광펜 색상 (툴바의 '형광펜 적용' 버튼 클릭 시 적용)</label>
+          <div class="field" style="margin-top: 12px;">
+            <label>형광펜 색상</label>
             <input type="color" id="highlightColor" value="#FFE0F9">
             <div class="swatches">
               <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
@@ -606,7 +619,7 @@
             </div>
           </div>
 
-          <div class="row2" style="margin-top: 12px;">
+          <div class="row2" style="margin-top: 10px;">
             <div class="field" style="margin-bottom: 0;">
               <label>* * (별표) 안 색상</label>
               <input type="color" id="asteriskColor" value="#777777">
@@ -623,7 +636,7 @@
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
-          <div class="hint">모든 페이지 우측 하단에 고정된 위치로 표시됩니다. (여백 설정과 무관하게 항상 같은 자리에 표시돼요)</div>
+          <div class="hint">모든 페이지 우측 하단 고정</div>
           <div class="field">
             <label>출처 / 이름</label>
             <input type="text" id="source" placeholder="@7ucky" value="">
@@ -641,31 +654,31 @@
         </div>
       </details>
 
-      <!-- 6. 템플릿 (출처 아래 위치) -->
+      <!-- 6. 템플릿 -->
       <details class="panel-section" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
         <summary class="section-title">템플릿</summary>
-        <div class="details-content" style="padding-top: 12px;">
-          <div class="field" style="margin-bottom: 12px;">
+        <div class="details-content" style="padding-top: 8px;">
+          <div class="field">
             <label>템플릿 선택</label>
             <select id="presetSelect">
               <option value="기본값">기본값</option>
             </select>
           </div>
-          <div class="field" style="margin-bottom: 12px;">
+          <div class="field">
             <label>템플릿 이름 입력</label>
             <div class="row-template-save">
               <input type="text" id="presetNameInput" placeholder="이름 입력">
-              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%; height:38px;">저장</button>
+              <button type="button" class="tbtn" id="savePresetBtn" style="background:#111; color:#fff; border-color:#111; width:100%; height:34px;">저장</button>
             </div>
           </div>
           <div class="row2" style="margin-bottom: 0;">
-            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%; height:38px;">불러오기</button>
-            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%; height:38px;">삭제</button>
+            <button type="button" class="tbtn" id="loadPresetBtn" style="width:100%; height:34px;">불러오기</button>
+            <button type="button" class="tbtn danger" id="deletePresetBtn" style="width:100%; height:34px;">삭제</button>
           </div>
         </div>
       </details>
 
-      <div class="action-btns" style="margin-top: 16px;">
+      <div class="action-btns" style="margin-top: 12px;">
         <button id="copyBtn" class="btn-secondary">현재 페이지 클립보드 복사</button>
         <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
       </div>
@@ -713,11 +726,12 @@ const prevBtn = el('prevBtn');
 const nextBtn = el('nextBtn');
 const pageIndicator = el('pageIndicator');
 
+// 폰트 정보에 name 속성 추가 (API 연동용)
 const FONT_DEFS = {
-  pretendard: { css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
-  noto:       { css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
-  gothic:     { css: "'Gothic A1', sans-serif",          weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
-  hahmlet:    { css: "'Hahmlet', serif",                 weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
+  pretendard: { name: 'Pretendard Variable', css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
+  noto:       { name: 'Noto Serif KR', css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
+  gothic:     { name: 'Gothic A1', css: "'Gothic A1', sans-serif",          weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
+  hahmlet:    { name: 'Hahmlet', css: "'Hahmlet', serif",                 weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
 };
 
 let currentPage = 0;
@@ -769,7 +783,6 @@ document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
 });
 
-// 자동 서식(DOM 갱신) 반영용 파서
 function extractDataFromEditor() {
   const tokens = [];
   const isEmpty = editorEl.textContent.trim() === '';
@@ -795,11 +808,7 @@ function extractDataFromEditor() {
         if (curBuf.length > 0) {
           tokens.push({
             text: curBuf,
-            format: {
-              ...currentFmt,
-              isAsterisk: curFmtState.inAst,
-              isQuote: curFmtState.inQuote
-            },
+            format: { ...currentFmt, isAsterisk: curFmtState.inAst, isQuote: curFmtState.inQuote },
             isPlaceholder: false
           });
           curBuf = "";
@@ -819,29 +828,11 @@ function extractDataFromEditor() {
         let isQ = (ch === '"' || ch === '“' || ch === '”');
 
         if (isAst) {
-          if (!state.inAst) {
-            flush();
-            state.inAst = true;
-            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-            curBuf += ch;
-          } else {
-            curBuf += ch;
-            flush();
-            state.inAst = false;
-            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-          }
+          if (!state.inAst) { flush(); state.inAst = true; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; curBuf += ch; }
+          else { curBuf += ch; flush(); state.inAst = false; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; }
         } else if (isQ) {
-          if (!state.inQuote) {
-            flush();
-            state.inQuote = true;
-            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-            curBuf += ch;
-          } else {
-            curBuf += ch;
-            flush();
-            state.inQuote = false;
-            curFmtState = { inAst: state.inAst, inQuote: state.inQuote };
-          }
+          if (!state.inQuote) { flush(); state.inQuote = true; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; curBuf += ch; }
+          else { curBuf += ch; flush(); state.inQuote = false; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; }
         } else {
           if (curFmtState.inAst !== state.inAst || curFmtState.inQuote !== state.inQuote) {
             flush();
@@ -857,11 +848,7 @@ function extractDataFromEditor() {
     if (node.nodeType === 1) {
       if (node.id === 'start-marker') { tokens.push({ isStartMarker: true }); return; }
       if (node.id === 'end-marker') { tokens.push({ isEndMarker: true }); return; }
-      
-      if (node.tagName === 'BR') {
-        tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
-        return;
-      }
+      if (node.tagName === 'BR') { tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false }); return; }
 
       const newFmt = { ...currentFmt };
       if (['B', 'STRONG'].includes(node.tagName) || node.style.fontWeight === 'bold' || parseInt(node.style.fontWeight) >= 700) newFmt.bold = true;
@@ -870,9 +857,7 @@ function extractDataFromEditor() {
       if (['S', 'STRIKE', 'DEL'].includes(node.tagName) || node.style.textDecoration.includes('line-through')) newFmt.strike = true;
       
       let fg = node.style ? node.style.color : null;
-      if (node.hasAttribute && (node.hasAttribute('data-auto-ast') || node.hasAttribute('data-auto-quote'))) {
-          fg = null; 
-      }
+      if (node.hasAttribute && (node.hasAttribute('data-auto-ast') || node.hasAttribute('data-auto-quote'))) fg = null; 
       if (!fg && node.tagName === 'FONT' && node.hasAttribute('color')) fg = node.getAttribute('color');
       if (fg && fg !== '' && fg !== 'inherit') newFmt.inlineColor = fg;
       
@@ -888,11 +873,8 @@ function extractDataFromEditor() {
       if (isBlock && node !== editorEl && node !== editorEl.firstChild) {
         tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
       }
-
       if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
-        if (node === editorEl.firstChild) {
-          tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
-        }
+        if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
         return;
       }
 
@@ -951,24 +933,15 @@ function applyAutoFormat() {
         
         let dataAttrs = '';
         let color = '';
-        if (tok.format.isQuote) {
-            color = quoteColorEl.value;
-            dataAttrs = 'data-auto-quote="true"';
-        } else if (tok.format.isAsterisk) {
-            color = asteriskColorEl.value;
-            dataAttrs = 'data-auto-ast="true"';
-        } else if (tok.format.inlineColor) {
-            color = tok.format.inlineColor;
-        }
+        if (tok.format.isQuote) { color = quoteColorEl.value; dataAttrs = 'data-auto-quote="true"'; } 
+        else if (tok.format.isAsterisk) { color = asteriskColorEl.value; dataAttrs = 'data-auto-ast="true"'; } 
+        else if (tok.format.inlineColor) { color = tok.format.inlineColor; }
         
         if (color) css += `color:${color};`;
         if (tok.format.highlightColor) css += `background-color:${tok.format.highlightColor};`;
 
-        if (css || dataAttrs) {
-            currentBlock += `<span ${dataAttrs} style="${css}">${spanHtml}</span>`;
-        } else {
-            currentBlock += `<span>${spanHtml}</span>`;
-        }
+        if (css || dataAttrs) currentBlock += `<span ${dataAttrs} style="${css}">${spanHtml}</span>`;
+        else currentBlock += `<span>${spanHtml}</span>`;
     });
     
     if (currentBlock) html += '<div>' + currentBlock + '</div>';
@@ -995,9 +968,7 @@ el('tbRemoveAst').addEventListener('click', () => {
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
     let node;
     while (node = walker.nextNode()) {
-        if (node.nodeValue.includes('*')) {
-            node.nodeValue = node.nodeValue.replace(/\*/g, '');
-        }
+        if (node.nodeValue.includes('*')) node.nodeValue = node.nodeValue.replace(/\*/g, '');
     }
     applyAutoFormat();
     draw();
@@ -1008,9 +979,7 @@ el('tbRemoveQuote').addEventListener('click', () => {
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
     let node;
     while (node = walker.nextNode()) {
-        if (/[“”"]/.test(node.nodeValue)) {
-            node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
-        }
+        if (/[“”"]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/[“”"]/g, '');
     }
     applyAutoFormat();
     draw();
@@ -1018,15 +987,8 @@ el('tbRemoveQuote').addEventListener('click', () => {
 
 let isComposing = false;
 editorEl.addEventListener('compositionstart', () => isComposing = true);
-editorEl.addEventListener('compositionend', () => {
-    isComposing = false;
-    applyAutoFormat();
-    draw();
-});
-editorEl.addEventListener('input', () => {
-    if (!isComposing) applyAutoFormat();
-    draw();
-});
+editorEl.addEventListener('compositionend', () => { isComposing = false; applyAutoFormat(); draw(); });
+editorEl.addEventListener('input', () => { if (!isComposing) applyAutoFormat(); draw(); });
 
 function getFontStr(fmt, size) {
   let fontId = fontFamilyEl.value;
@@ -1098,33 +1060,15 @@ function computePages() {
   let currentLine = [];
   let currentX = 0;
   
-  function breakLine() {
-    currentLines.push(currentLine);
-    currentLine = [];
-    currentX = 0;
-  }
+  function breakLine() { currentLines.push(currentLine); currentLine = []; currentX = 0; }
   
   els.forEach(el => {
-    if (el.text === '\n') {
-      currentLine.push(el);
-      breakLine();
-      return;
-    }
+    if (el.text === '\n') { currentLine.push(el); breakLine(); return; }
     if (currentX + el.w > contentWidth && currentLine.length > 0) {
-      if (lineBreakModeEl.value === 'word' && el.text !== ' ') {
-        breakLine();
-        currentLine.push(el);
-        currentX += el.w;
-      } else {
-        breakLine();
-        if (el.text !== ' ') {
-          currentLine.push(el);
-          currentX += el.w;
-        }
-      }
+      if (lineBreakModeEl.value === 'word' && el.text !== ' ') { breakLine(); currentLine.push(el); currentX += el.w; }
+      else { breakLine(); if (el.text !== ' ') { currentLine.push(el); currentX += el.w; } }
     } else {
-      currentLine.push(el);
-      currentX += el.w;
+      currentLine.push(el); currentX += el.w;
     }
   });
   
@@ -1132,12 +1076,8 @@ function computePages() {
   if (currentLines.length === 0) currentLines.push([]);
 
   let presetHeight = 1000;
-  if (hMode === 'custom') {
-    presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
-  } else if (hMode !== 'auto') {
-    const parts = hMode.split(':').map(Number);
-    presetHeight = Math.round(w * (parts[1] / parts[0]));
-  }
+  if (hMode === 'custom') presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
+  else if (hMode !== 'auto') { const parts = hMode.split(':').map(Number); presetHeight = Math.round(w * (parts[1] / parts[0])); }
   
   const contentHeightLimit = presetHeight - my*2 - 40; 
 
@@ -1150,28 +1090,18 @@ function computePages() {
     let isNewPara = false;
     if (idx > 0) {
       const prevLine = currentLines[idx-1];
-      if (prevLine.length > 0 && prevLine[prevLine.length-1].text === '\n') {
-        isNewPara = true;
-      } else if (prevLine.length === 0) {
-        isNewPara = true;
-      }
+      if (prevLine.length > 0 && prevLine[prevLine.length-1].text === '\n') isNewPara = true;
+      else if (prevLine.length === 0) isNewPara = true;
     }
     
     let pSpace = (isNewPara && idx > 0) ? actualParaSpacing : 0;
     let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0);
 
     if (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0) {
-      pages.push(p);
-      p = [];
-      pY = 0;
-      pSpace = 0; 
-      isFirstPage = false;
+      pages.push(p); p = []; pY = 0; pSpace = 0; isFirstPage = false;
     }
     
-    pY += pSpace;
-    ln.yOffset = pY; 
-    p.push(ln);
-    pY += lh;
+    pY += pSpace; ln.yOffset = pY; p.push(ln); pY += lh;
   });
   
   if (p.length > 0) pages.push(p);
@@ -1189,7 +1119,7 @@ function computePages() {
 function draw() {
   const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace } = computePages();
   
-  if (currentPage >= pages.length) currentPage = pages.length - 1;
+  if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
   if (currentPage < 0) currentPage = 0;
   
   prevBtn.disabled = (currentPage === 0);
@@ -1251,9 +1181,7 @@ function draw() {
     let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
     let y = startY + ln.yOffset;
     
-    if (ln.length > 0 && ln[ln.length-1].text === ' ') {
-      lnWidth -= ln[ln.length-1].w;
-    }
+    if (ln.length > 0 && ln[ln.length-1].text === ' ') lnWidth -= ln[ln.length-1].w;
     
     let x = mx;
     let justifySpace = 0;
@@ -1265,9 +1193,7 @@ function draw() {
       if (!isParaEnd) {
         let spaces = 0;
         if (lineBreakModeEl.value === 'char') spaces = ln.length - (ln[ln.length-1].text === '\n' ? 2 : 1);
-        else {
-          ln.forEach(e => { if(e.text === ' ') spaces++; });
-        }
+        else ln.forEach(e => { if(e.text === ' ') spaces++; });
         if (spaces > 0) justifySpace = (contentWidth - lnWidth) / spaces;
       }
     }
@@ -1307,21 +1233,13 @@ function draw() {
       ctx.restore();
       
       if (fmt.underline && !data.isPlaceholder) {
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = Math.max(1, size * 0.05);
-        ctx.beginPath();
-        ctx.moveTo(x, y + size*0.1);
-        ctx.lineTo(x + data.w, y + size*0.1);
-        ctx.stroke();
+        ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = Math.max(1, size * 0.05);
+        ctx.beginPath(); ctx.moveTo(x, y + size*0.1); ctx.lineTo(x + data.w, y + size*0.1); ctx.stroke();
       }
 
       if (fmt.strike && !data.isPlaceholder) {
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = Math.max(1, size * 0.05);
-        ctx.beginPath();
-        ctx.moveTo(x, y - size*0.25);
-        ctx.lineTo(x + data.w, y - size*0.25);
-        ctx.stroke();
+        ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = Math.max(1, size * 0.05);
+        ctx.beginPath(); ctx.moveTo(x, y - size*0.25); ctx.lineTo(x + data.w, y - size*0.25); ctx.stroke();
       }
       
       x += data.w;
@@ -1331,7 +1249,6 @@ function draw() {
     });
   });
   
-  // 출처 위치 고정 (여백 값인 my, mx에 영향받지 않도록 캔버스 모서리 기준 고정 여백 적용)
   const fixedPaddingRight = 50;
   const fixedPaddingBottom = 40;
 
@@ -1346,28 +1263,12 @@ function draw() {
   ctx.fillText(src, cWidth - fixedPaddingRight - tw, cHeight - fixedPaddingBottom);
 }
 
-// 템플릿 기본 데이터 세트 정의 (기본값)
 const DEFAULT_PRESET_DATA = {
-  canvasWidth: '800',
-  heightMode: '4:5',
-  canvasHeight: '1000',
-  marginY: '70',
-  marginX: '70',
-  bgColor: '#ffffff',
-  fontFamily: 'pretendard',
-  lineBreakMode: 'word',
-  align: 'left',
-  weight: 'regular',
-  textColor: '#000000',
-  fontSize: '20',
-  lineHeight: '150',
-  paraSpacing: '10',
-  letterSpacing: '-0.5',
-  scaleX: '97',
-  asteriskColor: '#777777',
-  quoteColor: '#358AE8',
-  sourceColor: '#666666',
-  sourceFontSize: '13'
+  canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
+  bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
+  weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
+  paraSpacing: '10', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
+  quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13'
 };
 
 const PRESETS_KEY = 'canvas_app_multi_presets_v1';
@@ -1382,158 +1283,102 @@ function loadPresetsList() {
     Object.keys(dataMap).forEach(name => {
       if (name !== '기본값') {
         const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
+        opt.value = name; opt.textContent = name; select.appendChild(opt);
       }
     });
   } catch(e) {}
 
-  if (currentSelected && Array.from(select.options).some(o => o.value === currentSelected)) {
-    select.value = currentSelected;
-  } else {
-    select.value = '기본값';
-  }
+  if (currentSelected && Array.from(select.options).some(o => o.value === currentSelected)) select.value = currentSelected;
+  else select.value = '기본값';
 }
 
 el('savePresetBtn').addEventListener('click', () => {
   const nameInput = el('presetNameInput');
   const name = nameInput.value.trim();
-  if (!name) {
-    alert('템플릿 이름을 입력해주세요.');
-    nameInput.focus();
-    return;
-  }
+  if (!name) { alert('템플릿 이름을 입력해주세요.'); nameInput.focus(); return; }
   
   let dataMap = {};
-  try {
-    dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
-  } catch(e) {}
+  try { dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); } catch(e) {}
 
   dataMap[name] = {
-    canvasWidth: canvasWidthEl.value,
-    heightMode: heightModeEl.value,
-    canvasHeight: canvasHeightEl.value,
-    marginY: marginYEl.value,
-    marginX: marginXEl.value,
-    bgColor: bgColorEl.value,
-    fontFamily: fontFamilyEl.value,
-    lineBreakMode: lineBreakModeEl.value,
-    align: alignEl.value,
-    weight: weightEl.value,
-    textColor: textColorEl.value,
-    fontSize: fontSizeEl.value,
-    lineHeight: lineHeightEl.value,
-    paraSpacing: paraSpacingEl.value,
-    letterSpacing: letterSpacingEl.value,
-    scaleX: scaleXEl.value,
-    asteriskColor: asteriskColorEl.value,
-    quoteColor: quoteColorEl.value,
-    sourceColor: sourceColorEl.value,
-    sourceFontSize: sourceFontSizeEl.value
+    canvasWidth: canvasWidthEl.value, heightMode: heightModeEl.value, canvasHeight: canvasHeightEl.value,
+    marginY: marginYEl.value, marginX: marginXEl.value, bgColor: bgColorEl.value,
+    fontFamily: fontFamilyEl.value, lineBreakMode: lineBreakModeEl.value, align: alignEl.value,
+    weight: weightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
+    lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
+    scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
+    sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value
   };
 
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
-  nameInput.value = '';
-  loadPresetsList();
-  el('presetSelect').value = name;
+  nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name;
   alert(`"${name}" 템플릿이 저장되었습니다.`);
 });
 
 el('loadPresetBtn').addEventListener('click', () => {
   const name = el('presetSelect').value;
-  if (!name) {
-    alert('불러올 템플릿을 선택해주세요.');
-    return;
-  }
+  if (!name) { alert('불러올 템플릿을 선택해주세요.'); return; }
   
   let data = null;
-  if (name === '기본값') {
-    data = DEFAULT_PRESET_DATA;
-  } else {
-    try {
-      const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
-      data = dataMap[name];
-    } catch(e) {}
+  if (name === '기본값') data = DEFAULT_PRESET_DATA;
+  else {
+    try { const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); data = dataMap[name]; } catch(e) {}
   }
 
-  if (!data) {
-    alert('해당 템플릿을 찾을 수 없습니다.');
-    return;
-  }
+  if (!data) { alert('해당 템플릿을 찾을 수 없습니다.'); return; }
   
-  canvasWidthEl.value = data.canvasWidth;
-  heightModeEl.value = data.heightMode;
+  canvasWidthEl.value = data.canvasWidth; heightModeEl.value = data.heightMode;
   customHeightWrap.style.display = (heightModeEl.value === 'custom') ? 'block' : 'none';
-  canvasHeightEl.value = data.canvasHeight;
-  marginYEl.value = data.marginY;
-  el('marginYVal').textContent = marginYEl.value;
-  marginXEl.value = data.marginX;
-  el('marginXVal').textContent = marginXEl.value;
-  bgColorEl.value = data.bgColor;
-  fontFamilyEl.value = data.fontFamily;
-  lineBreakModeEl.value = data.lineBreakMode;
-  alignEl.value = data.align;
-  weightEl.value = data.weight;
-  textColorEl.value = data.textColor;
-  fontSizeEl.value = data.fontSize;
-  el('fontSizeVal').textContent = fontSizeEl.value;
-  lineHeightEl.value = data.lineHeight;
-  el('lineHeightVal').textContent = lineHeightEl.value;
-  paraSpacingEl.value = data.paraSpacing;
-  paraSpacingValEl.textContent = paraSpacingEl.value;
-  letterSpacingEl.value = data.letterSpacing;
-  el('letterSpacingVal').textContent = letterSpacingEl.value;
-  scaleXEl.value = data.scaleX;
-  el('scaleXVal').textContent = scaleXEl.value;
-  asteriskColorEl.value = data.asteriskColor;
-  quoteColorEl.value = data.quoteColor;
-  sourceColorEl.value = data.sourceColor;
-  sourceFontSizeEl.value = data.sourceFontSize;
-  el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
+  canvasHeightEl.value = data.canvasHeight; marginYEl.value = data.marginY; el('marginYVal').textContent = marginYEl.value;
+  marginXEl.value = data.marginX; el('marginXVal').textContent = marginXEl.value; bgColorEl.value = data.bgColor;
+  fontFamilyEl.value = data.fontFamily; lineBreakModeEl.value = data.lineBreakMode; alignEl.value = data.align;
+  weightEl.value = data.weight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize;
+  el('fontSizeVal').textContent = fontSizeEl.value; lineHeightEl.value = data.lineHeight; el('lineHeightVal').textContent = lineHeightEl.value;
+  paraSpacingEl.value = data.paraSpacing; paraSpacingValEl.textContent = paraSpacingEl.value; letterSpacingEl.value = data.letterSpacing;
+  el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
+  asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
+  sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
 
-  draw();
-  alert(`"${name}" 템플릿을 불러왔습니다.`);
+  draw(); alert(`"${name}" 템플릿을 불러왔습니다.`);
 });
 
 el('deletePresetBtn').addEventListener('click', () => {
   const name = el('presetSelect').value;
-  if (!name) {
-    alert('삭제할 템플릿을 선택해주세요.');
-    return;
-  }
-  if (name === '기본값') {
-    alert('기본값 템플릿은 삭제할 수 없습니다.');
-    return;
-  }
+  if (!name) { alert('삭제할 템플릿을 선택해주세요.'); return; }
+  if (name === '기본값') { alert('기본값 템플릿은 삭제할 수 없습니다.'); return; }
   if (!confirm(`"${name}" 템플릿을 삭제하시겠습니까?`)) return;
   
   try {
-    const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
-    delete dataMap[name];
-    localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
-    loadPresetsList();
-    alert('삭제되었습니다.');
-  } catch(e) {
-    alert('삭제 실패');
-  }
+    const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); delete dataMap[name];
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap)); loadPresetsList(); alert('삭제되었습니다.');
+  } catch(e) { alert('삭제 실패'); }
 });
 
 document.querySelectorAll('input[type="range"]').forEach(input => {
   if(input.id === 'canvasZoom') return; 
   input.addEventListener('input', (e) => {
-    if (e.target.id === 'paraSpacing') {
-      paraSpacingValEl.textContent = e.target.value;
-    } else {
-      const valSpan = el(e.target.id + 'Val');
-      if (valSpan) valSpan.textContent = e.target.value;
-    }
+    if (e.target.id === 'paraSpacing') paraSpacingValEl.textContent = e.target.value;
+    else { const valSpan = el(e.target.id + 'Val'); if (valSpan) valSpan.textContent = e.target.value; }
     draw();
   });
 });
 
-[sourceEl, bgColorEl, textColorEl, fontFamilyEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => {
+// 폰트 변경 시 즉시 캔버스에 적용하도록 별도 이벤트 분리 (Font Load API 사용)
+[sourceEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => {
   item.addEventListener('input', draw);
+});
+
+fontFamilyEl.addEventListener('change', async (e) => {
+  const def = FONT_DEFS[e.target.value];
+  if (def && def.name && document.fonts) {
+    try {
+      // 폰트 다운로드가 강제로 완료될 때까지 대기
+      await document.fonts.load(`16px "${def.name}"`);
+    } catch(err) {
+      console.warn("폰트 로드 실패:", err);
+    }
+  }
+  draw();
 });
 
 asteriskColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); });
