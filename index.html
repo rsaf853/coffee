@@ -618,8 +618,8 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
-              <input type="range" id="paraSpacing" min="-30" max="60" step="1" value="0">
+              <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
+              <input type="range" id="paraSpacing" min="0" max="20" step="1" value="10">
             </div>
           </div>
 
@@ -1172,7 +1172,7 @@ function computePages() {
   const contentHeightLimit = presetHeight - my*2 - 40; 
 
   let p = []; let pY = 0; let isFirstPage = true;
-  const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
+  const actualParaSpacing = (parseInt(paraSpacingEl.value, 10) - 10) * 3;
 
   currentLines.forEach((ln, idx) => {
     let isNewPara = false;
