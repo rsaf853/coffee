@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>r♡sie/editor</title>
+<title>r♡sieditor</title>
 <!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,8 +19,8 @@
     --bg-canvas-area: #eaf2ff;
     --bg-panel: #ffffff;
     --bg-card: #f8fbff;
-    --bg-blob-1: #cfe6ff; /* 파랑 */
-    --bg-blob-2: #dceaff; /* 노랑 제거하고 파랑톤으로 통일 */
+    --dot-color: rgba(85, 145, 240, 0.22);
+    --canvas-vignette: linear-gradient(160deg, #fbfdff 0%, #eaf2ff 45%, #dcebff 100%);
 
     --border-soft: #e6f0ff;
     --border: #d9e9fd;
@@ -38,19 +38,20 @@
     
     --danger: #e26a86;
     --danger-bg: #fff0f4;
-    --heart: #6ea8fe; /* 라이트 모드 하트 파랑 */
+    --danger-border: #f3c9d5;
+    --heart: #6ea8fe;
 
     --shadow-bar: 0 4px 12px rgba(78, 130, 210, 0.12), 0 1px 2px rgba(78, 130, 210, 0.08);
     --shadow-card: 0 2px 10px rgba(110, 168, 254, 0.08);
   }
 
   html[data-theme="dark"] {
-    --bg-app: #111111;
-    --bg-canvas-area: #000000;
-    --bg-panel: #1a1a1a;
-    --bg-card: #222222;
-    --bg-blob-1: #162438; 
-    --bg-blob-2: #2b2816; 
+    --bg-app: #121212;
+    --bg-canvas-area: #161616;
+    --bg-panel: #1e1e1e;
+    --bg-card: #252525;
+    --dot-color: rgba(255, 255, 255, 0.08);
+    --canvas-vignette: linear-gradient(160deg, #1a1a1a 0%, #161616 45%, #0f0f0f 100%);
 
     --border-soft: #2a2a2a;
     --border: #333333;
@@ -68,7 +69,8 @@
 
     --danger: #ff9bb3;
     --danger-bg: #3a2230;
-    --heart: #ffee58; /* 다크 모드 하트 노랑 */
+    --danger-border: #5c3540;
+    --heart: #ffee58;
 
     --shadow-bar: 0 6px 20px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
@@ -97,19 +99,15 @@
 
   /* ---------- Preview column ---------- */
   #previewCol {
-    order: 0; background: var(--bg-canvas-area);
+    order: 0; background-color: var(--bg-canvas-area);
+    background-image: radial-gradient(var(--dot-color) 0.8px, transparent 0.8px),
+      var(--canvas-vignette);
+    background-size: 22px 22px, 100% 100%;
+    background-position: -11px -11px, 0 0;
     display: flex; flex-direction: column; flex: 1;
     position: relative; overflow: hidden;
-    transition: background 0.25s ease;
+    transition: background-color 0.25s ease;
   }
-
-  .blob {
-    position: absolute; border-radius: 50%;
-    filter: blur(50px); opacity: 0.55; pointer-events: none;
-    z-index: 0; transition: opacity 0.25s ease, background 0.25s ease;
-  }
-  .blob-1 { width: 280px; height: 280px; top: -60px; left: -80px; background: var(--bg-blob-1); }
-  .blob-2 { width: 240px; height: 240px; bottom: -80px; right: -60px; background: var(--bg-blob-2); }
 
   #scrollArea {
     flex: 1; overflow: auto; display: flex;
@@ -156,18 +154,21 @@
 
   #zoomControl { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-faint); user-select: none; }
   
-  /* range 인풋(슬라이더) 전체 스타일 공통 적용 - 안 채워진 부분 밝게 */
+  /* range 인풋(슬라이더) - 채워진 트랙 색상 및 크기 조절 */
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
-    width: 100%; height: 6px; border-radius: 3px;
-    background: var(--border-soft); outline: none; margin-top: 4px; cursor: pointer;
+    width: 100%; height: 5px; border-radius: 3px;
+    background: linear-gradient(to right, var(--accent-strong) 0%, var(--accent-strong) var(--range-progress, 50%), var(--border-strong) var(--range-progress, 50%), var(--border-strong) 100%);
+    outline: none; margin-top: 4px; cursor: pointer;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--accent-strong); cursor: pointer; transition: transform 0.15s ease;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--accent-strong); cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease;
   }
-  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
   
   #zoomControl input[type="range"] { width: 60px; margin-top: 0; }
 
@@ -199,20 +200,19 @@
     .panel { max-width: none; }
   }
 
-  /* ---------- Brand header + theme toggle ---------- */
+  /* ---------- Brand header (수직 정렬 깔끔하게 보정) ---------- */
   .app-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 0 10px; margin-bottom: 10px;
+    padding: 0 0 10px; margin-bottom: 12px;
     border-bottom: 1px solid var(--border-soft);
   }
   .app-brand {
-    display: flex; align-items: center; gap: 4px;
-    font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em;
+    display: flex; align-items: baseline; gap: 5px;
+    font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; line-height: 1;
   }
-  .app-brand-name { display: inline-flex; align-items: center; }
-  .app-brand .heart { color: var(--heart); transition: color 0.25s ease; }
-  /* 가운데 점 제거 */
-  .app-brand small { font-weight: 400; color: var(--ink-faint); font-size: 11px; margin-left: 2px; }
+  .app-brand-name { display: inline-flex; align-items: center; line-height: 1; }
+  .app-brand .heart { color: var(--heart); transition: color 0.25s ease; font-size: 0.9em; margin: 0 1px; }
+  .app-brand small { font-weight: 500; color: var(--ink-faint); font-size: 11.5px; line-height: 1; }
 
   .theme-toggle {
     position: relative;
@@ -240,7 +240,7 @@
     border: 1px solid var(--border-soft);
     border-radius: 6px;
     padding: 8px 10px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     transition: background 0.25s ease, border-color 0.25s ease;
   }
   details.panel-section summary {
@@ -261,7 +261,6 @@
     margin-right: 2px; margin-bottom: 2px;
   }
   
-  /* 열린 탭 헤더 색상 파란색/노란색 처리 */
   details.panel-section[open] summary { color: var(--accent-strong); }
   details.panel-section[open] summary::after { 
     transform: rotate(-135deg); margin-bottom: -4px; 
@@ -344,7 +343,7 @@
     box-sizing: border-box; white-space: nowrap;
   }
   .tbtn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
-  .tbtn.danger { color: var(--danger); border-color: #f3c9d5; }
+  .tbtn.danger { color: var(--danger); border-color: var(--danger-border); }
   .tbtn.danger:hover { background: var(--danger-bg); border-color: var(--danger); }
 
   .color-picker-wrap { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px 0 8px; }
@@ -374,7 +373,6 @@
   #editor:empty::before { content: attr(data-placeholder); color: var(--ink-placeholder); pointer-events: none; display: block; }
   #editor:focus { border-color: var(--accent); }
 
-  /* 템플릿 영역 아래 잘림 현상 방지를 위해 여백 추가 */
   .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 12px; }
   .btn-primary, .btn-secondary {
     width: 100%; padding: 8px; border-radius: 4px; font-size: 12px;
@@ -401,8 +399,6 @@
 
 <main>
   <div id="previewCol">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
     <div id="scrollArea">
       <canvas id="canvas"></canvas>
     </div>
@@ -429,17 +425,17 @@
 
       <div class="app-header">
         <div class="app-brand">
-          <!-- 기호(.) 제거됨 -->
-          <span class="app-brand-name">r<span class="heart">♡</span>sie</span><small>editor</small>
+          <span class="app-brand-name">r<span class="heart">♡</span>sie</span>
+          <small>editor</small>
         </div>
         <button type="button" id="themeToggle" class="theme-toggle" aria-label="테마 모드 전환" title="테마 모드 전환">
           <span class="theme-toggle-thumb"></span>
         </button>
       </div>
 
-      <!-- 1. 배경 -->
+      <!-- 1. 캔버스 설정 -->
       <details class="panel-section">
-        <summary class="section-title">배경</summary>
+        <summary class="section-title">캔버스 설정</summary>
         <div class="details-content">
           <div class="row2">
             <div class="field">
@@ -501,9 +497,9 @@
         </div>
       </details>
       
-      <!-- 2. 제목 -->
+      <!-- 2. 제목 추가 -->
       <details class="panel-section">
-        <summary class="section-title">제목</summary>
+        <summary class="section-title">제목 추가</summary>
         <div class="details-content">
           <div class="field">
             <label>제목 내용 (첫 페이지 상단 노출)</label>
@@ -545,9 +541,9 @@
         </div>
       </details>
 
-      <!-- 3. 서식 -->
+      <!-- 3. 서식 기본값 -->
       <details class="panel-section">
-        <summary class="section-title">서식</summary>
+        <summary class="section-title">서식 기본값</summary>
         <div class="details-content">
           <div class="field">
             <label>기본 폰트</label>
@@ -623,9 +619,9 @@
         </div>
       </details>
 
-      <!-- 4. 본문 -->
+      <!-- 4. 본문 편집 -->
       <details class="panel-section" open>
-        <summary class="section-title">본문</summary>
+        <summary class="section-title">본문 편집</summary>
         <div class="details-content">
           <div class="hint">텍스트를 드래그한 뒤 툴바를 누르면 적용됩니다.</div>
           
@@ -651,7 +647,6 @@
           </div>
           
           <div class="field" style="margin-top: 10px;">
-            <!-- 하이라이터 색상 수정 부분 -->
             <label>형광펜 색상</label>
             <input type="color" id="highlightColor" value="#FFE0F9">
             <div class="swatches">
@@ -727,7 +722,6 @@
         <button id="downloadBtn" class="btn-primary">현재 페이지 이미지로 저장</button>
       </div>
 
-      <!-- 하트 없이 작성자 정보만 기재 -->
       <div class="footer-credit">by @7ucky</div>
     </div>
   </div>
@@ -827,6 +821,7 @@ bgImageInput.addEventListener('change', (e) => {
       const initialScale = (currentCanvasWidth / img.width) * 100;
       bgScaleEl.value = Math.max(10, Math.min(300, Math.round(initialScale)));
       el('bgScaleVal').textContent = bgScaleEl.value;
+      updateRangeProgress(bgScaleEl);
       draw();
     };
     img.src = event.target.result;
@@ -1373,6 +1368,8 @@ el('loadPresetBtn').addEventListener('click', () => {
   letterSpacingEl.value = data.letterSpacing; el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
   sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
+  
+  updateAllRanges();
   draw(); alert(`"${name}" 템플릿을 불러왔습니다.`);
 });
 
@@ -1387,9 +1384,24 @@ el('deletePresetBtn').addEventListener('click', () => {
   } catch(e) { alert('삭제 실패'); }
 });
 
+/* 슬라이더(range) 동적 채움 비주얼 제어 */
+function updateRangeProgress(input) {
+  const min = parseFloat(input.min) || 0;
+  const max = parseFloat(input.max) || 100;
+  const val = parseFloat(input.value) || 0;
+  const pct = ((val - min) / (max - min)) * 100;
+  input.style.setProperty('--range-progress', pct + '%');
+}
+
+function updateAllRanges() {
+  document.querySelectorAll('input[type="range"]').forEach(input => updateRangeProgress(input));
+}
+
 document.querySelectorAll('input[type="range"]').forEach(input => {
-  if(input.id === 'canvasZoom') return; 
+  updateRangeProgress(input);
   input.addEventListener('input', (e) => {
+    updateRangeProgress(e.target);
+    if(e.target.id === 'canvasZoom') return; 
     if (e.target.id === 'paraSpacing') paraSpacingValEl.textContent = e.target.value;
     else { const valSpan = el(e.target.id + 'Val'); if (valSpan) valSpan.textContent = e.target.value; }
     draw();
@@ -1422,7 +1434,7 @@ resizer.addEventListener('mousedown', () => { isResizing = true; resizer.classLi
 document.addEventListener('mousemove', (e) => { if (!isResizing) return; const newWidth = document.body.clientWidth - e.clientX; if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px'; });
 document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; resizer.classList.remove('resizing'); document.body.style.cursor = 'default'; } });
 
-window.addEventListener('load', () => { loadPresetsList(); updateZoom(); draw(); });
+window.addEventListener('load', () => { loadPresetsList(); updateZoom(); updateAllRanges(); draw(); });
 </script>
 
 <script>
