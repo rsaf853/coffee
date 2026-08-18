@@ -1,11 +1,175 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>내 첫 사이트</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발췌 이미지 만들기</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Malgun Gothic", sans-serif;
+    background: #ffffff;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+  }
+  .panel {
+    width: 300px;
+  }
+  .panel label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #666;
+  }
+  .panel input[type=text], .panel textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    color: #222;
+    font-size: 14px;
+  }
+  .panel textarea { height: 70px; resize: vertical; }
+  .panel input[type=color] {
+    width: 100%;
+    height: 36px;
+    border: none;
+    background: none;
+  }
+  .panel input[type=range] { width: 100%; }
+  button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #6c63ff;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  button:hover { background: #5a52e0; }
+  #canvasWrap {
+    display: flex;
+    align-items: flex-start;
+  }
+  canvas {
+    max-width: 90vw;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+</style>
 </head>
 <body>
-  <h1>안녕하세요!</h1>
-  <p>내 첫 GitHub Pages 사이트입니다.</p>
+
+<div id="canvasWrap">
+  <canvas id="canvas" width="800" height="800"></canvas>
+</div>
+
+<div class="panel">
+  <label>본문 (인용구)</label>
+  <textarea id="quote">시작이 반이다.</textarea>
+
+  <label>출처 / 이름</label>
+  <input type="text" id="source" value="- 아리스토텔레스 -">
+
+  <label>배경색</label>
+  <input type="color" id="bgColor" value="#ffffff">
+
+  <label>글자색</label>
+  <input type="color" id="textColor" value="#000000">
+
+  <label>글자 크기 (<span id="fontSizeVal">40</span>px)</label>
+  <input type="range" id="fontSize" min="20" max="80" value="40">
+
+  <button id="downloadBtn">이미지로 저장</button>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const quoteEl = document.getElementById('quote');
+const sourceEl = document.getElementById('source');
+const bgColorEl = document.getElementById('bgColor');
+const textColorEl = document.getElementById('textColor');
+const fontSizeEl = document.getElementById('fontSize');
+const fontSizeVal = document.getElementById('fontSizeVal');
+
+// 긴 텍스트를 캔버스 너비에 맞게 여러 줄로 자동 줄바꿈
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  const bg = bgColorEl.value;
+  const textColor = textColorEl.value;
+  const fontSize = parseInt(fontSizeEl.value, 10);
+  fontSizeVal.textContent = fontSize;
+
+  // 배경
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // 본문 텍스트
+  ctx.fillStyle = textColor;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const maxWidth = W * 0.8;
+  const lines = wrapText(ctx, quoteEl.value, maxWidth);
+  const lineHeight = fontSize * 1.4;
+  const totalHeight = lines.length * lineHeight;
+  let startY = H / 2 - totalHeight / 2 + lineHeight / 2;
+
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, startY + i * lineHeight);
+  });
+
+  // 출처
+  ctx.font = `${fontSize * 0.45}px sans-serif`;
+  ctx.globalAlpha = 0.75;
+  ctx.fillText(sourceEl.value, W / 2, startY + lines.length * lineHeight + fontSize * 0.6);
+  ctx.globalAlpha = 1;
+}
+
+// 입력 바뀔 때마다 다시 그리기
+[quoteEl, sourceEl, bgColorEl, textColorEl, fontSizeEl].forEach(el => {
+  el.addEventListener('input', draw);
+});
+
+// 이미지로 저장
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'quote.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+draw();
+</script>
+
 </body>
 </html>
