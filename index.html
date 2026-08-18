@@ -660,7 +660,7 @@
           
           <div class="row2">
             <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* * (별표) 지우기</button>
-            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( “ ” " ) 지우기</button>
+            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( " " " ) 지우기</button>
           </div>
           
           <div class="field" style="margin-top: 10px;">
@@ -681,7 +681,7 @@
               <input type="color" id="asteriskColor" value="#777777">
             </div>
             <div class="field" style="margin-bottom: 0;">
-              <label>따옴표( “ ” ) 안 색상</label>
+              <label>따옴표( " " ) 안 색상</label>
               <input type="color" id="quoteColor" value="#000000">
             </div>
           </div>
@@ -947,7 +947,7 @@ function extractDataFromEditor() {
         }
 
         let isAst = (ch === '*');
-        let isQ = (ch === '"' || ch === '“' || ch === '”');
+        let isQ = (ch === '"' || ch === '\u201c' || ch === '\u201d');
 
         if (isAst) {
           if (!state.inAst) { flush(); state.inAst = true; curFmtState = { inAst: state.inAst, inQuote: state.inQuote }; curBuf += ch; }
@@ -1072,14 +1072,21 @@ el('tbRemoveAst').addEventListener('click', () => {
 el('tbRemoveQuote').addEventListener('click', () => {
     editorEl.querySelectorAll('[data-auto-quote]').forEach(node => node.removeAttribute('data-auto-quote'));
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-    let node; while (node = walker.nextNode()) { if (/[“”"]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/[“”"]/g, ''); }
+    let node; while (node = walker.nextNode()) { if (/["\u201c\u201d]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/["\u201c\u201d]/g, ''); }
     applyAutoFormat(); draw();
 });
 
 let isComposing = false;
 editorEl.addEventListener('compositionstart', () => isComposing = true);
-editorEl.addEventListener('compositionend', () => { isComposing = false; applyAutoFormat(); draw(); });
-editorEl.addEventListener('input', () => { if (!isComposing) applyAutoFormat(); draw(); });
+editorEl.addEventListener('compositionend', () => { isComposing = false; scheduleAutoFormat(); });
+
+let formatTimer = null;
+function scheduleAutoFormat() {
+  draw();
+  clearTimeout(formatTimer);
+  formatTimer = setTimeout(applyAutoFormat, 250);
+}
+editorEl.addEventListener('input', () => { if (!isComposing) scheduleAutoFormat(); });
 
 function getFontStr(fmt, size) {
   let fontId = fontFamilyEl.value;
