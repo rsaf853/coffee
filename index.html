@@ -342,6 +342,7 @@
 
   #editor {
     width: 100%; 
+    min-height: 140px; 
     height: 140px; 
     padding: 10px 12px; 
     border: 1px solid #ddd; 
@@ -355,7 +356,7 @@
     overflow-y: auto;
     white-space: pre-wrap; 
     word-break: break-word;
-    resize: none;
+    resize: vertical; /* 세로 방향으로만 드래그하여 크기 조절 가능 */
     margin-top: 0;
   }
   #editor:empty::before {
@@ -584,7 +585,6 @@
               <input type="range" id="lineHeight" min="100" max="250" step="5" value="150">
             </div>
             <div class="field">
-              <!-- 문단 간격 범위 -10 ~ 10, 기본값 0 -->
               <label>문단 간격 (<span id="paraSpacingVal">0</span>px)</label>
               <input type="range" id="paraSpacing" min="-10" max="10" step="1" value="0">
             </div>
