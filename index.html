@@ -1166,8 +1166,8 @@ function computePages() {
     let isNewPara = false;
     if (idx > 0) {
       const prevLine = currentLines[idx-1];
-      if (prevLine.length > 0 && prevLine[prevLine.length-1].text === '\n') isNewPara = true;
-      else if (prevLine.length === 0) isNewPara = true;
+      const prevIsBlank = prevLine.length === 0 || (prevLine.length === 1 && prevLine[0].text === '\n');
+      if (prevIsBlank) isNewPara = true;
     }
     
     let pSpace = (isNewPara && idx > 0) ? actualParaSpacing : 0;
