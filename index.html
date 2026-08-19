@@ -428,11 +428,34 @@
   .btn-secondary:active { transform: scale(0.99); }
 
   .footer-credit { text-align: right; font-size: 11px; color: var(--ink-faint); font-weight: 400; padding-bottom: 14px; }
+
+  /* ---------- Toast ---------- */
+  #toastStack {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+    align-items: center; pointer-events: none;
+  }
+  .toast {
+    display: inline-flex; align-items: center;
+    background: var(--bg-panel); color: var(--ink);
+    border: 1px solid var(--border-strong);
+    padding: 9px 16px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 500; line-height: 1.3;
+    white-space: nowrap;
+    box-shadow: var(--shadow-bar);
+    opacity: 0; transform: translateY(-10px) scale(0.96);
+    transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1), background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0) scale(1); }
+  .toast.hide { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  .toast.toast-danger { border-color: var(--danger-border); color: var(--danger); }
 </style>
 
 
 </head>
 <body>
+
+<div id="toastStack"></div>
 
 <div style="position:absolute; width:0; height:0; overflow:hidden; visibility:hidden;">
   <span style="font-family:'Noto Serif KR'">.</span>
@@ -796,6 +819,24 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const el = id => document.getElementById(id);
 
+// ---------- Toast notifications ----------
+function showToast(msg, type) {
+  const stack = el('toastStack');
+  if (!stack) { return; }
+  const t = document.createElement('div');
+  t.className = 'toast' + (type === 'danger' ? ' toast-danger' : '');
+  t.textContent = msg;
+  stack.appendChild(t);
+
+  requestAnimationFrame(() => t.classList.add('show'));
+
+  setTimeout(() => {
+    t.classList.remove('show');
+    t.classList.add('hide');
+    setTimeout(() => t.remove(), 250);
+  }, 1800);
+}
+
 const editorEl = el('editor');
 const sourceEl = el('source');
 const sourceAlignEl = el('sourceAlign');
@@ -892,6 +933,7 @@ bgImageInput.addEventListener('change', (e) => {
       el('bgScaleVal').textContent = bgScaleEl.value;
       updateRangeProgress(bgScaleEl);
       draw();
+      showToast('배경 이미지를 불러왔습니다.');
     };
     img.src = event.target.result;
   };
@@ -1655,7 +1697,7 @@ function loadPresetsList() {
 
 el('savePresetBtn').addEventListener('click', () => {
   const nameInput = el('presetNameInput'); const name = nameInput.value.trim();
-  if (!name) { alert('템플릿 이름을 입력해주세요.'); nameInput.focus(); return; }
+  if (!name) { showToast('템플릿 이름을 입력해주세요.', 'danger'); nameInput.focus(); return; }
   let dataMap = {};
   try { dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); } catch(e) {}
   dataMap[name] = {
@@ -1669,31 +1711,32 @@ el('savePresetBtn').addEventListener('click', () => {
     firstLineIndent: el('firstLineIndent').value
   };
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
-  nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name; alert(`"${name}" 템플릿이 저장되었습니다.`);
+  nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name;
+  showToast(`"${name}" 템플릿이 저장되었습니다.`);
 });
 
 el('loadPresetBtn').addEventListener('click', () => {
   const name = el('presetSelect').value;
-  if (!name) { alert('불러올 템플릿을 선택해주세요.'); return; }
+  if (!name) { showToast('불러올 템플릿을 선택해주세요.', 'danger'); return; }
   let data = null;
   if (name === '라이트') data = DEFAULT_PRESET_DATA;
   else if (name === '다크') data = DARK_PRESET_DATA;
   else { try { const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); data = dataMap[name]; } catch(e) {} }
-  if (!data) { alert('해당 템플릿을 찾을 수 없습니다.'); return; }
+  if (!data) { showToast('해당 템플릿을 찾을 수 없습니다.', 'danger'); return; }
   
   applyPresetData(data, name);
-  alert(`"${name}" 템플릿을 불러왔습니다.`);
+  showToast(`"${name}" 템플릿을 불러왔습니다.`);
 });
 
 el('deletePresetBtn').addEventListener('click', () => {
   const name = el('presetSelect').value;
-  if (!name) { alert('삭제할 템플릿을 선택해주세요.'); return; }
-  if (name === '라이트' || name === '다크') { alert('기본 제공 템플릿은 삭제할 수 없습니다.'); return; }
+  if (!name) { showToast('삭제할 템플릿을 선택해주세요.', 'danger'); return; }
+  if (name === '라이트' || name === '다크') { showToast('기본 제공 템플릿은 삭제할 수 없습니다.', 'danger'); return; }
   if (!confirm(`"${name}" 템플릿을 삭제하시겠습니까?`)) return;
   try {
     const dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); delete dataMap[name];
-    localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap)); loadPresetsList(); alert('삭제되었습니다.');
-  } catch(e) { alert('삭제 실패'); }
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap)); loadPresetsList(); showToast('삭제되었습니다.');
+  } catch(e) { showToast('삭제 실패', 'danger'); }
 });
 
 function updateRangeProgress(input) {
@@ -1748,7 +1791,7 @@ prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; d
 nextBtn.addEventListener('click', () => { const p = computePages().pages.length; if(currentPage < p - 1) { currentPage++; draw(); } });
 
 el('copyBtn').addEventListener('click', () => {
-  canvas.toBlob(blob => { navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => alert('클립보드에 복사되었습니다.')).catch(e => alert('복사실패: ' + e)); });
+  canvas.toBlob(blob => { navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => showToast('클립보드에 복사되었습니다.')).catch(e => showToast('복사 실패: ' + e, 'danger')); });
 });
 
 el('downloadBtn').addEventListener('click', () => {
