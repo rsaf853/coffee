@@ -11,6 +11,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300;400;500;700&family=Hahmlet:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'BookkMyungjo';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Lt.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'BookkMyungjo';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'BookkGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkGothic-Lt.woff2') format('woff2');
+    font-weight: 300;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'BookkGothic';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkGothic-Bd.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+
   /* ============================================================
      r♡sie/editor — compact theme
      ============================================================ */
@@ -412,6 +439,8 @@
   <span style="font-family:'Noto Serif KR'">.</span>
   <span style="font-family:'Gothic A1'">.</span>
   <span style="font-family:'Hahmlet'">.</span>
+  <span style="font-family:'BookkMyungjo'">.</span>
+  <span style="font-family:'BookkGothic'">.</span>
 </div>
 
 <main>
@@ -569,6 +598,8 @@
               <option value="noto">Noto Serif KR (명조체)</option>
               <option value="gothic">Gothic A1</option>
               <option value="hahmlet">함렛 Hahmlet</option>
+              <option value="bookkmyungjo">부크크 명조</option>
+              <option value="bookkgothic">부크크 고딕</option>
             </select>
           </div>
           
@@ -632,6 +663,11 @@
               <label>장평 (<span id="scaleXVal">99</span>%)</label>
               <input type="range" id="scaleX" min="80" max="120" step="1" value="99">
             </div>
+          </div>
+
+          <div class="field">
+            <label>첫 줄 들여쓰기 (<span id="firstLineIndentVal">0</span>px)</label>
+            <input type="range" id="firstLineIndent" min="0" max="100" step="2" value="0">
           </div>
         </div>
       </details>
@@ -809,7 +845,9 @@ const FONT_DEFS = {
   pretendard: { name: 'Pretendard Variable', css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
   noto:       { name: 'Noto Serif KR', css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
   gothic:     { name: 'Gothic A1', css: "'Gothic A1', sans-serif",          weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
-  hahmlet:    { name: 'Hahmlet', css: "'Hahmlet', serif",                 weights: { thin: 300, regular: 400, medium: 500, bold: 700 } }
+  hahmlet:    { name: 'Hahmlet', css: "'Hahmlet', serif",                 weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
+  bookkmyungjo: { name: 'BookkMyungjo', css: "'BookkMyungjo', serif",     weights: { thin: 400, regular: 400, medium: 700, bold: 700 } },
+  bookkgothic:  { name: 'BookkGothic', css: "'BookkGothic', sans-serif",  weights: { thin: 400, regular: 400, medium: 700, bold: 700 } }
 };
 
 let currentPage = 0;
@@ -1097,7 +1135,7 @@ function getFontStr(fmt, size) {
   return `${st}${wNum} ${size}px ${def.css}`;
 }
 
-function processTokens(tokens, size, ls) {
+function processTokens(tokens, size, ls, contentWidth) {
   let flat = [];
   tokens.forEach(tok => {
     if (tok.text === '\n') { flat.push(tok); } else {
@@ -1119,7 +1157,15 @@ function processTokens(tokens, size, ls) {
             }
           } else {
             let mw = ctx.measureText(wrd).width; mw += ls * (wrd.length - 1);
-            flat.push({ text: wrd, format: tok.format, w: mw, isPlaceholder: tok.isPlaceholder, length: wrd.length });
+            if (contentWidth && mw > contentWidth && wrd.length > 1) {
+              // 캔버스 폭보다 긴 단어(영어 URL 등)는 글자 단위로 쪼개서 줄바꿈 가능하게 함
+              for (let i=0; i<wrd.length; i++) {
+                let cw = ctx.measureText(wrd[i]).width + ls;
+                flat.push({ text: wrd[i], format: tok.format, w: cw, isPlaceholder: tok.isPlaceholder, length: 1 });
+              }
+            } else {
+              flat.push({ text: wrd, format: tok.format, w: mw, isPlaceholder: tok.isPlaceholder, length: wrd.length });
+            }
           }
         });
       }
@@ -1139,7 +1185,8 @@ function computePages() {
   const ls = parseFloat(letterSpacingEl.value);
   
   const tokens = extractDataFromEditor();
-  const els = processTokens(tokens, size, ls);
+  const els = processTokens(tokens, size, ls, contentWidth);
+  const indentPx = parseInt((el('firstLineIndent') || {}).value, 10) || 0;
   
   const titleText = el('titleInput').value.trim();
   const titleSize = parseInt(el('titleFontSize').value, 10);
@@ -1147,18 +1194,27 @@ function computePages() {
   let titleHeightSpace = titleText ? (titleSize * 1.5 + titleSpacing) : 0;
 
   const pages = []; let currentLines = []; let currentLine = []; let currentX = 0;
-  function breakLine() { currentLines.push(currentLine); currentLine = []; currentX = 0; }
+  // 문단(하드 줄바꿈 직후) 첫 줄인지 추적해 들여쓰기 폭을 반영
+  let curLineIsParaStart = true; let nextLineIsParaStart = false;
+  function effWidth() { return curLineIsParaStart ? Math.max(20, contentWidth - indentPx) : contentWidth; }
+  function breakLine() {
+    currentLine.isParaStart = curLineIsParaStart;
+    currentLines.push(currentLine);
+    currentLine = []; currentX = 0;
+    curLineIsParaStart = nextLineIsParaStart; nextLineIsParaStart = false;
+  }
   
-  els.forEach(el => {
-    if (el.text === '\n') { currentLine.push(el); breakLine(); return; }
-    if (currentX + el.w > contentWidth && currentLine.length > 0) {
-      if (lineBreakModeEl.value === 'word' && el.text !== ' ') { breakLine(); currentLine.push(el); currentX += el.w; }
-      else { breakLine(); if (el.text !== ' ') { currentLine.push(el); currentX += el.w; } }
-    } else { currentLine.push(el); currentX += el.w; }
+  els.forEach(tk => {
+    if (tk.text === '\n') { currentLine.push(tk); nextLineIsParaStart = true; breakLine(); return; }
+    const cw = effWidth();
+    if (currentX + tk.w > cw && currentLine.length > 0) {
+      if (lineBreakModeEl.value === 'word' && tk.text !== ' ') { breakLine(); currentLine.push(tk); currentX += tk.w; }
+      else { breakLine(); if (tk.text !== ' ') { currentLine.push(tk); currentX += tk.w; } }
+    } else { currentLine.push(tk); currentX += tk.w; }
   });
   
-  if (currentLine.length > 0) currentLines.push(currentLine);
-  if (currentLines.length === 0) currentLines.push([]);
+  if (currentLine.length > 0) { currentLine.isParaStart = curLineIsParaStart; currentLines.push(currentLine); }
+  if (currentLines.length === 0) { const emptyLn = []; emptyLn.isParaStart = true; currentLines.push(emptyLn); }
 
   let presetHeight = 1000;
   if (hMode === 'custom') presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
@@ -1166,25 +1222,58 @@ function computePages() {
   
   const contentHeightLimit = presetHeight - my*2 - 40; 
 
+  // ---- 문단 경계 계산 (고아/과부 줄 방지용) ----
+  // 문단 = 빈 줄(단락 구분)로 나뉜 연속된 줄들의 묶음
+  function isBlankLine(ln) {
+    return ln.length === 0 || (ln.length === 1 && ln[0].text === '\n');
+  }
+  const paraOfLine = new Array(currentLines.length).fill(null);
+  {
+    let start = null;
+    for (let i = 0; i <= currentLines.length; i++) {
+      const blank = (i === currentLines.length) ? true : isBlankLine(currentLines[i]);
+      if (blank) {
+        if (start !== null) {
+          const size = i - start;
+          for (let j = start; j < i; j++) paraOfLine[j] = { size, pos: j - start };
+          start = null;
+        }
+      } else if (start === null) {
+        start = i;
+      }
+    }
+  }
+
   let p = []; let pY = 0; let isFirstPage = true;
   const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
-  currentLines.forEach((ln, idx) => {
+  for (let idx = 0; idx < currentLines.length; idx++) {
+    const ln = currentLines[idx];
     let isNewPara = false;
     if (idx > 0) {
       const prevLine = currentLines[idx-1];
-      const prevIsBlank = prevLine.length === 0 || (prevLine.length === 1 && prevLine[0].text === '\n');
-      if (prevIsBlank) isNewPara = true;
+      if (isBlankLine(prevLine)) isNewPara = true;
     }
     
     let pSpace = (isNewPara && idx > 0) ? (actualParaSpacing - lh) : 0;
     let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0);
 
-    if (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0) {
+    let willBreak = (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0);
+
+    // 문단이 페이지 경계에서 한 줄만 남게(고아/과부) 되는 상황이면 미리 다음 페이지로 넘김
+    if (!willBreak && hMode !== 'auto' && p.length > 0) {
+      const info = paraOfLine[idx];
+      if (info && info.size >= 2 && (info.pos === 0 || info.pos === info.size - 2)) {
+        const twoLineHeight = pSpace + lh + lh;
+        if (pY + twoLineHeight > availableHeight) willBreak = true;
+      }
+    }
+
+    if (willBreak) {
       pages.push(p); p = []; pY = 0; pSpace = 0; isFirstPage = false;
     }
     pY += pSpace; ln.yOffset = pY; p.push(ln); pY += lh;
-  });
+  }
   
   if (p.length > 0) pages.push(p);
   
@@ -1195,11 +1284,11 @@ function computePages() {
     if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
   }
   
-  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace };
+  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx };
 }
 
 function draw() {
-  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace } = computePages();
+  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx } = computePages();
   
   if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
   if (currentPage < 0) currentPage = 0;
@@ -1227,14 +1316,9 @@ function draw() {
     const dx = centerX + bgOffsetX;
     const dy = centerY + bgOffsetY;
 
-    /* 1) 이미지를 투명도만 적용해서 그린다.
-       (모바일 브라우저는 canvas의 ctx.filter=brightness()를
-        지원/무시하는 경우가 많아 어둡기가 안 먹히는 문제가 있었음) */
     ctx.globalAlpha = opacity;
     ctx.drawImage(bgImageObj, dx, dy, drawW, drawH);
 
-    /* 2) 어둡기는 이미지 영역 위에 검은색 반투명 오버레이를
-       덧그리는 방식으로 구현 -> 모든 브라우저(PC/모바일)에서 동일하게 작동 */
     if (darkness > 0) {
       ctx.globalAlpha = opacity * darkness;
       ctx.fillStyle = '#000000';
@@ -1285,9 +1369,11 @@ function draw() {
     let y = startY + ln.yOffset;
     if (ln.length > 0 && ln[ln.length-1].text === ' ') lnWidth -= ln[ln.length-1].w;
     
-    let x = mx; let justifySpace = 0;
+    const lineIndent = ln.isParaStart ? indentPx : 0;
+    const effLineWidth = contentWidth - lineIndent;
+    let x = mx + lineIndent; let justifySpace = 0;
     
-    if (align === 'center') x = mx + (contentWidth - lnWidth)/2;
+    if (align === 'center') x = mx + lineIndent + (effLineWidth - lnWidth)/2;
     else if (align === 'right') x = mx + contentWidth - lnWidth;
     else if (align === 'justify' && lIdx !== page.length-1 && lnWidth > 0 && ln.length > 1) {
       const isParaEnd = (lIdx < page.length - 1 && page[lIdx+1].length === 0) || (ln.length > 0 && ln[ln.length-1].text === '\n');
@@ -1295,7 +1381,7 @@ function draw() {
         let spaces = 0;
         if (lineBreakModeEl.value === 'char') spaces = ln.length - (ln[ln.length-1].text === '\n' ? 2 : 1);
         else ln.forEach(e => { if(e.text === ' ') spaces++; });
-        if (spaces > 0) justifySpace = (contentWidth - lnWidth) / spaces;
+        if (spaces > 0) justifySpace = (effLineWidth - lnWidth) / spaces;
       }
     }
     
@@ -1343,7 +1429,6 @@ function draw() {
     });
   });
   
-  /* ---- 출처(@source) 렌더링 (정렬 옵션 반영) ---- */
   const fixedPaddingSide = 50; const fixedPaddingBottom = 40;
   const src = sourceEl.value.trim();
 
@@ -1353,7 +1438,7 @@ function draw() {
     ctx.fillStyle = sourceColorEl.value;
     const tw = ctx.measureText(src).width;
     
-    let sourceX = cWidth - fixedPaddingSide - tw; // 기본 오른쪽 정렬
+    let sourceX = cWidth - fixedPaddingSide - tw;
     const sAlign = sourceAlignEl.value;
     if (sAlign === 'left') {
       sourceX = fixedPaddingSide;
@@ -1370,7 +1455,8 @@ const DEFAULT_PRESET_DATA = {
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
   paraSpacing: '5', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
-  quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right'
+  quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right',
+  firstLineIndent: '0'
 };
 
 const PRESETS_KEY = 'canvas_app_multi_presets_v1';
@@ -1405,7 +1491,8 @@ el('savePresetBtn').addEventListener('click', () => {
     weight: weightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
     lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
-    sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value
+    sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
+    firstLineIndent: el('firstLineIndent').value
   };
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
   nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name; alert(`"${name}" 템플릿이 저장되었습니다.`);
@@ -1429,6 +1516,7 @@ el('loadPresetBtn').addEventListener('click', () => {
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
   sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
   if(data.sourceAlign) sourceAlignEl.value = data.sourceAlign;
+  if(data.firstLineIndent !== undefined) { el('firstLineIndent').value = data.firstLineIndent; el('firstLineIndentVal').textContent = data.firstLineIndent; }
   
   updateAllRanges();
   draw(); alert(`"${name}" 템플릿을 불러왔습니다.`);
@@ -1471,9 +1559,17 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
 [sourceEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', draw); });
 sourceAlignEl.addEventListener('change', draw);
 
+async function loadFontWeights(defKey) {
+  const def = FONT_DEFS[defKey];
+  if (!def || !def.name || !document.fonts) return;
+  const uniqueWeights = [...new Set(Object.values(def.weights))];
+  await Promise.all(uniqueWeights.map(w =>
+    document.fonts.load(`${w} 16px "${def.name}"`).catch(err => console.warn('폰트 로드 실패:', def.name, w, err))
+  ));
+}
+
 fontFamilyEl.addEventListener('change', async (e) => {
-  const def = FONT_DEFS[e.target.value];
-  if (def && def.name && document.fonts) { try { await document.fonts.load(`16px "${def.name}"`); } catch(err) { console.warn("폰트 로드 실패:", err); } }
+  await loadFontWeights(e.target.value);
   draw();
 });
 
@@ -1495,11 +1591,18 @@ resizer.addEventListener('mousedown', () => { isResizing = true; resizer.classLi
 document.addEventListener('mousemove', (e) => { if (!isResizing) return; const newWidth = document.body.clientWidth - e.clientX; if (newWidth > 300 && newWidth < 800) panelCol.style.width = newWidth + 'px'; });
 document.addEventListener('mouseup', () => { if (isResizing) { isResizing = false; resizer.classList.remove('resizing'); document.body.style.cursor = 'default'; } });
 
-window.addEventListener('load', () => { loadPresetsList(); updateZoom(); updateAllRanges(); draw(); });
+window.addEventListener('load', async () => {
+  loadPresetsList(); updateZoom(); updateAllRanges(); draw();
+  // 부크크 명조/고딕 등 커스텀 폰트의 모든 굵기를 미리 받아둬서
+  // 캔버스에서 선택 즉시 정상적으로 적용되도록 함
+  if (document.fonts) {
+    await Promise.all(Object.keys(FONT_DEFS).map(loadFontWeights));
+    draw();
+  }
+});
 </script>
 
 <script>
-  // ---- 라이트 / 다크 테마 토글 ----
   (function () {
     const root = document.documentElement;
     const toggleBtn = document.getElementById('themeToggle');
