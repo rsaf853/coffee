@@ -1221,6 +1221,12 @@ function scheduleAutoFormat() {
 }
 editorEl.addEventListener('input', () => { if (!isComposing) scheduleAutoFormat(); });
 
+editorEl.addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+
 function getFontStr(fmt, size) {
   let fontId = fontFamilyEl.value;
   let def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
