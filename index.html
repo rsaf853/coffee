@@ -686,6 +686,10 @@
               글자색 <input type="color" id="inlineColorPicker" class="inline-picker" value="#358AE8" title="글자색 선택">
             </button>
 
+            <button type="button" class="tbtn color-picker-wrap" id="tbApplyQuoteBar">
+              인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#6ea8fe" title="인용 색상">
+            </button>
+
             <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
             <button type="button" class="tbtn danger" id="tbClear">서식 지우기</button>
           </div>
@@ -803,6 +807,7 @@ const lineBreakModeEl = el('lineBreakMode');
 const weightEl = el('weight');
 const alignEl = el('align');
 const inlineColorPickerEl = el('inlineColorPicker');
+const quoteBarColorEl = el('quoteBarColorPicker');
 const highlightColorEl = el('highlightColor');
 const asteriskColorEl = el('asteriskColor');
 const quoteColorEl = el('quoteColor');
@@ -851,9 +856,11 @@ let currentPage = 0;
 const DPR = 3; 
 const BASE_PREVIEW_WIDTH = 460; 
 const WORD_SPACING_OFFSET = -2;
+const QUOTE_BAR_W = 3.5;
+const QUOTE_GAP = 25;
 
 function makeDefaultFormat() { 
-  return { bold: false, italic: false, underline: false, strike: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false, isQuote: false }; 
+  return { bold: false, italic: false, underline: false, strike: false, highlightColor: null, inlineColor: null, font: null, isAsterisk: false, isQuote: false, quoteBar: null }; 
 }
 
 heightModeEl.addEventListener('change', (e) => {
@@ -930,10 +937,15 @@ el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.e
 el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); applyAutoFormat(); draw(); });
 el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('underline'); applyAutoFormat(); draw(); });
 el('tbStrike').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('strikeThrough'); applyAutoFormat(); draw(); });
-el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); applyAutoFormat(); draw(); });
+el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); clearQuoteBarInSelection(); applyAutoFormat(); draw(); });
 
 el('tbApplyColor').addEventListener('mousedown', e => { 
   e.preventDefault(); document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw(); 
+});
+
+el('tbApplyQuoteBar').addEventListener('mousedown', e => {
+  e.preventDefault();
+  applyQuoteBar(quoteBarColorEl.value);
 });
 
 el('tbHiOn').addEventListener('mousedown', e => {
@@ -1023,6 +1035,7 @@ function extractDataFromEditor() {
       if (bg) newFmt.highlightColor = bg;
       
       const isBlock = ['DIV', 'P', 'SECTION'].includes(node.tagName);
+      if (isBlock) { newFmt.quoteBar = (node.getAttribute && node.getAttribute('data-quote-bar')) || null; }
       if (isBlock && node !== editorEl && node !== editorEl.firstChild) { tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); }
       if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
         if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); return;
@@ -1036,65 +1049,150 @@ function extractDataFromEditor() {
   return tokens;
 }
 
+function insertSelectionMarkers() {
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0);
+    const startMarker = document.createElement('span'); startMarker.id = 'start-marker';
+    const endMarker = document.createElement('span'); endMarker.id = 'end-marker';
+    const rangeClone = range.cloneRange();
+    rangeClone.collapse(false); rangeClone.insertNode(endMarker); range.insertNode(startMarker);
+    return true;
+  }
+  return false;
+}
+
+function restoreSelectionFromMarkers() {
+  const sel = window.getSelection();
+  const sMarker = document.getElementById('start-marker');
+  const eMarker = document.getElementById('end-marker');
+  if (sMarker && eMarker) {
+    const newRange = document.createRange();
+    newRange.setStartAfter(sMarker); newRange.setEndBefore(eMarker);
+    sel.removeAllRanges(); sel.addRange(newRange);
+    sMarker.remove(); eMarker.remove();
+  }
+}
+
+function buildHtmlFromTokens(tokens) {
+  let html = ''; let currentBlock = ''; let currentBlockQuoteBar = null;
+
+  function flushBlock() {
+    if (!currentBlock) currentBlock = '<br>';
+    const qAttr = currentBlockQuoteBar ? ` data-quote-bar="${currentBlockQuoteBar}"` : '';
+    html += `<div${qAttr}>` + currentBlock + '</div>';
+    currentBlock = ''; currentBlockQuoteBar = null;
+  }
+
+  tokens.forEach(tok => {
+    if (tok.isStartMarker) { currentBlock += '<span id="start-marker"></span>'; return; }
+    if (tok.isEndMarker) { currentBlock += '<span id="end-marker"></span>'; return; }
+    if (tok.isPlaceholder) return;
+    if (tok.format && tok.format.quoteBar) currentBlockQuoteBar = tok.format.quoteBar;
+    if (tok.text === '\n') { flushBlock(); return; }
+
+    let spanHtml = tok.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let css = '';
+    if (tok.format.bold) css += 'font-weight:bold;';
+    if (tok.format.italic) css += 'font-style:italic;';
+    if (tok.format.underline) css += 'text-decoration:underline;';
+    if (tok.format.strike) css += 'text-decoration:line-through;';
+
+    let dataAttrs = ''; let color = '';
+    if (tok.format.isQuote) { color = quoteColorEl.value; dataAttrs = 'data-auto-quote="true"'; }
+    else if (tok.format.isAsterisk) { color = asteriskColorEl.value; dataAttrs = 'data-auto-ast="true"'; }
+    else if (tok.format.inlineColor) { color = tok.format.inlineColor; }
+
+    if (color) css += `color:${color};`;
+    if (tok.format.highlightColor) css += `background-color:${tok.format.highlightColor};`;
+
+    if (css || dataAttrs) currentBlock += `<span ${dataAttrs} style="${css}">${spanHtml}</span>`;
+    else currentBlock += `<span>${spanHtml}</span>`;
+  });
+
+  if (currentBlock || currentBlockQuoteBar) flushBlock();
+  return html;
+}
+
 function applyAutoFormat() {
-    if (document.getElementById('start-marker')) return;
+  if (document.getElementById('start-marker')) return;
+  const hasSelection = insertSelectionMarkers();
+  const tokens = extractDataFromEditor();
+  editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
+  if (hasSelection) restoreSelectionFromMarkers();
+}
 
-    const sel = window.getSelection();
-    let hasSelection = false;
-    if (sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
-        hasSelection = true;
-        const range = sel.getRangeAt(0);
-        const startMarker = document.createElement('span'); startMarker.id = 'start-marker';
-        const endMarker = document.createElement('span'); endMarker.id = 'end-marker';
-        
-        const rangeClone = range.cloneRange();
-        rangeClone.collapse(false); rangeClone.insertNode(endMarker); range.insertNode(startMarker);
-    }
+function applyQuoteBar(color) {
+  if (document.getElementById('start-marker')) return;
+  const hasSelection = insertSelectionMarkers();
+  if (!hasSelection) return;
 
-    const tokens = extractDataFromEditor();
-    let html = ''; let currentBlock = '';
-    
-    tokens.forEach(tok => {
-        if (tok.isStartMarker) { currentBlock += '<span id="start-marker"></span>'; return; }
-        if (tok.isEndMarker) { currentBlock += '<span id="end-marker"></span>'; return; }
-        if (tok.isPlaceholder) return;
-        if (tok.text === '\n') {
-            if (!currentBlock) currentBlock = '<br>';
-            html += '<div>' + currentBlock + '</div>'; currentBlock = ''; return;
-        }
-        
-        let spanHtml = tok.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        let css = '';
-        if (tok.format.bold) css += 'font-weight:bold;';
-        if (tok.format.italic) css += 'font-style:italic;';
-        if (tok.format.underline) css += 'text-decoration:underline;';
-        if (tok.format.strike) css += 'text-decoration:line-through;';
-        
-        let dataAttrs = ''; let color = '';
-        if (tok.format.isQuote) { color = quoteColorEl.value; dataAttrs = 'data-auto-quote="true"'; } 
-        else if (tok.format.isAsterisk) { color = asteriskColorEl.value; dataAttrs = 'data-auto-ast="true"'; } 
-        else if (tok.format.inlineColor) { color = tok.format.inlineColor; }
-        
-        if (color) css += `color:${color};`;
-        if (tok.format.highlightColor) css += `background-color:${tok.format.highlightColor};`;
+  const tokens = extractDataFromEditor();
 
-        if (css || dataAttrs) currentBlock += `<span ${dataAttrs} style="${css}">${spanHtml}</span>`;
-        else currentBlock += `<span>${spanHtml}</span>`;
-    });
-    
-    if (currentBlock) html += '<div>' + currentBlock + '</div>';
-    editorEl.innerHTML = html || '';
-    
-    if (hasSelection) {
-        const sMarker = document.getElementById('start-marker');
-        const eMarker = document.getElementById('end-marker');
-        if (sMarker && eMarker) {
-            const newRange = document.createRange();
-            newRange.setStartAfter(sMarker); newRange.setEndBefore(eMarker);
-            sel.removeAllRanges(); sel.addRange(newRange);
-            sMarker.remove(); eMarker.remove();
-        }
-    }
+  // 토큰을 줄(문단) 단위로 그룹화
+  const groups = []; let cur = [];
+  tokens.forEach(tok => { cur.push(tok); if (tok.text === '\n') { groups.push(cur); cur = []; } });
+  groups.push(cur);
+
+  // 선택 영역이 걸쳐있는 줄(그룹) 인덱스 찾기
+  const selectedIdx = new Set();
+  let active = false;
+  groups.forEach((g, i) => {
+    const hasStart = g.some(t => t.isStartMarker);
+    const hasEnd = g.some(t => t.isEndMarker);
+    if (hasStart) active = true;
+    if (hasStart || hasEnd || active) selectedIdx.add(i);
+    if (hasEnd) active = false;
+  });
+
+  if (selectedIdx.size === 0) { restoreSelectionFromMarkers(); return; }
+
+  // 선택된 줄이 이미 전부 같은 색상 인용구 바를 갖고 있으면 해제, 아니면 적용/변경
+  const touchedGroups = [...selectedIdx].map(i => groups[i]);
+  const allMatch = touchedGroups.every(g => {
+    const t = g.find(t => t.text && t.text !== '\n' && !t.isStartMarker && !t.isEndMarker);
+    return !t || (t.format && t.format.quoteBar === color);
+  });
+  const newColor = allMatch ? null : color;
+
+  selectedIdx.forEach(i => {
+    groups[i].forEach(t => { if (t.format) t.format = { ...t.format, quoteBar: newColor }; });
+  });
+
+  editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
+  restoreSelectionFromMarkers();
+  draw();
+}
+
+function clearQuoteBarInSelection() {
+  if (document.getElementById('start-marker')) return;
+  const hasSelection = insertSelectionMarkers();
+  if (!hasSelection) return;
+
+  const tokens = extractDataFromEditor();
+
+  const groups = []; let cur = [];
+  tokens.forEach(tok => { cur.push(tok); if (tok.text === '\n') { groups.push(cur); cur = []; } });
+  groups.push(cur);
+
+  const selectedIdx = new Set();
+  let active = false;
+  groups.forEach((g, i) => {
+    const hasStart = g.some(t => t.isStartMarker);
+    const hasEnd = g.some(t => t.isEndMarker);
+    if (hasStart) active = true;
+    if (hasStart || hasEnd || active) selectedIdx.add(i);
+    if (hasEnd) active = false;
+  });
+
+  if (selectedIdx.size === 0) { restoreSelectionFromMarkers(); return; }
+
+  selectedIdx.forEach(i => {
+    groups[i].forEach(t => { if (t.format) t.format = { ...t.format, quoteBar: null }; });
+  });
+
+  editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
+  restoreSelectionFromMarkers();
 }
 
 el('tbRemoveAst').addEventListener('click', () => {
@@ -1193,7 +1291,7 @@ function computePages() {
   const pages = []; let currentLines = []; let currentLine = []; let currentX = 0;
   // 문단(하드 줄바꿈 직후) 첫 줄인지 추적해 들여쓰기 폭을 반영
   let curLineIsParaStart = true; let nextLineIsParaStart = false;
-  function effWidth() { return curLineIsParaStart ? Math.max(20, contentWidth - indentPx) : contentWidth; }
+  function effWidth(quoteIndent) { return curLineIsParaStart ? Math.max(20, contentWidth - indentPx - quoteIndent) : contentWidth - quoteIndent; }
   function breakLine() {
     currentLine.isParaStart = curLineIsParaStart;
     currentLines.push(currentLine);
@@ -1203,7 +1301,8 @@ function computePages() {
   
   els.forEach(tk => {
     if (tk.text === '\n') { currentLine.push(tk); nextLineIsParaStart = true; breakLine(); return; }
-    const cw = effWidth();
+    const quoteIndent = (tk.format && tk.format.quoteBar) ? (QUOTE_BAR_W + QUOTE_GAP) : 0;
+    const cw = effWidth(quoteIndent);
     if (currentX + tk.w > cw && currentLine.length > 0) {
       if (lineBreakModeEl.value === 'word' && tk.text !== ' ') { breakLine(); currentLine.push(tk); currentX += tk.w; }
       else { breakLine(); if (tk.text !== ' ') { currentLine.push(tk); currentX += tk.w; } }
@@ -1361,12 +1460,51 @@ function draw() {
   const page = pages[currentPage];
   if (!page) return;
   
+  // 인용 바를 문단(연속된 줄) 단위로 하나의 막대로 이어서 그리기 (글자 시작 위치 = mx 에 고정)
+  {
+    const barW = QUOTE_BAR_W;
+    let barX = mx;
+
+    const drawRun = (startIdx, endIdx, color) => {
+      const firstLn = page[startIdx];
+      const lastLn = page[endIdx];
+      const top = startY + firstLn.yOffset - size * 0.85;
+      const bottom = startY + lastLn.yOffset + size * 0.3;
+      ctx.save();
+      ctx.fillStyle = color;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(barX, top, barW, bottom - top, barW / 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(barX, top, barW, bottom - top);
+      }
+      ctx.restore();
+    };
+
+    let runStart = null; let runColor = null;
+    page.forEach((ln, lIdx) => {
+      let color = null;
+      for (let qi = 0; qi < ln.length; qi++) { if (ln[qi].format && ln[qi].format.quoteBar) { color = ln[qi].format.quoteBar; break; } }
+      if (color) {
+        if (runStart === null) { runStart = lIdx; runColor = color; }
+        else if (color !== runColor) { drawRun(runStart, lIdx - 1, runColor); runStart = lIdx; runColor = color; }
+      } else if (runStart !== null) {
+        drawRun(runStart, lIdx - 1, runColor); runStart = null; runColor = null;
+      }
+    });
+    if (runStart !== null) drawRun(runStart, page.length - 1, runColor);
+  }
+
   page.forEach((ln, lIdx) => {
     let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
     let y = startY + ln.yOffset;
     if (ln.length > 0 && ln[ln.length-1].text === ' ') lnWidth -= ln[ln.length-1].w;
     
-    const lineIndent = ln.isParaStart ? indentPx : 0;
+    let lineQuoteColor = null;
+    for (let qi = 0; qi < ln.length; qi++) { if (ln[qi].format && ln[qi].format.quoteBar) { lineQuoteColor = ln[qi].format.quoteBar; break; } }
+    const quoteShift = lineQuoteColor ? (QUOTE_BAR_W + QUOTE_GAP) : 0;
+    const lineIndent = (ln.isParaStart ? indentPx : 0) + quoteShift;
     const effLineWidth = contentWidth - lineIndent;
     let x = mx + lineIndent; let justifySpace = 0;
     
