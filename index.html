@@ -1214,10 +1214,22 @@ editorEl.addEventListener('compositionstart', () => isComposing = true);
 editorEl.addEventListener('compositionend', () => { isComposing = false; scheduleAutoFormat(); });
 
 let formatTimer = null;
+let rafPending = false;
+function scheduleDraw() {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(() => { rafPending = false; draw(); });
+}
 function scheduleAutoFormat() {
-  draw();
+  scheduleDraw();
   clearTimeout(formatTimer);
-  formatTimer = setTimeout(applyAutoFormat, 250);
+  formatTimer = setTimeout(() => {
+    const text = editorEl.textContent;
+    // *강조* 나 "따옴표" 같은 자동 서식 대상 문자가 없으면
+    // 무거운 DOM 재구성을 생략해 타이핑 버벅임을 줄임
+    if (text.indexOf('*') === -1 && !/["\u201c\u201d]/.test(text)) return;
+    applyAutoFormat();
+  }, 250);
 }
 editorEl.addEventListener('input', () => { if (!isComposing) scheduleAutoFormat(); });
 
