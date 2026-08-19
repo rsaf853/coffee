@@ -687,7 +687,7 @@
             </button>
 
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyQuoteBar">
-              인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#6ea8fe" title="인용 색상">
+              인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#AFFF8F" title="인용 색상">
             </button>
 
             <button type="button" class="tbtn" id="tbHiOn">형광펜 적용</button>
@@ -868,7 +868,7 @@ heightModeEl.addEventListener('change', (e) => {
   currentPage = 0; 
   draw();
 });
-[canvasWidthEl, canvasHeightEl].forEach(item => item.addEventListener('input', draw));
+[canvasWidthEl, canvasHeightEl].forEach(item => item.addEventListener('input', scheduleDraw));
 
 function updateZoom() {
   const zoomPct = parseInt(zoomEl.value, 10);
@@ -903,7 +903,7 @@ removeBgImageBtn.addEventListener('click', () => {
 });
 
 [bgOpacityEl, bgDarknessEl, bgScaleEl].forEach(input => {
-  input.addEventListener('input', (e) => { el(e.target.id + 'Val').textContent = e.target.value; draw(); });
+  input.addEventListener('input', (e) => { el(e.target.id + 'Val').textContent = e.target.value; scheduleDraw(); });
 });
 
 function getPointerPos(e) {
@@ -1490,13 +1490,7 @@ function draw() {
       const bottom = startY + lastLn.yOffset + size * 0.3;
       ctx.save();
       ctx.fillStyle = color;
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(barX, top, barW, bottom - top, barW / 2);
-        ctx.fill();
-      } else {
-        ctx.fillRect(barX, top, barW, bottom - top);
-      }
+      ctx.fillRect(barX, top, barW, bottom - top);
       ctx.restore();
     };
 
@@ -1705,12 +1699,12 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
     if(e.target.id === 'canvasZoom') return; 
     if (e.target.id === 'paraSpacing') paraSpacingValEl.textContent = e.target.value;
     else { const valSpan = el(e.target.id + 'Val'); if (valSpan) valSpan.textContent = e.target.value; }
-    draw();
+    scheduleDraw();
   });
 });
 
-[sourceEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', draw); });
-sourceAlignEl.addEventListener('change', draw);
+[sourceEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', scheduleDraw); });
+sourceAlignEl.addEventListener('change', scheduleDraw);
 
 async function loadFontWeights(defKey) {
   const def = FONT_DEFS[defKey];
@@ -1726,8 +1720,14 @@ fontFamilyEl.addEventListener('change', async (e) => {
   draw();
 });
 
-asteriskColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); }); quoteColorEl.addEventListener('input', () => { applyAutoFormat(); draw(); });
-['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing'].forEach(id => { if(el(id)) el(id).addEventListener('input', draw); });
+let colorFormatTimer = null;
+function scheduleColorAutoFormat() {
+  scheduleDraw();
+  clearTimeout(colorFormatTimer);
+  colorFormatTimer = setTimeout(applyAutoFormat, 200);
+}
+asteriskColorEl.addEventListener('input', scheduleColorAutoFormat); quoteColorEl.addEventListener('input', scheduleColorAutoFormat);
+['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing'].forEach(id => { if(el(id)) el(id).addEventListener('input', scheduleDraw); });
 prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; draw(); } });
 nextBtn.addEventListener('click', () => { const p = computePages().pages.length; if(currentPage < p - 1) { currentPage++; draw(); } });
 
