@@ -410,6 +410,18 @@
   }
   .swatch-add:hover { border-color: var(--accent); color: var(--accent-strong); }
 
+  /* ---------- 출처: 구분 기호 선택 버튼 ---------- */
+  .sep-options { display: flex; gap: 6px; margin-top: 4px; }
+  .sep-btn {
+    width: 36px; height: 28px;
+    border: 1.5px solid var(--border-strong);
+    background: var(--bg-card); color: var(--ink-soft);
+    font-size: 12px; font-family: inherit; cursor: pointer;
+    border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .sep-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .sep-btn.active { background: var(--ink); border-color: var(--ink); color: var(--bg-panel); }
+
   /* ---------- Editor toolbar ---------- */
   .editor-toolbar {
     display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0;
@@ -629,19 +641,19 @@
       <details class="panel-section">
         <summary class="section-title">제목 추가</summary>
         <div class="details-content">
-          <div class="field">
-            <label>제목 내용 (첫 페이지 상단 노출)</label>
-            <input type="text" id="titleInput" placeholder="제목을 입력하세요">
-          </div>
           <div class="row2">
             <div class="field">
               <label>글자 크기 (<span id="titleFontSizeVal">24</span>px)</label>
               <input type="range" id="titleFontSize" min="10" max="60" value="24">
             </div>
             <div class="field">
-              <label>글자색</label>
-              <input type="color" id="titleColor" value="#000000">
+              <label>본문과의 간격 (<span id="titleSpacingVal">20</span>px)</label>
+              <input type="range" id="titleSpacing" min="0" max="200" step="5" value="20">
             </div>
+          </div>
+          <div class="field">
+            <label>제목 내용 (첫 페이지 상단 노출)</label>
+            <input type="text" id="titleInput" placeholder="제목을 입력하세요">
           </div>
           <div class="row2">
             <div class="field">
@@ -663,8 +675,17 @@
             </div>
           </div>
           <div class="field">
-            <label>본문과의 간격 (<span id="titleSpacingVal">20</span>px)</label>
-            <input type="range" id="titleSpacing" min="0" max="200" step="5" value="20">
+            <label>글자색 / 폰트</label>
+            <div style="display:flex; gap:6px;">
+              <input type="color" id="titleColor" value="#000000" style="flex:0 0 52px;">
+              <select id="titleFontFamily" style="flex:1;">
+                <option value="pretendard" selected>Pretendard (기본)</option>
+                <option value="noto">Noto Serif KR</option>
+                <option value="hahmlet">함렛 Hahmlet</option>
+                <option value="bookkmyungjo">부크크 명조</option>
+                <option value="bookkgothic">부크크 고딕</option>
+              </select>
+            </div>
           </div>
         </div>
       </details>
@@ -814,10 +835,23 @@
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
-          <div class="hint">모든 페이지 하단 고정</div>
+          <div class="hint">모든 페이지 하단 고정 · 출처/이름 중 하나만 입력해도 됩니다</div>
+          <div class="row2">
+            <div class="field">
+              <label>이름</label>
+              <input type="text" id="sourceName" placeholder="RS" value="">
+            </div>
+            <div class="field">
+              <label>출처</label>
+              <input type="text" id="source" placeholder="@hard7uck" value="">
+            </div>
+          </div>
           <div class="field">
-            <label>출처 / 이름</label>
-            <input type="text" id="source" placeholder="@hard7uck" value="">
+            <label>구분 기호</label>
+            <div class="sep-options" id="sourceSepButtons" data-selected="•">
+              <button type="button" class="sep-btn active" data-sep="•">•</button>
+              <button type="button" class="sep-btn" data-sep="|">|</button>
+            </div>
           </div>
           <div class="row2">
             <div class="field">
@@ -931,6 +965,7 @@ function showToast(msg, type) {
 
 const editorEl = el('editor');
 const sourceEl = el('source');
+const sourceNameEl = el('sourceName');
 const sourceAlignEl = el('sourceAlign');
 const bgColorEl = el('bgColor');
 const textColorEl = el('textColor');
@@ -951,6 +986,8 @@ const lineHeightEl = el('lineHeight');
 const scaleXEl = el('scaleX');
 const sourceFontSizeEl = el('sourceFontSize');
 const sourceColorEl = el('sourceColor');
+const titleFontFamilyEl = el('titleFontFamily');
+const sourceSepWrapEl = el('sourceSepButtons');
 const marginYEl = el('marginY');
 const marginXEl = el('marginX');
 const zoomEl = el('canvasZoom');
@@ -2034,7 +2071,7 @@ function draw() {
      const tAlign = el('titleAlign').value; const tWeightId = el('titleWeight').value;
      
      ctx.save();
-     let def = FONT_DEFS[fontFamilyEl.value] || FONT_DEFS['pretendard'];
+     let def = FONT_DEFS[titleFontFamilyEl.value] || FONT_DEFS['pretendard'];
      let tWNum = def.weights[tWeightId] || 700;
      ctx.font = `${tWNum} ${tSize}px ${def.css}`;
      ctx.fillStyle = el('titleColor').value;
@@ -2170,13 +2207,23 @@ function draw() {
   
   const fixedPaddingSide = 50; const fixedPaddingBottom = 40;
   const src = sourceEl.value.trim();
+  const srcName = sourceNameEl ? sourceNameEl.value.trim() : '';
+  const sep = (sourceSepWrapEl && sourceSepWrapEl.dataset.selected) || '•';
 
-  if (src) {
+  if (src || srcName) {
     const srcSize = parseInt(sourceFontSizeEl.value, 10);
     ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
-    ctx.fillStyle = sourceColorEl.value;
-    const tw = ctx.measureText(src).width;
-    
+
+    // 이름과 출처를 둘 다 입력하면 이름(진하게) · 출처(연하게) 순으로 이어붙이고, 하나만 입력하면 그것만 진하게 표시
+    let part1 = '', part2 = '';
+    if (src && srcName) { part1 = `${srcName}  ${sep}  `; part2 = src; }
+    else if (srcName) { part1 = srcName; }
+    else { part1 = src; }
+
+    const w1 = ctx.measureText(part1).width;
+    const w2 = part2 ? ctx.measureText(part2).width : 0;
+    const tw = w1 + w2;
+
     let sourceX = cWidth - fixedPaddingSide - tw;
     const sAlign = sourceAlignEl.value;
     if (sAlign === 'left') {
@@ -2184,8 +2231,18 @@ function draw() {
     } else if (sAlign === 'center') {
       sourceX = (cWidth - tw) / 2;
     }
-    
-    ctx.fillText(src, sourceX, cHeight - fixedPaddingBottom);
+
+    const baseColor = sourceColorEl.value;
+    ctx.fillStyle = baseColor;
+    ctx.fillText(part1, sourceX, cHeight - fixedPaddingBottom);
+
+    if (part2) {
+      // 출처 부분은 같은 색을 연하게(투명도↓) 만들어 이름보다 흐리게 표시
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ctx.fillText(part2, sourceX + w1, cHeight - fixedPaddingBottom);
+      ctx.restore();
+    }
   }
 
   stickers.forEach(s => {
@@ -2323,8 +2380,19 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', scheduleDraw); });
+[sourceEl, sourceNameEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', scheduleDraw); });
 sourceAlignEl.addEventListener('change', scheduleDraw);
+
+if (sourceSepWrapEl) {
+  sourceSepWrapEl.querySelectorAll('.sep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sourceSepWrapEl.querySelectorAll('.sep-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sourceSepWrapEl.dataset.selected = btn.dataset.sep;
+      scheduleDraw();
+    });
+  });
+}
 
 async function loadFontWeights(defKey) {
   const def = FONT_DEFS[defKey];
@@ -2340,6 +2408,11 @@ fontFamilyEl.addEventListener('change', async (e) => {
   draw();
 });
 
+titleFontFamilyEl.addEventListener('change', async (e) => {
+  await loadFontWeights(e.target.value);
+  draw();
+});
+
 let colorFormatTimer = null;
 function scheduleColorAutoFormat() {
   scheduleDraw();
@@ -2347,7 +2420,7 @@ function scheduleColorAutoFormat() {
   colorFormatTimer = setTimeout(applyAutoFormat, 200);
 }
 asteriskColorEl.addEventListener('input', scheduleColorAutoFormat); quoteColorEl.addEventListener('input', scheduleColorAutoFormat);
-['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing'].forEach(id => { if(el(id)) el(id).addEventListener('input', scheduleDraw); });
+['titleInput', 'titleFontSize', 'titleColor', 'titleAlign', 'titleWeight', 'titleSpacing', 'titleFontFamily'].forEach(id => { if(el(id)) el(id).addEventListener('input', scheduleDraw); });
 prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; draw(); } });
 nextBtn.addEventListener('click', () => { const p = computePages().pages.length; if(currentPage < p - 1) { currentPage++; draw(); } });
 
