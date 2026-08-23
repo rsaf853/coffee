@@ -214,9 +214,11 @@
 
   /* ---------- 스티커 ---------- */
   #stickerDropZone {
+    display: block;
     border: 1.5px dashed var(--border-strong);
     border-radius: 6px;
-    padding: 10px;
+    padding: 6px 10px;
+    margin-top: 10px;
     text-align: center;
     font-size: 11.5px;
     color: var(--ink-soft);
@@ -831,7 +833,37 @@
         </div>
       </details>
 
-     <!-- 5. 출처 -->
+     <!-- 5. 스티커 -->
+      <details class="panel-section">
+        <summary class="section-title">스티커</summary>
+        <div class="details-content">
+          <div class="hint">사진을 최대 4개까지 스티커로 추가할 수 있어요.</div>
+
+          <label id="stickerDropZone" for="stickerImageInput">+ 사진 추가 (<span id="stickerCountLabel">0</span>/4)</label>
+          <input type="file" id="stickerImageInput" accept="image/*" multiple style="display:none;">
+
+          <div class="sticker-thumbs" id="stickerThumbs"></div>
+          <div id="stickerEmptyHint">아직 추가된 스티커가 없습니다.</div>
+
+          <div id="stickerControls" class="hidden">
+            <div class="field">
+              <label>테두리 두께 (<span id="stickerBorderWidthVal">10</span>px)</label>
+              <input type="range" id="stickerBorderWidth" min="0" max="40" step="1" value="10">
+            </div>
+            <div class="field">
+              <label>테두리 색상</label>
+              <input type="color" id="stickerBorderColor" value="#ffffff">
+            </div>
+            <div class="sticker-layer-row">
+              <button type="button" class="tbtn" id="stickerLayerUp">앞으로</button>
+              <button type="button" class="tbtn" id="stickerLayerDown">뒤로</button>
+            </div>
+            <button type="button" class="tbtn danger" id="stickerDeleteBtn" style="width:100%;">선택한 스티커 삭제</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- 6. 출처 -->
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
@@ -870,37 +902,6 @@
           <div class="field" style="margin-top: 8px;">
             <label>글자 크기 (<span id="sourceFontSizeVal">13</span>px)</label>
             <input type="range" id="sourceFontSize" min="8" max="40" value="13">
-          </div>
-        </div>
-      </details>
-
-
-      <!-- 6. 스티커 -->
-      <details class="panel-section">
-        <summary class="section-title">스티커</summary>
-        <div class="details-content">
-          <div class="hint">사진을 최대 4개까지 스티커로 추가할 수 있어요.</div>
-
-          <label id="stickerDropZone" for="stickerImageInput">+ 사진 추가 (<span id="stickerCountLabel">0</span>/4)</label>
-          <input type="file" id="stickerImageInput" accept="image/*" multiple style="display:none;">
-
-          <div class="sticker-thumbs" id="stickerThumbs"></div>
-          <div id="stickerEmptyHint">아직 추가된 스티커가 없습니다.</div>
-
-          <div id="stickerControls" class="hidden">
-            <div class="field">
-              <label>테두리 두께 (<span id="stickerBorderWidthVal">10</span>px)</label>
-              <input type="range" id="stickerBorderWidth" min="0" max="40" step="1" value="10">
-            </div>
-            <div class="field">
-              <label>테두리 색상</label>
-              <input type="color" id="stickerBorderColor" value="#ffffff">
-            </div>
-            <div class="sticker-layer-row">
-              <button type="button" class="tbtn" id="stickerLayerUp">앞으로</button>
-              <button type="button" class="tbtn" id="stickerLayerDown">뒤로</button>
-            </div>
-            <button type="button" class="tbtn danger" id="stickerDeleteBtn" style="width:100%;">선택한 스티커 삭제</button>
           </div>
         </div>
       </details>
@@ -1282,6 +1283,7 @@ function getStickerHandles(s) {
   return {
     resize: stickerLocalToCanvas(s, hw, hh),
     rotate: stickerLocalToCanvas(s, 0, -hh - 26),
+    del: stickerLocalToCanvas(s, -hw - 16, -hh - 16),
     corners: [
       stickerLocalToCanvas(s, -hw, -hh),
       stickerLocalToCanvas(s, hw, -hh),
@@ -1456,6 +1458,25 @@ function drawStickerOverlay() {
   drawHandleDot(handles.resize);
   drawHandleDot(handles.rotate);
 
+  // 삭제(X) 핸들
+  const delR = 9 / scale;
+  stickerOverlayCtx.beginPath();
+  stickerOverlayCtx.arc(handles.del.x, handles.del.y, delR, 0, Math.PI * 2);
+  stickerOverlayCtx.fillStyle = '#e26a86';
+  stickerOverlayCtx.fill();
+  stickerOverlayCtx.lineWidth = 2 / scale;
+  stickerOverlayCtx.strokeStyle = '#ffffff';
+  stickerOverlayCtx.stroke();
+  const xr = delR * 0.42;
+  stickerOverlayCtx.beginPath();
+  stickerOverlayCtx.moveTo(handles.del.x - xr, handles.del.y - xr);
+  stickerOverlayCtx.lineTo(handles.del.x + xr, handles.del.y + xr);
+  stickerOverlayCtx.moveTo(handles.del.x + xr, handles.del.y - xr);
+  stickerOverlayCtx.lineTo(handles.del.x - xr, handles.del.y + xr);
+  stickerOverlayCtx.strokeStyle = '#ffffff';
+  stickerOverlayCtx.lineWidth = 1.6 / scale;
+  stickerOverlayCtx.stroke();
+
   stickerOverlayCtx.restore();
 }
 
@@ -1465,6 +1486,11 @@ function canvasPointerDown(e) {
 
   if (sel) {
     const handles = getStickerHandles(sel);
+    if (ptDist(pos, handles.del) <= STICKER_HANDLE_R) {
+      deleteSticker(sel.id);
+      e.preventDefault();
+      return;
+    }
     if (ptDist(pos, handles.resize) <= STICKER_HANDLE_R) {
       stickerDragMode = 'resize';
       stickerDragState = { sticker: sel, startScale: sel.scale, startDist: Math.max(1, ptDist(pos, { x: sel.x, y: sel.y })) };
