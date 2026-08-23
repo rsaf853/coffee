@@ -794,6 +794,7 @@
               <button type="button" class="swatch" data-color="#FCFFBF" style="background:#FCFFBF"></button>
               <button type="button" class="swatch" data-color="#EDEDED" style="background:#EDEDED"></button>
             </div>
+            <div class="hint" style="margin-top: 6px;">색상 더블클릭 시 저장된 색이 삭제되며, 선택 영역 없이 형광펜 버튼을 누르면 전체 형광펜 색이 한 번에 바뀝니다.</div>
           </div>
 
           <div class="row2" style="margin-top: 8px;">
@@ -1060,7 +1061,7 @@ function recolorAllHighlights(newColor) {
     if (!bg) continue;
     const bgl = bg.toLowerCase();
     const isTransparent = bgl === 'transparent' || (bgl.includes('rgba') && bgl.replace(/ /g,'').endsWith(',0)'));
-    if (!isTransparent) { node.style.backgroundColor = newColor; node.style.background = ''; changed = true; }
+    if (!isTransparent) { node.style.background = ''; node.style.backgroundColor = newColor; changed = true; }
   }
   return changed;
 }
@@ -1811,20 +1812,20 @@ function getFontStr(fmt, size) {
 // 폰트마다 실제 글자 높이(ascent/descent) 비율이 달라서 형광펜 사각형이
 // 폰트에 따라 아래(또는 위)가 비어 보이는 문제를 막기 위해, 폰트별로
 // 실제 글자 박스를 측정해서 캐싱해두고 사용한다.
-const _hiMetricsCache = {};
-function getHiMetrics(fontStr, size) {
-  if (_hiMetricsCache[fontStr]) return _hiMetricsCache[fontStr];
+function getHiMetrics(fontStr, size, sampleText) {
+  // 고정 샘플(예: 영문 g/j/p/q/y 등 디센더 포함) 대신, 실제로 형광펜이 칠해진
+  // 글자를 기준으로 위/아래 여백을 측정한다. 한글처럼 아래로 내려가는 획이
+  // 없는 글자만 있을 때 아래쪽에 불필요한 여백이 생기는 것을 방지하기 위함.
+  const sample = (sampleText && sampleText.length) ? sampleText : '가';
   const prevFont = ctx.font;
   ctx.font = fontStr;
-  const m = ctx.measureText('가힣ㅣAgjpqy0');
+  const m = ctx.measureText(sample);
   let asc = m.actualBoundingBoxAscent;
   let desc = m.actualBoundingBoxDescent;
   ctx.font = prevFont;
   if (!(asc > 0)) asc = size * 0.85;
-  if (!(desc > 0)) desc = size * 0.3;
-  const result = { asc, desc };
-  _hiMetricsCache[fontStr] = result;
-  return result;
+  if (!(desc > 0)) desc = size * 0.05;
+  return { asc, desc };
 }
 
 function processTokens(tokens, size, ls, contentWidth) {
@@ -2098,6 +2099,17 @@ function draw() {
     const lineIndent = (ln.isParaStart ? indentPx : 0) + quoteShift;
     const effLineWidth = contentWidth - lineIndent;
     let x = mx + lineIndent; let justifySpace = 0;
+
+    // 이 줄에서 형광펜이 적용된 글자만 폰트별로 모아, 실제 글자 기준으로
+    // 형광펜 높이를 측정할 수 있게 준비 (위/아래 여백을 대칭으로 맞추기 위함)
+    const lineHiSamples = {};
+    ln.forEach(d => {
+      if (d.text === '\n' || d.isPlaceholder) return;
+      if (d.format && d.format.highlightColor) {
+        const fstr = getFontStr(d.format, size);
+        lineHiSamples[fstr] = (lineHiSamples[fstr] || '') + d.text;
+      }
+    });
     
     if (align === 'center') x = mx + lineIndent + (effLineWidth - lnWidth)/2;
     else if (align === 'right') x = mx + contentWidth - lnWidth;
@@ -2117,7 +2129,7 @@ function draw() {
       ctx.font = getFontStr(fmt, size);
       
       if (fmt.highlightColor && !data.isPlaceholder) {
-        const hm = getHiMetrics(ctx.font, size);
+        const hm = getHiMetrics(ctx.font, size, lineHiSamples[ctx.font]);
         ctx.fillStyle = fmt.highlightColor;
         ctx.fillRect(x - 0.5, y - hm.asc - size * 0.05, data.w + justifySpace + 1, hm.asc + hm.desc + size * 0.1);
       }
