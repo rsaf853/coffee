@@ -352,6 +352,14 @@
   }
   .swatch:hover { transform: scale(1.1); }
 
+  /* ---------- 형광펜 커스텀 색상 추가 버튼 ---------- */
+  .swatch-add {
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px dashed var(--border-strong); background: var(--bg-panel);
+    color: var(--ink-soft); font-size: 14px; font-weight: 700; line-height: 1;
+  }
+  .swatch-add:hover { border-color: var(--accent); color: var(--accent-strong); }
+
   /* ---------- Editor toolbar ---------- */
   .editor-toolbar {
     display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0;
@@ -726,7 +734,7 @@
           <div class="field" style="margin-top: 10px;">
             <label>형광펜 색상</label>
             <input type="color" id="highlightColor" value="#FFE0F9">
-            <div class="swatches">
+            <div class="swatches" id="hiSwatches">
               <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
               <button type="button" class="swatch" data-color="#DBF7FF" style="background:#DBF7FF"></button>
               <button type="button" class="swatch" data-color="#DBFFDF" style="background:#DBFFDF"></button>
@@ -885,6 +893,95 @@ const bgOpacityEl = el('bgOpacity');
 const bgDarknessEl = el('bgDarkness');
 const bgScaleEl = el('bgScale');
 
+// ---------- 형광펜 커스텀 색상 (기존 스와치 옆에 + 버튼만 추가) ----------
+const HI_SWATCHES_DEFAULT = ['#FFE0F9','#DBF7FF','#DBFFDF','#FCFFBF','#EDEDED'];
+const CUSTOM_HI_KEY = 'rosie_editor_custom_hi_swatches';
+
+function getCustomHiSwatches() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_HI_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveCustomHiSwatches(arr) {
+  localStorage.setItem(CUSTOM_HI_KEY, JSON.stringify(arr));
+}
+
+function updateHiDot() {
+  const dot = el('hiColorDot');
+  if (dot) dot.style.background = highlightColorEl.value;
+}
+highlightColorEl.addEventListener('input', updateHiDot);
+
+function addHiSwatchButton(color, isCustom) {
+  const container = el('hiSwatches');
+  if (!container) return;
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'swatch'; btn.dataset.color = color;
+  btn.style.background = color;
+  btn.title = isCustom ? (color + ' (더블클릭하면 삭제)') : color;
+  btn.addEventListener('click', () => { highlightColorEl.value = color; updateHiDot(); });
+  if (isCustom) {
+    btn.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      saveCustomHiSwatches(getCustomHiSwatches().filter(c => c !== color));
+      btn.remove();
+    });
+  }
+  container.appendChild(btn);
+}
+
+function addHiAddButton() {
+  const container = el('hiSwatches');
+  if (!container) return;
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button'; addBtn.className = 'swatch swatch-add'; addBtn.title = '색상 추가';
+  addBtn.textContent = '+';
+  addBtn.addEventListener('click', () => hiCustomColorInput.click());
+  container.appendChild(addBtn);
+}
+
+const hiCustomColorInput = document.createElement('input');
+hiCustomColorInput.type = 'color';
+hiCustomColorInput.style.display = 'none';
+document.body.appendChild(hiCustomColorInput);
+
+hiCustomColorInput.addEventListener('input', () => {
+  const color = hiCustomColorInput.value.toUpperCase();
+  const custom = getCustomHiSwatches();
+  if (!custom.includes(color) && !HI_SWATCHES_DEFAULT.includes(color)) {
+    custom.push(color);
+    if (custom.length > 20) custom.shift(); // 최대 20개까지만 저장
+    saveCustomHiSwatches(custom);
+    const addBtnEl = el('hiSwatches').querySelector('.swatch-add');
+    if (addBtnEl) addBtnEl.remove();
+    addHiSwatchButton(color, true);
+    addHiAddButton();
+  }
+  highlightColorEl.value = color;
+  updateHiDot();
+  showToast('색상이 추가되었습니다.');
+});
+
+// ---------- 형광펜 전체 재색칠 (선택 없이 버튼 누를 때) ----------
+function hasActiveTextSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return false;
+  const range = sel.getRangeAt(0);
+  return !range.collapsed && editorEl.contains(range.commonAncestorContainer);
+}
+
+function recolorAllHighlights(newColor) {
+  let changed = false;
+  const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_ELEMENT, null, false);
+  let node;
+  while (node = walker.nextNode()) {
+    const bg = node.style && (node.style.backgroundColor || node.style.background);
+    if (!bg) continue;
+    const bgl = bg.toLowerCase();
+    const isTransparent = bgl === 'transparent' || (bgl.includes('rgba') && bgl.replace(/ /g,'').endsWith(',0)'));
+    if (!isTransparent) { node.style.backgroundColor = newColor; node.style.background = ''; changed = true; }
+  }
+  return changed;
+}
+
 const FONT_DEFS = {
   pretendard: { name: 'Pretendard Variable', css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 } },
   noto:       { name: 'Noto Serif KR', css: "'Noto Serif KR', serif",           weights: { thin: 300, regular: 400, medium: 500, bold: 700 } },
@@ -993,12 +1090,24 @@ el('tbApplyQuoteBar').addEventListener('mousedown', e => {
 el('tbHiOn').addEventListener('mousedown', e => {
   e.preventDefault();
   const c = highlightColorEl.value;
+
+  if (!hasActiveTextSelection()) {
+    const changed = recolorAllHighlights(c);
+    if (changed) {
+      applyAutoFormat(); draw();
+      showToast('형광펜 색상을 전체 변경했습니다.');
+    } else {
+      showToast('변경할 형광펜 영역이 없습니다.', 'danger');
+    }
+    return;
+  }
+
   document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
   applyAutoFormat(); draw();
 });
 
 document.querySelectorAll('.swatch').forEach(btn => {
-  btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; });
+  btn.addEventListener('click', () => { highlightColorEl.value = btn.dataset.color; updateHiDot(); });
 });
 
 function extractDataFromEditor() {
@@ -1288,6 +1397,25 @@ function getFontStr(fmt, size) {
   let wNum = def.weights[wId] || 400;
   let st = fmt.italic ? "italic " : "";
   return `${st}${wNum} ${size}px ${def.css}`;
+}
+
+// 폰트마다 실제 글자 높이(ascent/descent) 비율이 달라서 형광펜 사각형이
+// 폰트에 따라 아래(또는 위)가 비어 보이는 문제를 막기 위해, 폰트별로
+// 실제 글자 박스를 측정해서 캐싱해두고 사용한다.
+const _hiMetricsCache = {};
+function getHiMetrics(fontStr, size) {
+  if (_hiMetricsCache[fontStr]) return _hiMetricsCache[fontStr];
+  const prevFont = ctx.font;
+  ctx.font = fontStr;
+  const m = ctx.measureText('가힣ㅣAgjpqy0');
+  let asc = m.actualBoundingBoxAscent;
+  let desc = m.actualBoundingBoxDescent;
+  ctx.font = prevFont;
+  if (!(asc > 0)) asc = size * 0.85;
+  if (!(desc > 0)) desc = size * 0.3;
+  const result = { asc, desc };
+  _hiMetricsCache[fontStr] = result;
+  return result;
 }
 
 function processTokens(tokens, size, ls, contentWidth) {
@@ -1580,8 +1708,9 @@ function draw() {
       ctx.font = getFontStr(fmt, size);
       
       if (fmt.highlightColor && !data.isPlaceholder) {
+        const hm = getHiMetrics(ctx.font, size);
         ctx.fillStyle = fmt.highlightColor;
-        ctx.fillRect(x - 0.5, y - size * 0.85, data.w + justifySpace + 1, size * 1.15);
+        ctx.fillRect(x - 0.5, y - hm.asc - size * 0.05, data.w + justifySpace + 1, hm.asc + hm.desc + size * 0.1);
       }
       
       ctx.save();
@@ -1643,7 +1772,7 @@ const DEFAULT_PRESET_DATA = {
   canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
-  paraSpacing: '5', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#777777',
+  paraSpacing: '5', letterSpacing: '-0.5', scaleX: '99', asteriskColor: '#777777',
   quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right',
   firstLineIndent: '0'
 };
@@ -1652,7 +1781,7 @@ const DARK_PRESET_DATA = {
   canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#212121', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#ffffff', fontSize: '20', lineHeight: '150',
-  paraSpacing: '5', letterSpacing: '-0.5', scaleX: '97', asteriskColor: '#9a9a9a',
+  paraSpacing: '5', letterSpacing: '-0.5', scaleX: '99', asteriskColor: '#9a9a9a',
   quoteColor: '#fff59d', sourceColor: '#bbbbbb', sourceFontSize: '13', sourceAlign: 'right',
   firstLineIndent: '0'
 };
@@ -1805,6 +1934,9 @@ document.addEventListener('mouseup', () => { if (isResizing) { isResizing = fals
 
 window.addEventListener('load', async () => {
   loadPresetsList(); updateZoom(); updateAllRanges(); draw();
+  getCustomHiSwatches().forEach(c => addHiSwatchButton(c, true));
+  addHiAddButton();
+  updateHiDot();
   // 부크크 명조/고딕 등 커스텀 폰트의 모든 굵기를 미리 받아둬서
   // 캔버스에서 선택 즉시 정상적으로 적용되도록 함
   if (document.fonts) {
