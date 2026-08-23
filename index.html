@@ -1142,16 +1142,27 @@ function addHiAddButton() {
   const addBtn = document.createElement('button');
   addBtn.type = 'button'; addBtn.className = 'swatch swatch-add'; addBtn.title = '색상 추가';
   addBtn.textContent = '+';
-  addBtn.addEventListener('click', () => hiCustomColorInput.click());
+  addBtn.addEventListener('click', () => {
+    const r = addBtn.getBoundingClientRect();
+    hiCustomColorInput.style.left = (window.scrollX + r.left) + 'px';
+    hiCustomColorInput.style.top = (window.scrollY + r.bottom) + 'px';
+    hiCustomColorInput.click();
+  });
   container.appendChild(addBtn);
 }
 
 const hiCustomColorInput = document.createElement('input');
 hiCustomColorInput.type = 'color';
-hiCustomColorInput.style.display = 'none';
+hiCustomColorInput.style.position = 'absolute';
+hiCustomColorInput.style.width = '1px';
+hiCustomColorInput.style.height = '1px';
+hiCustomColorInput.style.opacity = '0';
+hiCustomColorInput.style.border = 'none';
+hiCustomColorInput.style.padding = '0';
+hiCustomColorInput.style.pointerEvents = 'none';
 document.body.appendChild(hiCustomColorInput);
 
-hiCustomColorInput.addEventListener('input', () => {
+hiCustomColorInput.addEventListener('change', () => {
   const color = hiCustomColorInput.value.toUpperCase();
   const custom = getCustomHiSwatches();
   if (!custom.includes(color) && !HI_SWATCHES_DEFAULT.includes(color)) {
