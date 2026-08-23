@@ -412,6 +412,27 @@
   }
   .swatch-add:hover { border-color: var(--accent); color: var(--accent-strong); }
 
+  /* ---------- 형광펜 색상칩 + 투명도(%) 스테퍼 ---------- */
+  .hi-color-row { display: flex; align-items: stretch; gap: 6px; }
+  .hi-color-row input[type="color"] { flex: 1; }
+  .hi-opacity-stepper {
+    display: flex; align-items: center; flex-shrink: 0;
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+    background: var(--bg-card);
+  }
+  .hi-opacity-btn {
+    width: 24px; height: 28px; border: none; background: var(--bg-card);
+    color: var(--ink-soft); font-size: 14px; font-weight: 700; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .hi-opacity-btn:hover { background: var(--accent-soft); color: var(--accent-strong); }
+  .hi-opacity-btn:disabled { opacity: 0.35; cursor: default; background: var(--bg-card); color: var(--ink-soft); }
+  .hi-opacity-value {
+    min-width: 36px; text-align: center; font-size: 11px; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums; user-select: none; padding: 0 2px;
+  }
+
   /* ---------- 출처: 구분 기호 선택 버튼 ---------- */
   .sep-options { display: flex; gap: 6px; margin-top: 4px; }
   .sep-btn {
@@ -423,6 +444,18 @@
   }
   .sep-btn:hover { border-color: var(--accent); color: var(--ink); }
   .sep-btn.active { background: var(--ink); border-color: var(--ink); color: var(--bg-panel); }
+
+  /* ---------- 스티커: 스타일 선택 버튼 (기본/스티커/그림자) ---------- */
+  .style-options { display: flex; gap: 6px; margin-top: 4px; }
+  .style-btn {
+    flex: 1; height: 30px;
+    border: 1.5px solid var(--border-strong);
+    background: var(--bg-card); color: var(--ink-soft);
+    font-size: 12px; font-family: inherit; cursor: pointer;
+    border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .style-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .style-btn.active { background: var(--ink); border-color: var(--ink); color: var(--bg-panel); }
 
   /* ---------- Editor toolbar ---------- */
   .editor-toolbar {
@@ -809,7 +842,14 @@
           
           <div class="field" style="margin-top: 10px;">
             <label>형광펜 색상</label>
-            <input type="color" id="highlightColor" value="#FFE0F9">
+            <div class="hi-color-row">
+              <input type="color" id="highlightColor" value="#FFE0F9">
+              <div class="hi-opacity-stepper" id="hiOpacityStepper" title="형광펜 투명도">
+                <button type="button" class="hi-opacity-btn" id="hiOpacityDown" aria-label="투명도 감소">−</button>
+                <span class="hi-opacity-value" id="hiOpacityValue">100%</span>
+                <button type="button" class="hi-opacity-btn" id="hiOpacityUp" aria-label="투명도 증가">+</button>
+              </div>
+            </div>
             <div class="swatches" id="hiSwatches">
               <button type="button" class="swatch" data-color="#FFE0F9" style="background:#FFE0F9"></button>
               <button type="button" class="swatch" data-color="#DBF7FF" style="background:#DBF7FF"></button>
@@ -847,10 +887,18 @@
 
           <div id="stickerControls" class="hidden">
             <div class="field">
+              <label>스타일</label>
+              <div class="style-options" id="stickerStyleOptions">
+                <button type="button" class="style-btn active" data-style="basic">기본</button>
+                <button type="button" class="style-btn" data-style="sticker">스티커</button>
+                <button type="button" class="style-btn" data-style="shadow">그림자</button>
+              </div>
+            </div>
+            <div class="field" id="stickerBorderWidthField">
               <label>테두리 두께 (<span id="stickerBorderWidthVal">10</span>px)</label>
               <input type="range" id="stickerBorderWidth" min="0" max="40" step="1" value="10">
             </div>
-            <div class="field">
+            <div class="field" id="stickerBorderColorField">
               <label>테두리 색상</label>
               <input type="color" id="stickerBorderColor" value="#ffffff">
             </div>
@@ -1032,6 +1080,44 @@ function updateHiDot() {
 }
 highlightColorEl.addEventListener('input', updateHiDot);
 
+// ---------- 형광펜 투명도(%) ----------
+const HI_OPACITY_MIN = 30;
+const HI_OPACITY_MAX = 100;
+const HI_OPACITY_STEP = 5;
+let hiOpacity = 100;
+
+function hexToRgba(hex, alpha) {
+  let h = (hex || '#000000').replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const r = parseInt(h.substring(0, 2), 16) || 0;
+  const g = parseInt(h.substring(2, 4), 16) || 0;
+  const b = parseInt(h.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getHighlightColorValue() {
+  return hexToRgba(highlightColorEl.value, hiOpacity / 100);
+}
+
+function updateHiOpacityUI() {
+  const label = el('hiOpacityValue');
+  if (label) label.textContent = hiOpacity + '%';
+  const downBtn = el('hiOpacityDown');
+  const upBtn = el('hiOpacityUp');
+  if (downBtn) downBtn.disabled = hiOpacity <= HI_OPACITY_MIN;
+  if (upBtn) upBtn.disabled = hiOpacity >= HI_OPACITY_MAX;
+}
+
+el('hiOpacityDown')?.addEventListener('click', () => {
+  hiOpacity = Math.max(HI_OPACITY_MIN, hiOpacity - HI_OPACITY_STEP);
+  updateHiOpacityUI();
+});
+el('hiOpacityUp')?.addEventListener('click', () => {
+  hiOpacity = Math.min(HI_OPACITY_MAX, hiOpacity + HI_OPACITY_STEP);
+  updateHiOpacityUI();
+});
+updateHiOpacityUI();
+
 function addHiSwatchButton(color, isCustom) {
   const container = el('hiSwatches');
   if (!container) return;
@@ -1209,7 +1295,7 @@ const stickerBorderWidthEl = el('stickerBorderWidth');
 const stickerBorderColorEl = el('stickerBorderColor');
 
 const MAX_STICKERS = 4;
-const STICKER_HANDLE_R = 22; // 캔버스 좌표계(=cWidth/cHeight 기준) 상의 핸들 히트 반경
+const STICKER_HANDLE_R = 26; // 캔버스 좌표계(=cWidth/cHeight 기준) 상의 핸들 히트 반경
 
 let stickers = [];
 let stickerIdSeq = 1;
@@ -1223,41 +1309,91 @@ function ptDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 // 그 위에 원본 이미지를 다시 그려 "스티커"처럼 보이게 굽는다.
 // (실루엣을 여러 방향으로 살짝씩 오프셋하여 겹쳐 그리는 방식으로 팽창시켜
 //  알파 모양을 그대로 따라가는 외곽선을 만든다.)
-function bakeStickerCanvas(img, thickness, color) {
+// style: 'basic'(그냥 테두리) | 'sticker'(테두리+좁은 회색 그림자) | 'shadow'(접지 그림자, 테두리 없음)
+function bakeStickerCanvas(img, thickness, color, style) {
+  style = style || 'basic';
   const w = img.naturalWidth || img.width;
   const h = img.naturalHeight || img.height;
 
-  const silCanvas = document.createElement('canvas');
-  silCanvas.width = w; silCanvas.height = h;
-  const silCtx = silCanvas.getContext('2d');
-  silCtx.drawImage(img, 0, 0, w, h);
-  if (thickness > 0) {
-    silCtx.globalCompositeOperation = 'source-in';
-    silCtx.fillStyle = color;
-    silCtx.fillRect(0, 0, w, h);
+  function silhouette(fillColor) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const cctx = c.getContext('2d');
+    cctx.drawImage(img, 0, 0, w, h);
+    cctx.globalCompositeOperation = 'source-in';
+    cctx.fillStyle = fillColor;
+    cctx.fillRect(0, 0, w, h);
+    return c;
   }
 
+  // ---- 그림자: 접지 그림자가 아니라, 실루엣 전체를 은은하게 감싸는 가우시안 그림자 ----
+  // (참고 시안의 1번/네온 스타일처럼 drop-shadow를 여러 겹 겹쳐 부드럽게 퍼지는 halo를 만든다)
+  if (style === 'shadow') {
+    const pad = Math.max(30, Math.round(Math.max(w, h) * 0.07) + 20);
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = w + pad * 2;
+    outCanvas.height = h + pad * 2;
+    const outCtx = outCanvas.getContext('2d');
+    if ('filter' in outCtx) {
+      outCtx.filter =
+        'drop-shadow(0 0 3px rgba(20,30,50,0.4)) ' +
+        'drop-shadow(0 0 9px rgba(20,30,50,0.26)) ' +
+        'drop-shadow(0 0 17px rgba(20,30,50,0.15))';
+    }
+    outCtx.drawImage(img, pad, pad, w, h);
+    return outCanvas;
+  }
+
+  // ---- 기본 / 스티커(테두리 기반) ----
   const pad = Math.max(0, Math.round(thickness));
+  const shadowMargin = style === 'sticker' ? Math.max(8, Math.round(pad * 0.5) + 6) : 0;
+  const baseOffset = shadowMargin + pad; // 원본 이미지가 그려질 좌상단 오프셋
+
   const outCanvas = document.createElement('canvas');
-  outCanvas.width = w + pad * 2;
-  outCanvas.height = h + pad * 2;
+  outCanvas.width = w + pad * 2 + shadowMargin * 2;
+  outCanvas.height = h + pad * 2 + shadowMargin * 2;
   const outCtx = outCanvas.getContext('2d');
 
-  if (pad > 0) {
-    const steps = Math.max(16, Math.round(pad * 3));
-    for (let i = 0; i < steps; i++) {
-      const angle = (i / steps) * Math.PI * 2;
-      const dx = Math.cos(angle) * pad;
-      const dy = Math.sin(angle) * pad;
-      outCtx.drawImage(silCanvas, pad + dx, pad + dy);
+  function stampDilated(destCtx, sil, dilatePad, offset, alpha, blurPx) {
+    destCtx.save();
+    if (alpha !== undefined) destCtx.globalAlpha = alpha;
+    if (blurPx && 'filter' in destCtx) destCtx.filter = `blur(${blurPx}px)`;
+    if (dilatePad > 0) {
+      const steps = Math.max(16, Math.round(dilatePad * 3));
+      for (let i = 0; i < steps; i++) {
+        const angle = (i / steps) * Math.PI * 2;
+        const dx = Math.cos(angle) * dilatePad;
+        const dy = Math.sin(angle) * dilatePad;
+        destCtx.drawImage(sil, offset + dx, offset + dy);
+      }
+    } else {
+      destCtx.drawImage(sil, offset, offset);
     }
+    destCtx.restore();
   }
-  outCtx.drawImage(img, pad, pad, w, h);
+
+  // 스티커 스타일: 테두리 실루엣 바깥으로 살짝 번진 좁은 회색 그림자를 먼저 깐다
+  if (style === 'sticker') {
+    const grayCanvas = document.createElement('canvas');
+    grayCanvas.width = outCanvas.width; grayCanvas.height = outCanvas.height;
+    const grayCtx = grayCanvas.getContext('2d');
+    stampDilated(grayCtx, silhouette('#000000'), pad, baseOffset, 1);
+    outCtx.save();
+    outCtx.globalAlpha = 0.4;
+    if ('filter' in outCtx) outCtx.filter = 'blur(4px)';
+    outCtx.drawImage(grayCanvas, 0, 4);
+    outCtx.restore();
+  }
+
+  if (pad > 0) {
+    stampDilated(outCtx, silhouette(color), pad, baseOffset);
+  }
+  outCtx.drawImage(img, baseOffset, baseOffset, w, h);
   return outCanvas;
 }
 
 function rebakeSticker(s) {
-  s.canvas = bakeStickerCanvas(s.srcImg, s.thickness, s.color);
+  s.canvas = bakeStickerCanvas(s.srcImg, s.thickness, s.color, s.style);
   s.natW = s.canvas.width;
   s.natH = s.canvas.height;
 }
@@ -1283,7 +1419,7 @@ function getStickerHandles(s) {
   return {
     resize: stickerLocalToCanvas(s, hw, hh),
     rotate: stickerLocalToCanvas(s, 0, -hh - 26),
-    del: stickerLocalToCanvas(s, -hw - 16, -hh - 16),
+    del: stickerLocalToCanvas(s, -hw, -hh),
     corners: [
       stickerLocalToCanvas(s, -hw, -hh),
       stickerLocalToCanvas(s, hw, -hh),
@@ -1302,7 +1438,7 @@ function addStickerImage(img) {
     id: stickerIdSeq++,
     srcImg: img,
     canvas: null, natW: 0, natH: 0,
-    thickness, color,
+    thickness, color, style: 'basic',
     x: cWidth / 2 + (stickers.length % 2 === 0 ? -1 : 1) * 20 * stickers.length,
     y: cHeight / 2 + (stickers.length % 2 === 0 ? -1 : 1) * 20 * stickers.length,
     rotation: 0,
@@ -1365,10 +1501,23 @@ function renderStickerPanel() {
   const sel = getSelectedSticker();
   stickerControlsEl.classList.toggle('hidden', !sel);
   if (sel) {
+    if (!sel.style) sel.style = 'basic';
     stickerBorderWidthEl.value = sel.thickness;
     el('stickerBorderWidthVal').textContent = sel.thickness;
     updateRangeProgress(stickerBorderWidthEl);
     stickerBorderColorEl.value = sel.color;
+
+    const styleOptionsEl = el('stickerStyleOptions');
+    if (styleOptionsEl) {
+      styleOptionsEl.querySelectorAll('.style-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.style === sel.style);
+      });
+    }
+    const isShadowStyle = sel.style === 'shadow';
+    const borderWidthField = el('stickerBorderWidthField');
+    const borderColorField = el('stickerBorderColorField');
+    if (borderWidthField) borderWidthField.style.display = isShadowStyle ? 'none' : '';
+    if (borderColorField) borderColorField.style.display = isShadowStyle ? 'none' : '';
   }
 }
 
@@ -1412,6 +1561,20 @@ stickerBorderColorEl.addEventListener('input', (e) => {
   renderStickerPanel();
   draw();
 });
+
+const stickerStyleOptionsEl = el('stickerStyleOptions');
+if (stickerStyleOptionsEl) {
+  stickerStyleOptionsEl.querySelectorAll('.style-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sel = getSelectedSticker();
+      if (!sel) return;
+      sel.style = btn.dataset.style;
+      rebakeSticker(sel);
+      renderStickerPanel();
+      draw();
+    });
+  });
+}
 
 function drawStickerOverlay() {
   const dpr = window.devicePixelRatio || 1;
@@ -1459,12 +1622,12 @@ function drawStickerOverlay() {
   drawHandleDot(handles.rotate);
 
   // 삭제(X) 핸들
-  const delR = 9 / scale;
+  const delR = 15 / scale;
   stickerOverlayCtx.beginPath();
   stickerOverlayCtx.arc(handles.del.x, handles.del.y, delR, 0, Math.PI * 2);
   stickerOverlayCtx.fillStyle = '#e26a86';
   stickerOverlayCtx.fill();
-  stickerOverlayCtx.lineWidth = 2 / scale;
+  stickerOverlayCtx.lineWidth = 2.5 / scale;
   stickerOverlayCtx.strokeStyle = '#ffffff';
   stickerOverlayCtx.stroke();
   const xr = delR * 0.42;
@@ -1474,7 +1637,7 @@ function drawStickerOverlay() {
   stickerOverlayCtx.moveTo(handles.del.x + xr, handles.del.y - xr);
   stickerOverlayCtx.lineTo(handles.del.x - xr, handles.del.y + xr);
   stickerOverlayCtx.strokeStyle = '#ffffff';
-  stickerOverlayCtx.lineWidth = 1.6 / scale;
+  stickerOverlayCtx.lineWidth = 2.2 / scale;
   stickerOverlayCtx.stroke();
 
   stickerOverlayCtx.restore();
@@ -1562,7 +1725,7 @@ el('tbApplyQuoteBar').addEventListener('mousedown', e => {
 
 el('tbHiOn').addEventListener('mousedown', e => {
   e.preventDefault();
-  const c = highlightColorEl.value;
+  const c = getHighlightColorValue();
 
   if (!hasActiveTextSelection()) {
     const changed = recolorAllHighlights(c);
