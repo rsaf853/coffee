@@ -714,7 +714,7 @@
             <div style="display:flex; gap:6px;">
               <input type="color" id="titleColor" value="#000000" style="flex:0 0 52px;">
               <select id="titleFontFamily" style="flex:1;">
-                <option value="pretendard" selected>Pretendard (기본)</option>
+                <option value="pretendard" selected>Pretendard</option>
                 <option value="noto">Noto Serif KR</option>
                 <option value="hahmlet">함렛 Hahmlet</option>
                 <option value="bookkmyungjo">부크크 명조</option>
@@ -732,7 +732,7 @@
           <div class="field">
             <label>기본 폰트</label>
             <select id="fontFamily">
-              <option value="pretendard" selected>Pretendard (기본)</option>
+              <option value="pretendard" selected>Pretendard</option>
               <option value="noto">Noto Serif KR</option>
               <option value="hahmlet">함렛 Hahmlet</option>
               <option value="bookkmyungjo">부크크 명조</option>
@@ -744,7 +744,7 @@
             <div class="field">
               <label>줄바꿈 기준</label>
               <select id="lineBreakMode">
-                <option value="word" selected>단어 단위 (기본)</option>
+                <option value="word" selected>단어 단위</option>
                 <option value="char">글자 단위</option>
               </select>
             </div>
@@ -758,6 +758,16 @@
               </select>
             </div>
           </div>
+
+          <div class="field">
+            <label>세로 정렬</label>
+            <select id="vAlignMode">
+              <option value="top" selected>위쪽</option>
+              <option value="center">중앙</option>
+              <option value="bottom">아래쪽</option>
+            </select>
+          </div>
+          <div class="hint" style="margin-top:-4px;">'높이 설정'이 '내용에 맞게 자동'일 때는 적용되지 않습니다.</div>
           
           <div class="row2">
             <div class="field">
@@ -1023,6 +1033,7 @@ const fontFamilyEl = el('fontFamily');
 const lineBreakModeEl = el('lineBreakMode');
 const weightEl = el('weight');
 const alignEl = el('align');
+const vAlignEl = el('vAlignMode');
 const inlineColorPickerEl = el('inlineColorPicker');
 const quoteBarColorEl = el('quoteBarColorPicker');
 const highlightColorEl = el('highlightColor');
@@ -2314,6 +2325,21 @@ function draw() {
   
   const page = pages[currentPage];
   if (!page) return;
+
+  // ---- 세로 정렬 적용 (본문 텍스트 블록을 캔버스 안에서 위/중앙/아래로 배치) ----
+  // 제목은 항상 상단에 고정하고, 본문 텍스트 블록만 이동시킨다.
+  // '내용에 맞게 자동' 높이 모드에서는 캔버스 자체가 내용에 맞춰지므로 적용하지 않는다.
+  const vAlignMode = (vAlignEl && vAlignEl.value) || 'top';
+  if (vAlignMode !== 'top' && heightModeEl.value !== 'auto' && page.length) {
+    const titleSpaceForThisPage = (currentPage === 0 && titleText) ? titleHeightSpace : 0;
+    const availableBodyHeight = cHeight - my * 2 - 40 - titleSpaceForThisPage;
+    const lastLine = page[page.length - 1];
+    const pageContentHeight = (lastLine ? lastLine.yOffset : 0) + lh;
+    const extra = availableBodyHeight - pageContentHeight;
+    if (extra > 0) {
+      startY += (vAlignMode === 'center') ? extra / 2 : extra;
+    }
+  }
   
   // 인용 바를 문단(연속된 줄) 단위로 하나의 막대로 이어서 그리기 (글자 시작 위치 = mx 에 고정)
   {
@@ -2387,8 +2413,9 @@ function draw() {
       
       if (fmt.highlightColor && !data.isPlaceholder) {
         const hm = getHiMetrics(ctx.font, size, lineHiSamples[ctx.font]);
+        const hiPad = size * 0.09;
         ctx.fillStyle = fmt.highlightColor;
-        ctx.fillRect(x - 0.5, y - hm.asc - size * 0.05, data.w + justifySpace + 1, hm.asc + hm.desc + size * 0.1);
+        ctx.fillRect(x - 0.5, y - hm.asc - hiPad, data.w + justifySpace + 1, hm.asc + hm.desc + hiPad * 2);
       }
       
       ctx.save();
@@ -2600,7 +2627,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceNameEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl].forEach(item => { item.addEventListener('input', scheduleDraw); });
+[sourceEl, sourceNameEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl].forEach(item => { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); });
 sourceAlignEl.addEventListener('change', scheduleDraw);
 
 if (sourceSepWrapEl) {
