@@ -124,7 +124,7 @@
   main { display: flex; flex-direction: column; width: 100%; height: 100vh; }
 
   @media (max-width: 899px) {
-    #previewCol { flex: none; height: 45vh; min-height: 260px; }
+    #previewCol { flex: none; height: 40vh; min-height: 260px; }
     #panelCol { flex: 1; min-height: 0; }
   }
   
@@ -452,25 +452,31 @@
   .sep-options { display: flex; gap: 6px; margin-top: 4px; }
   .sep-btn {
     width: 36px; height: 28px;
-    border: 1.5px solid var(--border-strong);
-    background: var(--bg-card); color: var(--ink-soft);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-panel); color: #c98aa4;
     font-size: 12px; font-family: inherit; cursor: pointer;
     border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .sep-btn:hover { border-color: var(--accent); color: var(--ink); }
-  .sep-btn.active { background: var(--ink); border-color: var(--ink); color: var(--bg-panel); }
+  html[data-theme="dark"] .sep-btn { color: #d9a3c0; }
+  .sep-btn:hover { border-color: var(--border-strong); color: #c98aa4; }
+  html[data-theme="dark"] .sep-btn:hover { color: #d9a3c0; }
+  .sep-btn.active { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); font-weight: 600; }
+  .sep-btn.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); }
 
   /* ---------- 스티커: 스타일 선택 버튼 (기본/스티커/그림자) ---------- */
   .style-options { display: flex; gap: 6px; margin-top: 4px; }
   .style-btn {
     flex: 1; height: 30px;
-    border: 1.5px solid var(--border-strong);
-    background: var(--bg-card); color: var(--ink-soft);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-panel); color: #c98aa4;
     font-size: 12px; font-family: inherit; cursor: pointer;
     border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .style-btn:hover { border-color: var(--accent); color: var(--ink); }
-  .style-btn.active { background: var(--ink); border-color: var(--ink); color: var(--bg-panel); }
+  html[data-theme="dark"] .style-btn { color: #d9a3c0; }
+  .style-btn:hover { border-color: var(--border-strong); color: #c98aa4; }
+  html[data-theme="dark"] .style-btn:hover { color: #d9a3c0; }
+  .style-btn.active { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); font-weight: 600; }
+  .style-btn.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); }
 
   /* ---------- Editor toolbar ---------- */
   .editor-toolbar {
@@ -498,7 +504,7 @@
   .tbtn-accent {
     background: var(--accent);
     color: var(--accent-ink);
-    border-color: var(--accent-strong);
+    border-color: var(--accent);
     font-weight: 600;
   }
   .tbtn-accent:hover {
@@ -862,7 +868,7 @@
           
           <div class="row2">
             <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우기</button>
-            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">따옴표( " " " ) 지우기</button>
+            <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">" " (따옴표) 지우기</button>
           </div>
           
           <div class="field" style="margin-top: 10px;">
@@ -891,7 +897,7 @@
               <input type="color" id="asteriskColor" value="#777777">
             </div>
             <div class="field" style="margin-bottom: 0;">
-              <label>따옴표( " " ) 안 색상</label>
+              <label>" " 안 색상</label>
               <input type="color" id="quoteColor" value="#ff9ed7">
             </div>
           </div>
@@ -925,7 +931,14 @@
             </div>
             <div class="field" id="stickerBorderColorField">
               <label id="stickerBorderColorLabel">테두리 색상</label>
-              <input type="color" id="stickerBorderColor" value="#ffffff">
+              <div class="hi-color-row">
+                <input type="color" id="stickerBorderColor" value="#ffffff">
+                <div class="hi-opacity-stepper" id="stickerShadowOpacityStepper" style="display:none;" title="그림자 투명도">
+                  <button type="button" class="hi-opacity-btn" id="stickerShadowOpacityDown" aria-label="투명도 감소">−</button>
+                  <span class="hi-opacity-value" id="stickerShadowOpacityValue">50%</span>
+                  <button type="button" class="hi-opacity-btn" id="stickerShadowOpacityUp" aria-label="투명도 증가">+</button>
+                </div>
+              </div>
             </div>
             <div class="sticker-layer-row">
               <button type="button" class="tbtn" id="stickerLayerUp">앞으로</button>
@@ -1359,7 +1372,7 @@ function hexToRgbTuple(hex) {
 // (실루엣을 여러 방향으로 살짝씩 오프셋하여 겹쳐 그리는 방식으로 팽창시켜
 //  알파 모양을 그대로 따라가는 외곽선을 만든다.)
 // style: 'basic'(그냥 테두리) | 'sticker'(테두리+좁은 회색 그림자) | 'shadow'(접지 그림자, 테두리 없음)
-function bakeStickerCanvas(img, thickness, color, style, shadowColor) {
+function bakeStickerCanvas(img, thickness, color, style, shadowColor, shadowOpacity) {
   style = style || 'basic';
   const w = img.naturalWidth || img.width;
   const h = img.naturalHeight || img.height;
@@ -1383,12 +1396,13 @@ function bakeStickerCanvas(img, thickness, color, style, shadowColor) {
     outCanvas.width = w + pad * 2;
     outCanvas.height = h + pad * 2;
     const outCtx = outCanvas.getContext('2d');
-    const [sr, sg, sb] = hexToRgbTuple(shadowColor) || [20, 30, 50];
+    const [sr, sg, sb] = hexToRgbTuple(shadowColor) || [140, 140, 140];
+    const op = (typeof shadowOpacity === 'number' ? shadowOpacity : 100) / 100;
     if ('filter' in outCtx) {
       outCtx.filter =
-        `drop-shadow(0 0 3px rgba(${sr},${sg},${sb},0.4)) ` +
-        `drop-shadow(0 0 9px rgba(${sr},${sg},${sb},0.26)) ` +
-        `drop-shadow(0 0 17px rgba(${sr},${sg},${sb},0.15))`;
+        `drop-shadow(0 0 3px rgba(${sr},${sg},${sb},${(1.0 * op).toFixed(3)})) ` +
+        `drop-shadow(0 0 9px rgba(${sr},${sg},${sb},${(0.7 * op).toFixed(3)})) ` +
+        `drop-shadow(0 0 17px rgba(${sr},${sg},${sb},${(0.45 * op).toFixed(3)}))`;
     }
     outCtx.drawImage(img, pad, pad, w, h);
     return outCanvas;
@@ -1443,7 +1457,7 @@ function bakeStickerCanvas(img, thickness, color, style, shadowColor) {
 }
 
 function rebakeSticker(s) {
-  s.canvas = bakeStickerCanvas(s.srcImg, s.thickness, s.color, s.style, s.shadowColor);
+  s.canvas = bakeStickerCanvas(s.srcImg, s.thickness, s.color, s.style, s.shadowColor, s.shadowOpacity);
   s.natW = s.canvas.width;
   s.natH = s.canvas.height;
 }
@@ -1488,7 +1502,7 @@ function addStickerImage(img) {
     id: stickerIdSeq++,
     srcImg: img,
     canvas: null, natW: 0, natH: 0,
-    thickness, color, shadowColor: '#141e32', style: 'basic',
+    thickness, color, shadowColor: '#999999', shadowOpacity: 50, style: 'basic',
     x: cWidth / 2 + (stickers.length % 2 === 0 ? -1 : 1) * 20 * stickers.length,
     y: cHeight / 2 + (stickers.length % 2 === 0 ? -1 : 1) * 20 * stickers.length,
     rotation: 0,
@@ -1562,15 +1576,23 @@ function renderStickerPanel() {
       });
     }
     const isShadowStyle = sel.style === 'shadow';
-    if (!sel.shadowColor) sel.shadowColor = '#141e32';
+    if (!sel.shadowColor) sel.shadowColor = '#999999';
+    if (typeof sel.shadowOpacity !== 'number') sel.shadowOpacity = 50;
     stickerBorderColorEl.value = isShadowStyle ? sel.shadowColor : sel.color;
     const borderColorLabelEl = el('stickerBorderColorLabel');
     if (borderColorLabelEl) borderColorLabelEl.textContent = isShadowStyle ? '그림자 색상' : '테두리 색상';
 
     const borderWidthField = el('stickerBorderWidthField');
     const borderColorField = el('stickerBorderColorField');
+    const shadowOpacityField = el('stickerShadowOpacityStepper');
     if (borderWidthField) borderWidthField.style.display = isShadowStyle ? 'none' : '';
     if (borderColorField) borderColorField.style.display = '';
+    if (shadowOpacityField) shadowOpacityField.style.display = isShadowStyle ? '' : 'none';
+    if (isShadowStyle) {
+      el('stickerShadowOpacityValue').textContent = sel.shadowOpacity + '%';
+      el('stickerShadowOpacityDown').disabled = sel.shadowOpacity <= 20;
+      el('stickerShadowOpacityUp').disabled = sel.shadowOpacity >= 100;
+    }
   }
 }
 
@@ -1614,6 +1636,27 @@ stickerBorderColorEl.addEventListener('input', (e) => {
   } else {
     sel.color = e.target.value;
   }
+  rebakeSticker(sel);
+  renderStickerPanel();
+  draw();
+});
+
+const STICKER_SHADOW_OPACITY_MIN = 20;
+const STICKER_SHADOW_OPACITY_MAX = 100;
+const STICKER_SHADOW_OPACITY_STEP = 10;
+
+el('stickerShadowOpacityDown')?.addEventListener('click', () => {
+  const sel = getSelectedSticker();
+  if (!sel) return;
+  sel.shadowOpacity = Math.max(STICKER_SHADOW_OPACITY_MIN, (sel.shadowOpacity || 50) - STICKER_SHADOW_OPACITY_STEP);
+  rebakeSticker(sel);
+  renderStickerPanel();
+  draw();
+});
+el('stickerShadowOpacityUp')?.addEventListener('click', () => {
+  const sel = getSelectedSticker();
+  if (!sel) return;
+  sel.shadowOpacity = Math.min(STICKER_SHADOW_OPACITY_MAX, (sel.shadowOpacity || 50) + STICKER_SHADOW_OPACITY_STEP);
   rebakeSticker(sel);
   renderStickerPanel();
   draw();
@@ -2434,7 +2477,10 @@ function draw() {
       }
       
       ctx.save();
-      if (data.isPlaceholder) ctx.fillStyle = 'rgba(150,150,150,0.35)';
+      if (data.isPlaceholder) {
+        const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+        ctx.fillStyle = isDarkTheme ? 'rgba(150,150,150,0.35)' : 'rgba(200,160,175,0.4)';
+      }
       else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
       else if (fmt.isQuote) ctx.fillStyle = quoteColor; 
       else if (fmt.isAsterisk) ctx.fillStyle = astColor;
