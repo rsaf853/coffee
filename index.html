@@ -36,29 +36,29 @@
     font-display: swap;
   }
 
-  /* 프리젠테이션 (Presentation / Freesentation) - 굵기 4가지 */
+  /* 고신고딕 - 굵기 4가지 */
   @font-face {
-    font-family: 'Presentation';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-2ExtraLight.woff2') format('woff2');
-    font-weight: 200;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Presentation';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-4Regular.woff2') format('woff2');
+    font-family: 'KosinGothic';
+    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2607101549@font-108/font-108/font-108-400.woff2') format('woff2');
     font-weight: 400;
     font-display: swap;
   }
   @font-face {
-    font-family: 'Presentation';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-7Bold.woff2') format('woff2');
+    font-family: 'KosinGothic';
+    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2607101549@font-108/font-108/font-108-600.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'KosinGothic';
+    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2607101549@font-108/font-108/font-108-700.woff2') format('woff2');
     font-weight: 700;
     font-display: swap;
   }
   @font-face {
-    font-family: 'Presentation';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
-    font-weight: 900;
+    font-family: 'KosinGothic';
+    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2607101549@font-108/font-108/font-108-800.woff2') format('woff2');
+    font-weight: 800;
     font-display: swap;
   }
 
@@ -93,6 +93,41 @@
     font-family: 'JoseonMyeongjo';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunKm.woff') format('woff');
     font-weight: 700;
+    font-display: swap;
+  }
+
+  /* IBM Plex Sans - 굵기 4가지 (300 / 400 / 500 / 600) */
+  @font-face {
+    font-family: 'IbmPlexSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Light.woff') format('woff');
+    font-weight: 300;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'IbmPlexSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Regular.woff') format('woff');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'IbmPlexSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Medium.woff') format('woff');
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'IbmPlexSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-display: swap;
+  }
+
+  /* 부산체 - 제목 전용, 굵기 1가지 */
+  @font-face {
+    font-family: 'Busan';
+    src: url('https://cdn.jsdelivr.net/korean-webfonts/1/orgs/govs/busan/Busan/Busan.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/korean-webfonts/1/orgs/govs/busan/Busan/Busan.woff') format('woff');
+    font-weight: 400;
     font-display: swap;
   }
 
@@ -643,9 +678,11 @@
 <div style="position:absolute; width:0; height:0; overflow:hidden; visibility:hidden;">
   <span style="font-family:'BookkMyungjo'">.</span>
   <span style="font-family:'BookkGothic'">.</span>
-  <span style="font-family:'Presentation'">.</span>
+  <span style="font-family:'KosinGothic'">.</span>
   <span style="font-family:'NexonLv1Gothic'">.</span>
   <span style="font-family:'JoseonMyeongjo'">.</span>
+  <span style="font-family:'IbmPlexSans'">.</span>
+  <span style="font-family:'Busan'">.</span>
 </div>
 
 <main>
@@ -794,11 +831,13 @@
               <input type="color" id="titleColor" value="#000000" style="flex:0 0 52px;">
               <select id="titleFontFamily" style="flex:1;">
                 <option value="pretendard" selected>프리텐다드</option>
-                <option value="presentation">프리젠테이션</option>
+                <option value="kosin">고신고딕</option>
                 <option value="nexon">넥슨 Lv.1 고딕</option>
-                <option value="bookkmyungjo">부크크 명조</option>
                 <option value="bookkgothic">부크크 고딕</option>
+                <option value="bookkmyungjo">부크크 명조</option>
                 <option value="joseon">조선신명조</option>
+                <option value="ibmplex">IBM Plex Sans</option>
+                <option value="busan">부산체</option>
               </select>
             </div>
           </div>
@@ -813,11 +852,12 @@
             <label>기본 폰트</label>
             <select id="fontFamily">
               <option value="pretendard" selected>프리텐다드</option>
-              <option value="presentation">프리젠테이션</option>
+              <option value="kosin">고신고딕</option>
               <option value="nexon">넥슨 Lv.1 고딕</option>
-              <option value="bookkmyungjo">부크크 명조</option>
               <option value="bookkgothic">부크크 고딕</option>
+              <option value="bookkmyungjo">부크크 명조</option>
               <option value="joseon">조선신명조</option>
+              <option value="ibmplex">IBM Plex Sans</option>
             </select>
           </div>
           
@@ -1307,12 +1347,16 @@ const FONT_DEFS = {
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
   bookkgothic:  { name: 'BookkGothic', css: "'BookkGothic', sans-serif",  weights: { regular: 300, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  presentation: { name: 'Presentation', css: "'Presentation', sans-serif", weights: { extralight: 200, regular: 400, bold: 700, black: 900 },
-    weightOptions: [ {id:'extralight', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Medium'}, {id:'black', label:'Bold'} ] },
+  kosin: { name: 'KosinGothic', css: "'KosinGothic', sans-serif", weights: { regular: 400, semibold: 600, bold: 700, extrabold: 800 },
+    weightOptions: [ {id:'regular', label:'Regular'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'}, {id:'extrabold', label:'ExtraBold'} ] },
   nexon: { name: 'NexonLv1Gothic', css: "'NexonLv1Gothic', sans-serif", weights: { light: 300, regular: 400, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
   joseon: { name: 'JoseonMyeongjo', css: "'JoseonMyeongjo', serif", weights: { regular: 400, bold: 700 },
-    weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] }
+    weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
+  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', sans-serif", weights: { light: 300, regular: 400, medium: 500, semibold: 600 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'} ] },
+  busan: { name: 'Busan', css: "'Busan', sans-serif", weights: { regular: 400, bold: 400 },
+    weightOptions: [ {id:'regular', label:'Regular'} ] }
 };
 
 function rebuildWeightOptions(selectEl, fontId) {
