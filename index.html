@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>r♡sieditor</title>
-<link rel="icon" type="image/png" href="images/favi3.png">
+<link rel="icon" type="image/png" href="images/favi2.png">
 <!-- Pretendard & Noto Serif KR 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,9 +50,9 @@
     --dot-color: rgba(255, 150, 195, 0.20);
     --canvas-vignette: linear-gradient(160deg, #fffbfd 0%, #fdeaf2 45%, #fbdcec 100%);
 
-    --border-soft: #fbe9f1;
-    --border: #f8dbe9;
-    --border-strong: #f3c4dd;
+    --border-soft: #ffedf6;
+    --border: #ffdcec;
+    --border-strong: #ffb8d9;
 
     --ink: #5c3450;
     --ink-soft: #96677f;
@@ -68,6 +68,7 @@
     --danger-bg: #fdeef3;
     --danger-border: #f5c6da;
     --heart: #ff7ebd;
+    --track-empty: #ffdcec;
 
     --shadow-bar: 0 4px 12px rgba(255, 130, 190, 0.12), 0 1px 2px rgba(255, 130, 190, 0.08);
     --shadow-card: 0 2px 10px rgba(255, 150, 195, 0.08);
@@ -99,6 +100,7 @@
     --danger-bg: #3a2230;
     --danger-border: #5c3540;
     --heart: #ffa3d1;
+    --track-empty: #4a2e3d;
 
     --shadow-bar: 0 6px 20px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
@@ -187,17 +189,29 @@
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 5px; border-radius: 3px;
-    background: linear-gradient(to right, var(--accent-strong) 0%, var(--accent-strong) var(--range-progress, 50%), var(--border-strong) var(--range-progress, 50%), var(--border-strong) 100%);
+    background: linear-gradient(to right, var(--accent-strong) 0%, var(--accent-strong) var(--range-progress, 50%), var(--track-empty) var(--range-progress, 50%), var(--track-empty) 100%);
     outline: none; margin-top: 4px; cursor: pointer;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 11px; height: 11px; border-radius: 50%;
+    width: 20px; height: 10px; border-radius: 5px;
     background: var(--accent-strong); cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     transition: transform 0.15s ease;
   }
-  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 10px; border-radius: 5px; border: none;
+    background: var(--accent-strong); cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 5px; border-radius: 3px; background: var(--track-empty);
+  }
+  input[type="range"]::-moz-range-progress {
+    height: 5px; border-radius: 3px; background: var(--accent-strong);
+  }
   
   #zoomControl input[type="range"] { width: 60px; margin-top: 0; }
 
@@ -587,8 +601,8 @@
       <div class="divider"></div>
       <div id="zoomControl">
         <span style="display:flex; align-items:center; gap:4px;">배율</span>
-        <input type="range" id="canvasZoom" min="40" max="160" step="5" value="120">
-        <span id="canvasZoomVal" style="width:32px; text-align:right;">120%</span>
+        <input type="range" id="canvasZoom" min="40" max="180" step="5" value="125">
+        <span id="canvasZoomVal" style="width:32px; text-align:right;">125%</span>
       </div>
     </div>
   </div>
@@ -832,11 +846,11 @@
             <button type="button" class="tbtn" id="tbStrike"><s>S</s></button>
             
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyColor">
-              글자색 <input type="color" id="inlineColorPicker" class="inline-picker" value="#358AE8" title="글자색 선택">
+              글자색 <input type="color" id="inlineColorPicker" class="inline-picker" value="#cccccc" title="글자색 선택">
             </button>
 
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyQuoteBar">
-              인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#AFFF8F" title="인용 색상">
+              인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#ffb3d9" title="인용 색상">
             </button>
 
             <button type="button" class="tbtn" id="tbHiOn">형광펜 </button>
@@ -877,7 +891,7 @@
             </div>
             <div class="field" style="margin-bottom: 0;">
               <label>따옴표( " " ) 안 색상</label>
-              <input type="color" id="quoteColor" value="#000000">
+              <input type="color" id="quoteColor" value="#ff9ed7">
             </div>
           </div>
         </div>
@@ -2509,7 +2523,7 @@ const DEFAULT_PRESET_DATA = {
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
   paraSpacing: '5', letterSpacing: '-0.5', scaleX: '99', asteriskColor: '#777777',
-  quoteColor: '#358AE8', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right',
+  quoteColor: '#ff9ed7', sourceColor: '#666666', sourceFontSize: '13', sourceAlign: 'right',
   firstLineIndent: '0'
 };
 
