@@ -2471,9 +2471,9 @@ function draw() {
       
       if (fmt.highlightColor && !data.isPlaceholder) {
         const hm = getHiMetrics(ctx.font, size, lineHiSamples[ctx.font]);
-        const hiPad = size * 0.09;
+        const hiPad = size * 0.16;
         ctx.fillStyle = fmt.highlightColor;
-        ctx.fillRect(x - 0.5, y - hm.asc - hiPad, data.w + justifySpace + 1, hm.asc + hm.desc + hiPad * 2);
+        ctx.fillRect(x, y - hm.asc - hiPad, data.w + justifySpace, hm.asc + hm.desc + hiPad * 2);
       }
       
       ctx.save();
