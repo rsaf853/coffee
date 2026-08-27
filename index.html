@@ -2301,19 +2301,38 @@ function clearQuoteBarInSelection() {
 }
 
 el('tbRemoveAst').addEventListener('click', () => {
-    // data-auto-ast 속성을 먼저 지우면 자동 강조색이 '진짜 글자색'으로 굳어버리므로
-    // 속성은 그대로 둔 채(추출 단계에서 자동으로 무시됨) 별표 글자만 제거한다.
-    const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-    let node; while (node = walker.nextNode()) { if (node.nodeValue.includes('*')) node.nodeValue = node.nodeValue.replace(/\*/g, ''); }
-    applyAutoFormat(); draw();
+    // 별표(*강조*)는 지워도 회색은 계속 남아있어야 하므로, 자동 강조색을
+    // '진짜 글자색(inlineColor)'으로 고정한 뒤 별표 기호만 제거한다.
+    if (document.getElementById('start-marker')) return;
+    const hasSelection = insertSelectionMarkers();
+    const tokens = extractDataFromEditor();
+    tokens.forEach(tok => {
+      if (tok.text && tok.format && tok.format.isAsterisk) {
+        tok.format = { ...tok.format, inlineColor: tok.format.inlineColor || asteriskColorEl.value, isAsterisk: false };
+        tok.text = tok.text.replace(/\*/g, '');
+      }
+    });
+    editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
+    if (hasSelection) restoreSelectionFromMarkers();
+    draw();
 });
 
 el('tbRemoveQuote').addEventListener('click', () => {
-    // data-auto-quote 속성을 먼저 지우면 자동 인용색이 '진짜 글자색'으로 굳어버리므로
-    // 속성은 그대로 둔 채(추출 단계에서 자동으로 무시됨) 따옴표 글자만 제거한다.
-    const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
-    let node; while (node = walker.nextNode()) { if (/["\u201c\u201d]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/["\u201c\u201d]/g, ''); }
-    applyAutoFormat(); draw();
+    // 평소엔 별표처럼 인용색을 고정 글자색으로 남기지만,
+    // 대사정렬(dialogueMode) 모드가 켜져 있을 때는 색을 남기지 않는다.
+    if (document.getElementById('start-marker')) return;
+    const hasSelection = insertSelectionMarkers();
+    const tokens = extractDataFromEditor();
+    const keepColor = !(dialogueModeEl && dialogueModeEl.checked);
+    tokens.forEach(tok => {
+      if (tok.text && tok.format && tok.format.isQuote) {
+        tok.format = { ...tok.format, inlineColor: keepColor ? (tok.format.inlineColor || quoteColorEl.value) : null, isQuote: false };
+        tok.text = tok.text.replace(/["\u201c\u201d]/g, '');
+      }
+    });
+    editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
+    if (hasSelection) restoreSelectionFromMarkers();
+    draw();
 });
 
 let isComposing = false;
