@@ -2380,8 +2380,9 @@ function processTokens(tokens, size, ls, contentWidth) {
       // dialogueName은 이 토큰이 통째로 여러 글자/단어로 쪼개지더라도
       // 맨 처음 조각 하나에만 붙어야 함 (그래야 줄바꿈된 다음 줄에 이름이 반복 안 됨)
       let pendingDialogueName = tok.dialogueName || null;
+      let pendingDialogueNameColor = tok.dialogueNameColor || null;
       const withName = (piece) => {
-        if (pendingDialogueName) { piece.dialogueName = pendingDialogueName; pendingDialogueName = null; }
+        if (pendingDialogueName) { piece.dialogueName = pendingDialogueName; piece.dialogueNameColor = pendingDialogueNameColor; pendingDialogueName = null; pendingDialogueNameColor = null; }
         return piece;
       };
       if (lineBreakModeEl.value === 'char') {
@@ -2473,26 +2474,31 @@ function parseDialogueTokens(tokens, size, ls) {
 
     let remaining = info.prefixLen;
     let nameAssigned = false;
+    let nameColor = null;
 
     group.forEach(tok => {
       if (tok.isStartMarker || tok.isEndMarker) { outTokens.push(tok); return; }
       if (tok.text === '\n') { outTokens.push(tok); return; }
 
       if (remaining > 0) {
+        // 이름 칸에 해당하는 토큰의 글자색(inlineColor)을 이름 렌더링에 쓰기 위해 보존
+        if (nameColor === null) nameColor = tok.format && tok.format.inlineColor ? tok.format.inlineColor : null;
         if (tok.text.length <= remaining) { remaining -= tok.text.length; return; }
         const sliced = tok.text.slice(remaining);
         remaining = 0;
         if (!sliced.length) return;
-        const newFmt = { ...tok.format, dialogueIndent };
+        // 대사 본문에는 자동 따옴표 색상(isQuote)이 적용되지 않도록 해제
+        const newFmt = { ...tok.format, dialogueIndent, isQuote: false };
         const newTok = { ...tok, text: sliced, format: newFmt };
-        if (!nameAssigned) { newTok.dialogueName = info.name; nameAssigned = true; }
+        if (!nameAssigned) { newTok.dialogueName = info.name; newTok.dialogueNameColor = nameColor; nameAssigned = true; }
         outTokens.push(newTok);
         return;
       }
 
-      const newFmt = { ...tok.format, dialogueIndent };
+      // 대사 본문에는 자동 따옴표 색상(isQuote)이 적용되지 않도록 해제
+      const newFmt = { ...tok.format, dialogueIndent, isQuote: false };
       const newTok = { ...tok, format: newFmt };
-      if (!nameAssigned) { newTok.dialogueName = info.name; nameAssigned = true; }
+      if (!nameAssigned) { newTok.dialogueName = info.name; newTok.dialogueNameColor = nameColor; nameAssigned = true; }
       outTokens.push(newTok);
     });
   });
@@ -2767,11 +2773,11 @@ function draw() {
     let lineQuoteColor = null;
     for (let qi = 0; qi < ln.length; qi++) { if (ln[qi].format && ln[qi].format.quoteBar) { lineQuoteColor = ln[qi].format.quoteBar; break; } }
     const quoteShift = lineQuoteColor ? (QUOTE_BAR_W + QUOTE_GAP) : 0;
-    let lineDialogueIndent = 0; let lineDialogueName = null;
+    let lineDialogueIndent = 0; let lineDialogueName = null; let lineDialogueNameColor = null;
     for (let qi = 0; qi < ln.length; qi++) {
       const f = ln[qi].format;
       if (f && f.dialogueIndent) lineDialogueIndent = f.dialogueIndent;
-      if (ln[qi].dialogueName) lineDialogueName = ln[qi].dialogueName;
+      if (ln[qi].dialogueName) { lineDialogueName = ln[qi].dialogueName; lineDialogueNameColor = ln[qi].dialogueNameColor || null; }
     }
     const lineIndent = (ln.isParaStart ? indentPx : 0) + quoteShift + lineDialogueIndent;
     const effLineWidth = contentWidth - lineIndent;
@@ -2803,7 +2809,7 @@ function draw() {
     if (lineDialogueName) {
       ctx.save();
       ctx.font = getFontStr({ bold: true }, size);
-      ctx.fillStyle = textColorEl.value;
+      ctx.fillStyle = lineDialogueNameColor || textColorEl.value;
       ctx.fillText(lineDialogueName, mx + quoteShift, y);
       ctx.restore();
     }
