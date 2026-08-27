@@ -1054,6 +1054,23 @@
             </label>
           </div>
           <div class="field" id="dialogueColorRow" style="margin-bottom: 12px;"></div>
+
+          <div class="field dialogue-toggle-field">
+            <label class="dialogue-checkbox-label">
+              <input type="checkbox" id="subModeToggle" class="dialogue-checkbox">
+              <span class="dialogue-switch-text">&lt;sub&gt;글자&lt;/sub&gt; 입력시 자동으로 작은 글씨+연회색으로 변환. (대사 바로 아래 있으면 대사에 붙여서 표시)</span>
+            </label>
+          </div>
+          <div class="row2" id="subColorRow" style="display:none; margin-bottom: 12px;">
+            <div class="field" style="margin-bottom: 0;">
+              <label>&lt;sub&gt; 색상</label>
+              <input type="color" id="subColor" value="#b3b3b3">
+            </div>
+            <div class="field" style="margin-bottom: 0;">
+              <label>&lt;sub&gt; 크기 (<span id="subFontSizeVal">80</span>%)</label>
+              <input type="range" id="subFontSize" min="60" max="100" step="10" value="80">
+            </div>
+          </div>
           
           <div class="row2" style="margin-top: 10px;">
             <button type="button" class="tbtn" id="tbRemoveAst" style="width: 100%;">* (별표) 지우기</button>
@@ -1249,6 +1266,17 @@ if (dialogueModeEl) {
     scheduleDraw();
   });
 }
+const subModeEl = el('subModeToggle');
+const subColorRowEl = el('subColorRow');
+const subColorEl = el('subColor');
+const subFontSizeEl = el('subFontSize');
+if (subModeEl) {
+  subModeEl.addEventListener('change', () => {
+    if (subColorRowEl) subColorRowEl.style.display = subModeEl.checked ? '' : 'none';
+    scheduleDraw();
+  });
+}
+if (subColorEl) subColorEl.addEventListener('input', scheduleDraw);
 const sourceNameEl = el('sourceName');
 const sourceAlignEl = el('sourceAlign');
 const bgColorEl = el('bgColor');
@@ -2142,8 +2170,18 @@ function extractDataFromEditor() {
       const isBlock = ['DIV', 'P', 'SECTION'].includes(node.tagName);
       if (isBlock) { newFmt.quoteBar = (node.getAttribute && node.getAttribute('data-quote-bar')) || null; }
       if (isBlock && node !== editorEl && node !== editorEl.firstChild) { tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); }
-      if (isBlock && node.childNodes.length === 1 && node.firstChild.tagName === 'BR') {
-        if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false }); return;
+      // 커서 위치 마커(start-marker/end-marker)가 빈 줄(<br> 하나뿐인 블록) 안에
+      // 끼어들면 "BR 하나만 있는 블록" 판별이 깨져서, 빈 줄 하나가 줄바꿈 두 개로
+      // 잘못 복원되는 문제가 있었다. 마커는 판별에서 제외하고, 마커 토큰 자체는
+      // 별도로 밀어넣어 커서 복원이 계속 되게 한다.
+      if (isBlock) {
+        const isMarker = c => c.id === 'start-marker' || c.id === 'end-marker';
+        const realChildren = Array.from(node.childNodes).filter(c => !isMarker(c));
+        if (realChildren.length === 1 && realChildren[0].tagName === 'BR') {
+          Array.from(node.childNodes).forEach(c => { if (isMarker(c)) traverse(c, newFmt); });
+          if (node === editorEl.firstChild) tokens.push({ text: '\n', format: { ...newFmt }, isPlaceholder: false });
+          return;
+        }
       }
 
       Array.from(node.childNodes).forEach(child => traverse(child, newFmt));
@@ -2397,7 +2435,8 @@ function processTokens(tokens, size, ls, contentWidth) {
   let flat = [];
   tokens.forEach(tok => {
     if (tok.text === '\n') { flat.push(tok); } else {
-      ctx.font = getFontStr(tok.format, size);
+      const tokSize = getEffFontSize(tok.format, size);
+      ctx.font = getFontStr(tok.format, tokSize);
       // dialogueName은 이 토큰이 통째로 여러 글자/단어로 쪼개지더라도
       // 맨 처음 조각 하나에만 붙어야 함 (그래야 줄바꿈된 다음 줄에 이름이 반복 안 됨)
       let pendingDialogueName = tok.dialogueName || null;
@@ -2527,6 +2566,84 @@ function parseDialogueTokens(tokens, size, ls) {
   return outTokens;
 }
 
+// <sub>글자</sub> 로 감싼 구간을 찾아 태그 자체는 제거하고, 감싸인 글자에만
+// isSub 표시를 남긴다(실제 편집 중인 원문 텍스트는 건드리지 않고, 캔버스
+// 렌더링용 사본에서만 태그를 걷어낸다 — parseDialogueTokens와 동일한 방식).
+function parseSubTokens(tokens) {
+  const outTokens = [];
+  let inSub = false;
+
+  tokens.forEach(tok => {
+    if (tok.isStartMarker || tok.isEndMarker) { outTokens.push(tok); return; }
+    if (!tok.text || tok.text === '\n') { outTokens.push(tok); return; }
+
+    const text = tok.text;
+    let i = 0, buf = '';
+    let pendingName = tok.dialogueName || null;
+    let pendingNameColor = tok.dialogueNameColor || null;
+
+    const flushBuf = () => {
+      if (buf.length > 0) {
+        const piece = { ...tok, text: buf, format: { ...tok.format, isSub: inSub || !!tok.format.isSub } };
+        if (pendingName) { piece.dialogueName = pendingName; piece.dialogueNameColor = pendingNameColor; pendingName = null; pendingNameColor = null; }
+        else { delete piece.dialogueName; delete piece.dialogueNameColor; }
+        outTokens.push(piece);
+        buf = '';
+      }
+    };
+
+    while (i < text.length) {
+      if (!inSub && text.substr(i, 5).toLowerCase() === '<sub>') { flushBuf(); inSub = true; i += 5; continue; }
+      if (inSub && text.substr(i, 6).toLowerCase() === '</sub>') { flushBuf(); inSub = false; i += 6; continue; }
+      buf += text[i]; i++;
+    }
+    flushBuf();
+  });
+
+  return outTokens;
+}
+
+// <sub> 변환된 문단이 대사(dialogueIndent) 문단 바로 다음(빈 줄이 있어도)에
+// 이어지면, 새 문단으로 띄우지 않고 대사 내용 아래에 같은 들여쓰기로 붙여서
+// 표시되도록 표시(forceAttach)와 들여쓰기(dialogueIndent)를 넘겨준다.
+function attachSubToDialogue(tokens) {
+  const lines = []; let cur = [];
+  tokens.forEach(tok => { cur.push(tok); if (tok.text === '\n') { lines.push(cur); cur = []; } });
+  if (cur.length) lines.push(cur);
+
+  const isRealTok = t => t.text && t.text !== '\n' && !t.isStartMarker && !t.isEndMarker;
+  const lineHasText = line => line.some(isRealTok);
+  const lineDialogueIndent = line => { let ind = 0; line.forEach(t => { if (t.format && t.format.dialogueIndent) ind = t.format.dialogueIndent; }); return ind; };
+  const lineIsFullySub = line => {
+    let hasText = false;
+    for (const t of line) { if (!isRealTok(t)) continue; hasText = true; if (!(t.format && t.format.isSub)) return false; }
+    return hasText;
+  };
+
+  let lastDialogueIndent = 0; let inChain = false;
+  lines.forEach(line => {
+    if (!lineHasText(line)) return; // 빈 줄은 체인 상태를 그대로 유지
+    const indent = lineDialogueIndent(line);
+    if (indent > 0) { lastDialogueIndent = indent; inChain = true; return; }
+    if (inChain && lineIsFullySub(line)) {
+      line.forEach(t => { if (isRealTok(t) && t.format) t.format = { ...t.format, dialogueIndent: lastDialogueIndent, forceAttach: true }; });
+      return; // 연속된 <sub> 줄이 이어질 수 있으므로 체인 유지
+    }
+    inChain = false;
+  });
+
+  return tokens;
+}
+
+// <sub> 로 변환된 글자는 본문보다 작은 크기로 그린다 (subFontSize 슬라이더 = 기준 글자 크기 대비 %)
+function getEffFontSize(fmt, size) {
+  if (fmt && fmt.isSub) {
+    const pct = subFontSizeEl ? (parseInt(subFontSizeEl.value, 10) || 65) : 65;
+    return Math.max(1, Math.round(size * (pct / 100)));
+  }
+  return size;
+}
+
 function computePages() {
   const w = parseInt(canvasWidthEl.value, 10) || 800;
   const hMode = heightModeEl.value;
@@ -2538,7 +2655,11 @@ function computePages() {
   const ls = parseFloat(letterSpacingEl.value);
   
   const rawTokens = extractDataFromEditor();
-  const tokens = (dialogueModeEl && dialogueModeEl.checked) ? parseDialogueTokens(rawTokens, size, ls) : rawTokens;
+  let tokens = (dialogueModeEl && dialogueModeEl.checked) ? parseDialogueTokens(rawTokens, size, ls) : rawTokens;
+  if (subModeEl && subModeEl.checked) {
+    tokens = parseSubTokens(tokens);
+    tokens = attachSubToDialogue(tokens);
+  }
   const els = processTokens(tokens, size, ls, contentWidth);
   const indentPx = parseInt((el('firstLineIndent') || {}).value, 10) || 0;
   
@@ -2620,11 +2741,14 @@ function computePages() {
       if (isBlankLine(prevLine)) isNewPara = true;
     }
     
-    let pSpace = (isNewPara && idx > 0) ? (actualParaSpacing - lh) : 0;
+    // <sub> 로 변환되어 대사 문단에 붙도록 표시된(forceAttach) 줄은 빈 줄로
+    // 떨어져 있어도 새 문단 간격을 넣지 않고 대사 바로 아래에 붙여서 그린다.
+    const lineForceAttach = ln.some(tk => tk.format && tk.format.forceAttach);
+    let pSpace = (isNewPara && idx > 0 && !lineForceAttach) ? (actualParaSpacing - lh) : 0;
 
     // 대사 문단의 위/아래에 일반 문단과 맞닿을 때만 5px 추가.
     // 대사끼리 연속으로 나올 때는 추가 간격을 넣지 않는다.
-    if (isNewPara && idx > 0) {
+    if (isNewPara && idx > 0 && !lineForceAttach) {
       const currentInfo = paraOfLine[idx];
       const prevInfo = paraOfLine[idx - 1];
       if (currentInfo && prevInfo &&
@@ -2838,11 +2962,12 @@ function draw() {
     ln.forEach(data => {
       if (data.text === '\n') return;
       const fmt = data.format;
-      ctx.font = getFontStr(fmt, size);
+      const dataSize = getEffFontSize(fmt, size);
+      ctx.font = getFontStr(fmt, dataSize);
       
       if (fmt.highlightColor && !data.isPlaceholder) {
-        const hm = getHiMetrics(ctx.font, size, lineHiSamples[ctx.font]);
-        const hiPad = size * 0.16;
+        const hm = getHiMetrics(ctx.font, dataSize, lineHiSamples[ctx.font]);
+        const hiPad = dataSize * 0.16;
         ctx.fillStyle = fmt.highlightColor;
         ctx.fillRect(x, y - hm.asc - hiPad, data.w + justifySpace, hm.asc + hm.desc + hiPad * 2);
       }
@@ -2853,6 +2978,7 @@ function draw() {
         ctx.fillStyle = isDarkTheme ? 'rgba(150,150,150,0.35)' : 'rgba(200,160,175,0.4)';
       }
       else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
+      else if (fmt.isSub) ctx.fillStyle = (subColorEl ? subColorEl.value : '#b3b3b3');
       else if (fmt.isQuote) ctx.fillStyle = quoteColor; 
       else if (fmt.isAsterisk) ctx.fillStyle = astColor;
       else ctx.fillStyle = dialogueColor;
