@@ -2301,14 +2301,16 @@ function clearQuoteBarInSelection() {
 }
 
 el('tbRemoveAst').addEventListener('click', () => {
-    editorEl.querySelectorAll('[data-auto-ast]').forEach(node => node.removeAttribute('data-auto-ast'));
+    // data-auto-ast 속성을 먼저 지우면 자동 강조색이 '진짜 글자색'으로 굳어버리므로
+    // 속성은 그대로 둔 채(추출 단계에서 자동으로 무시됨) 별표 글자만 제거한다.
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
     let node; while (node = walker.nextNode()) { if (node.nodeValue.includes('*')) node.nodeValue = node.nodeValue.replace(/\*/g, ''); }
     applyAutoFormat(); draw();
 });
 
 el('tbRemoveQuote').addEventListener('click', () => {
-    editorEl.querySelectorAll('[data-auto-quote]').forEach(node => node.removeAttribute('data-auto-quote'));
+    // data-auto-quote 속성을 먼저 지우면 자동 인용색이 '진짜 글자색'으로 굳어버리므로
+    // 속성은 그대로 둔 채(추출 단계에서 자동으로 무시됨) 따옴표 글자만 제거한다.
     const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT, null, false);
     let node; while (node = walker.nextNode()) { if (/["\u201c\u201d]/.test(node.nodeValue)) node.nodeValue = node.nodeValue.replace(/["\u201c\u201d]/g, ''); }
     applyAutoFormat(); draw();
