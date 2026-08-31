@@ -96,7 +96,13 @@
     font-display: swap;
   }
 
-  /* IBM Plex Sans - 굵기 4가지 (300 / 400 / 500 / 600) */
+  /* IBM Plex Sans - 굵기 4가지 (200 / 300 / 400 / 600) */
+  @font-face {
+    font-family: 'IbmPlexSans';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-ExtraLight.woff') format('woff');
+    font-weight: 200;
+    font-display: swap;
+  }
   @font-face {
     font-family: 'IbmPlexSans';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Light.woff') format('woff');
@@ -111,14 +117,28 @@
   }
   @font-face {
     font-family: 'IbmPlexSans';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Medium.woff') format('woff');
-    font-weight: 500;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-display: swap;
+  }
+
+  /* 마루 부리 - 굵기 3가지 (200 / 400 / 700) */
+  @font-face {
+    font-family: 'MaruBuri';
+    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-ExtraLight.woff2') format('woff2');
+    font-weight: 200;
     font-display: swap;
   }
   @font-face {
-    font-family: 'IbmPlexSans';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-SemiBold.woff') format('woff');
+    font-family: 'MaruBuri';
+    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Regular.woff2') format('woff2');
     font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'MaruBuri';
+    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Bold.woff2') format('woff2');
+    font-weight: 700;
     font-display: swap;
   }
 
@@ -763,6 +783,7 @@
   <span style="font-family:'NexonLv1Gothic'">.</span>
   <span style="font-family:'JoseonMyeongjo'">.</span>
   <span style="font-family:'IbmPlexSans'">.</span>
+  <span style="font-family:'MaruBuri'">.</span>
   <span style="font-family:'Busan'">.</span>
 </div>
 
@@ -918,6 +939,7 @@
                 <option value="bookkmyungjo">부크크 명조</option>
                 <option value="joseon">조선신명조</option>
                 <option value="ibmplex">IBM Plex Sans</option>
+                <option value="marubuli">마루 부리</option>
                 <option value="busan">부산체</option>
               </select>
             </div>
@@ -939,6 +961,7 @@
               <option value="bookkmyungjo">부크크 명조</option>
               <option value="joseon">조선신명조</option>
               <option value="ibmplex">IBM Plex Sans</option>
+              <option value="marubuli">마루 부리</option>
             </select>
           </div>
           
@@ -1011,7 +1034,7 @@
           <div class="row2">
             <div class="field">
               <label>자간 (<span id="letterSpacingVal">-0.5</span>px)</label>
-              <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="-0.5">
+              <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="-0.1">
             </div>
             <div class="field">
               <label>장평 (<span id="scaleXVal">99</span>%)</label>
@@ -1486,8 +1509,10 @@ const FONT_DEFS = {
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
   joseon: { name: 'JoseonMyeongjo', css: "'JoseonMyeongjo', serif", weights: { regular: 400, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', sans-serif", weights: { light: 300, regular: 400, medium: 500, semibold: 600 },
-    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'} ] },
+  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', sans-serif", weights: { thin: 200, regular: 300, medium: 400, bold: 600 },
+    weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
+  marubuli: { name: 'MaruBuri', css: "'MaruBuri', serif", weights: { thin: 200, regular: 400, bold: 700 },
+    weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
   busan: { name: 'Busan', css: "'Busan', sans-serif", weights: { regular: 400, bold: 400 },
     weightOptions: [ {id:'regular', label:'Regular'} ] }
 };
