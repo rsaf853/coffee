@@ -784,7 +784,7 @@
       <div class="divider"></div>
       <div id="zoomControl">
         <span style="display:flex; align-items:center; gap:4px;">배율</span>
-        <input type="range" id="canvasZoom" min="40" max="180" step="7" value="125">
+        <input type="range" id="canvasZoom" min="40" max="180" step="5" value="125">
         <span id="canvasZoomVal" style="width:32px; text-align:right;">125%</span>
       </div>
     </div>
@@ -817,7 +817,7 @@
             <div class="field">
               <label>높이 설정</label>
               <select id="heightMode">
-                <option value="4:7">비율 (4:7)</option>
+                <option value="4:5">비율 (4:5)</option>
                 <option value="3:4">비율 (3:4)</option>
                 <option value="1:1">비율 (1:1)</option>
                 <option value="auto">내용에 맞게 자동 (1장)</option>
@@ -834,11 +834,11 @@
           <div class="row2">
             <div class="field">
               <label>위·아래 여백 (<span id="marginYVal">70</span>px)</label>
-              <input type="range" id="marginY" min="0" max="200" step="7" value="70">
+              <input type="range" id="marginY" min="0" max="200" step="10" value="70">
             </div>
             <div class="field">
               <label>양쪽 여백 (<span id="marginXVal">70</span>px)</label>
-              <input type="range" id="marginX" min="0" max="200" step="7" value="70">
+              <input type="range" id="marginX" min="0" max="200" step="10" value="70">
             </div>
           </div>
           <div class="field">
@@ -880,7 +880,7 @@
             </div>
             <div class="field">
               <label>본문과의 간격 (<span id="titleSpacingVal">20</span>px)</label>
-              <input type="range" id="titleSpacing" min="0" max="200" step="7" value="20">
+              <input type="range" id="titleSpacing" min="0" max="200" step="10" value="20">
             </div>
           </div>
           <div class="field">
@@ -994,13 +994,13 @@
 
           <div class="field">
             <label>첫 줄 들여쓰기 (<span id="firstLineIndentVal">0</span>px)</label>
-            <input type="range" id="firstLineIndent" min="0" max="50" step="2" value="0">
+            <input type="range" id="firstLineIndent" min="0" max="50" step="5" value="0">
           </div>
           
           <div class="row2">
             <div class="field">
               <label>줄간격 (<span id="lineHeightVal">150</span>%)</label>
-              <input type="range" id="lineHeight" min="100" max="250" step="7" value="150">
+              <input type="range" id="lineHeight" min="100" max="250" step="10" value="150">
             </div>
             <div class="field">
               <label>문단 간격 (<span id="paraSpacingVal">10</span>px)</label>
@@ -1011,7 +1011,7 @@
           <div class="row2">
             <div class="field">
               <label>자간 (<span id="letterSpacingVal">-0.5</span>px)</label>
-              <input type="range" id="letterSpacing" min="-2" max="2" step="0.1" value="-0.5">
+              <input type="range" id="letterSpacing" min="-2" max="2" step="1" value="-0.1">
             </div>
             <div class="field">
               <label>장평 (<span id="scaleXVal">99</span>%)</label>
@@ -1159,7 +1159,7 @@
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
-          <div class="hint">모든 페이지 하단 고정 · 출처/이름 중 하나만 입력해도 됩니다</div>
+          <div class="hint">출처/이름 중 하나만 입력해도 됩니다</div>
           <div class="row2">
             <div class="field">
               <label>이름</label>
@@ -1176,6 +1176,13 @@
               <button type="button" class="sep-btn active" data-sep="•">•</button>
               <button type="button" class="sep-btn" data-sep="|">|</button>
             </div>
+          </div>
+          <div class="field">
+            <label>표시 위치</label>
+            <select id="sourcePosition">
+              <option value="fixed" selected>하단 고정</option>
+              <option value="belowText">본문 바로 아래</option>
+            </select>
           </div>
           <div class="row2">
             <div class="field">
@@ -1279,6 +1286,7 @@ if (subModeEl) {
 if (subColorEl) subColorEl.addEventListener('input', scheduleDraw);
 const sourceNameEl = el('sourceName');
 const sourceAlignEl = el('sourceAlign');
+const sourcePositionEl = el('sourcePosition');
 const bgColorEl = el('bgColor');
 const textColorEl = el('textColor');
 const fontSizeEl = el('fontSize');
@@ -2697,7 +2705,8 @@ function computePages() {
   if (hMode === 'custom') presetHeight = parseInt(canvasHeightEl.value, 10) || 1000;
   else if (hMode !== 'auto') { const parts = hMode.split(':').map(Number); presetHeight = Math.round(w * (parts[1] / parts[0])); }
   
-  const contentHeightLimit = presetHeight - my*2 - 40; 
+  const hasSource = !!(sourceEl.value.trim() || (sourceNameEl && sourceNameEl.value.trim()));
+  const contentHeightLimit = presetHeight - my*2 - (hasSource ? 40 : 0); 
 
   // ---- 문단 경계 계산 (줄 방지용) ----
   // 문단 = 빈 줄(단락 구분)로 나뉜 연속된 줄들의 묶음
@@ -2871,7 +2880,8 @@ function draw() {
   const vAlignMode = (vAlignEl && vAlignEl.value) || 'top';
   if (vAlignMode !== 'top' && heightModeEl.value !== 'auto' && page.length) {
     const titleSpaceForThisPage = (currentPage === 0 && titleText) ? titleHeightSpace : 0;
-    const availableBodyHeight = cHeight - my * 2 - 40 - titleSpaceForThisPage;
+    const hasSourceForVAlign = !!(sourceEl.value.trim() || (sourceNameEl && sourceNameEl.value.trim()));
+    const availableBodyHeight = cHeight - my * 2 - (hasSourceForVAlign ? 40 : 0) - titleSpaceForThisPage;
     const lastLine = page[page.length - 1];
     const pageContentHeight = (lastLine ? lastLine.yOffset : 0) + lh;
     const extra = availableBodyHeight - pageContentHeight;
@@ -3037,15 +3047,21 @@ function draw() {
       sourceX = (cWidth - tw) / 2;
     }
 
+    let sourceY = cHeight - fixedPaddingBottom;
+    if (sourcePositionEl && sourcePositionEl.value === 'belowText' && page && page.length) {
+      const lastLine = page[page.length - 1];
+      sourceY = startY + lastLine.yOffset + lh + srcSize * 0.9;
+    }
+
     const baseColor = sourceColorEl.value;
     ctx.fillStyle = baseColor;
-    ctx.fillText(part1, sourceX, cHeight - fixedPaddingBottom);
+    ctx.fillText(part1, sourceX, sourceY);
 
     if (part2) {
       // 출처 부분은 같은 색을 연하게(투명도↓) 만들어 이름보다 흐리게 표시
       ctx.save();
       ctx.globalAlpha = 0.55;
-      ctx.fillText(part2, sourceX + w1, cHeight - fixedPaddingBottom);
+      ctx.fillText(part2, sourceX + w1, sourceY);
       ctx.restore();
     }
   }
@@ -3063,21 +3079,21 @@ function draw() {
 }
 
 const DEFAULT_PRESET_DATA = {
-  canvasWidth: '800', heightMode: '4:7', canvasHeight: '1000', marginY: '70', marginX: '70',
+  canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#ffffff', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#000000', fontSize: '20', lineHeight: '150',
   paraSpacing: '10', letterSpacing: '-0.5', scaleX: '99', asteriskColor: '#777777',
   quoteColor: '#ff9ed7', sourceColor: '#acacac', sourceFontSize: '13', sourceAlign: 'right',
-  firstLineIndent: '0'
+  sourcePosition: 'fixed', firstLineIndent: '0'
 };
 
 const DARK_PRESET_DATA = {
-  canvasWidth: '800', heightMode: '4:7', canvasHeight: '1000', marginY: '70', marginX: '70',
+  canvasWidth: '800', heightMode: '4:5', canvasHeight: '1000', marginY: '70', marginX: '70',
   bgColor: '#212121', fontFamily: 'pretendard', lineBreakMode: 'word', align: 'left',
   weight: 'regular', textColor: '#ffffff', fontSize: '20', lineHeight: '150',
   paraSpacing: '10', letterSpacing: '-0.5', scaleX: '99', asteriskColor: '#9a9a9a',
   quoteColor: '#ff9ed7', sourceColor: '#bbbbbb', sourceFontSize: '13', sourceAlign: 'right',
-  firstLineIndent: '0'
+  sourcePosition: 'fixed', firstLineIndent: '0'
 };
 
 const PRESETS_KEY = 'canvas_app_multi_presets_v1';
@@ -3095,6 +3111,7 @@ function applyPresetData(data, presetName) {
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
   sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
   if(data.sourceAlign) sourceAlignEl.value = data.sourceAlign;
+  if(sourcePositionEl) sourcePositionEl.value = data.sourcePosition || 'fixed';
   if(data.firstLineIndent !== undefined) { el('firstLineIndent').value = data.firstLineIndent; el('firstLineIndentVal').textContent = data.firstLineIndent; }
   if (presetName) el('presetSelect').value = presetName;
   updateAllRanges();
@@ -3132,6 +3149,7 @@ el('savePresetBtn').addEventListener('click', () => {
     lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
     sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
+    sourcePosition: sourcePositionEl ? sourcePositionEl.value : 'fixed',
     firstLineIndent: el('firstLineIndent').value
   };
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
@@ -3186,7 +3204,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceNameEl, sourceAlignEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl].forEach(item => { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); });
+[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
 sourceAlignEl.addEventListener('change', scheduleDraw);
 
 if (sourceSepWrapEl) {
