@@ -238,6 +238,7 @@
   @media (max-width: 899px) {
     #previewCol { flex: none; height: 40vh; min-height: 260px; }
     #panelCol { flex: 1; min-height: 0; }
+    #editor { height: 240px; min-height: 240px; }
   }
   
   
@@ -641,6 +642,28 @@
     font-variant-numeric: tabular-nums; user-select: none; padding: 0 2px;
   }
 
+  /* ---------- 모바일 저장용 이미지 미리보기 모달 ---------- */
+  .img-preview-modal {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    align-items: center; justify-content: center;
+  }
+  .img-preview-modal.open { display: flex; }
+  .img-preview-backdrop {
+    position: absolute; inset: 0; background: rgba(20, 10, 16, 0.55);
+  }
+  .img-preview-box {
+    position: relative; z-index: 1; max-width: 92vw; max-height: 90vh;
+    background: var(--bg-panel); border-radius: 14px; padding: 14px;
+    box-shadow: var(--shadow-bar); display: flex; flex-direction: column; align-items: center;
+    overflow-y: auto;
+  }
+  .img-preview-hint {
+    font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; text-align: center;
+  }
+  .img-preview-box img {
+    max-width: 100%; max-height: 65vh; border-radius: 8px; border: 1px solid var(--border);
+  }
+
   /* ---------- 출처: 구분 기호 선택 버튼 ---------- */
   .sep-options { display: flex; gap: 6px; margin-top: 4px; }
   .sep-btn {
@@ -732,6 +755,18 @@
   }
   #editor:empty::before { content: attr(data-placeholder); color: var(--ink-placeholder); pointer-events: none; display: block; }
   #editor:focus { border-color: var(--accent); }
+
+  .editor-resize-handle {
+    width: 100%; height: 16px; margin-top: -4px; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: ns-resize; touch-action: none;
+  }
+  .editor-resize-handle::after {
+    content: ''; width: 44px; height: 4px; border-radius: 2px;
+    background: var(--border-strong); transition: background 0.15s ease;
+  }
+  .editor-resize-handle:hover::after,
+  .editor-resize-handle.dragging::after { background: var(--accent-strong); }
 
   .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 12px; }
   .btn-primary, .btn-secondary {
@@ -938,8 +973,8 @@
                 <option value="bookkgothic">부크크 고딕</option>
                 <option value="bookkmyungjo">부크크 명조</option>
                 <option value="joseon">조선신명조</option>
-                <option value="ibmplex">IBM Plex Sans</option>
                 <option value="marubuli">마루 부리</option>
+                <option value="ibmplex">IBM Plex Sans</option>
                 <option value="busan">부산체</option>
               </select>
             </div>
@@ -960,8 +995,8 @@
               <option value="bookkgothic">부크크 고딕</option>
               <option value="bookkmyungjo">부크크 명조</option>
               <option value="joseon">조선신명조</option>
-              <option value="ibmplex">IBM Plex Sans</option>
               <option value="marubuli">마루 부리</option>
+              <option value="ibmplex">IBM Plex Sans</option>
             </select>
           </div>
           
@@ -1069,6 +1104,7 @@
           </div>
 
           <div id="editor" contenteditable="true" data-placeholder="당신은 내 거야. 나의 남편, 나의 포로, 나의 유일한 구원. 이 날, 나는 기꺼이 너의 제물이 되었다. 내 생애 가장 완벽한 순간."></div>
+          <div id="editorResizeHandle" class="editor-resize-handle" aria-hidden="true"></div>
 
           <div class="field dialogue-toggle-field">
             <label class="dialogue-checkbox-label">
@@ -1100,6 +1136,17 @@
             <button type="button" class="tbtn" id="tbRemoveQuote" style="width: 100%;">" " (따옴표) 지우기</button>
           </div>
           
+          <div class="field dialogue-toggle-field" style="margin-top: 14px;">
+            <label>형광펜 안 글자색</label>
+            <div class="hi-color-row" style="margin-bottom: 8px;">
+              <input type="color" id="highlightTextColor" value="#5c3450">
+            </div>
+            <label class="dialogue-checkbox-label">
+              <input type="checkbox" id="hiTextColorToggle" class="dialogue-checkbox">
+              <span class="dialogue-switch-text">형광펜 적용 시 글자색도 함께 변경</span>
+            </label>
+          </div>
+
           <div class="field" style="margin-top: 14px;">
             <label>형광펜 색상</label>
             <div class="hi-color-row">
@@ -1263,6 +1310,15 @@
   </div>
 </main>
 
+<div id="imgPreviewModal" class="img-preview-modal">
+  <div class="img-preview-backdrop"></div>
+  <div class="img-preview-box">
+    <div class="img-preview-hint">사진을 길게 눌러서 "사진에 저장"을 선택해주세요.</div>
+    <img id="imgPreviewImg" alt="저장할 이미지 미리보기">
+    <button type="button" class="tbtn" id="imgPreviewCloseBtn" style="margin-top:10px; width:100%;">닫기</button>
+  </div>
+</div>
+
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -1321,6 +1377,8 @@ const vAlignEl = el('vAlignMode');
 const inlineColorPickerEl = el('inlineColorPicker');
 const quoteBarColorEl = el('quoteBarColorPicker');
 const highlightColorEl = el('highlightColor');
+const highlightTextColorEl = el('highlightTextColor');
+const hiTextColorToggleEl = el('hiTextColorToggle');
 const asteriskColorEl = el('asteriskColor');
 const quoteColorEl = el('quoteColor');
 const letterSpacingEl = el('letterSpacing');
@@ -1473,6 +1531,34 @@ hiCustomColorInput.addEventListener('change', () => {
   updateHiDot();
   showToast('색상이 추가되었습니다.');
 });
+
+// ---------- 모바일 사파리 대응: 색상 피커가 열리면서 사라지는 선택 영역을 별도로 저장/복원 ----------
+let savedEditorRange = null;
+function captureEditorSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed && editorEl.contains(range.commonAncestorContainer)) {
+      savedEditorRange = range.cloneRange();
+    }
+  }
+}
+function restoreEditorSelection() {
+  if (!savedEditorRange) return false;
+  try {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedEditorRange.cloneRange());
+    return true;
+  } catch (e) { return false; }
+}
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) captureEditorSelection();
+});
+editorEl.addEventListener('touchend', captureEditorSelection);
+editorEl.addEventListener('mouseup', captureEditorSelection);
+editorEl.addEventListener('keyup', captureEditorSelection);
 
 // ---------- 형광펜 전체 재색칠 (선택 없이 버튼 누를 때) ----------
 function hasActiveTextSelection() {
@@ -2093,20 +2179,32 @@ el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); docum
 el('tbStrike').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('strikeThrough'); applyAutoFormat(); draw(); });
 el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); clearQuoteBarInSelection(); applyAutoFormat(); draw(); });
 
-el('tbApplyColor').addEventListener('mousedown', e => { 
-  e.preventDefault(); document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw(); 
+el('tbApplyColor').addEventListener('mousedown', e => {
+  if (e.target === inlineColorPickerEl) { captureEditorSelection(); return; } // 스와치 자체를 누르면 네이티브 색상 선택기가 열리도록 그대로 둔다
+  e.preventDefault();
+  if (!restoreEditorSelection()) return;
+  document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw();
+});
+inlineColorPickerEl.addEventListener('input', () => {
+  if (restoreEditorSelection()) { document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw(); }
 });
 
 el('tbApplyQuoteBar').addEventListener('mousedown', e => {
+  if (e.target === quoteBarColorEl) { captureEditorSelection(); return; }
   e.preventDefault();
+  if (!restoreEditorSelection()) return;
   applyQuoteBar(quoteBarColorEl.value);
+});
+quoteBarColorEl.addEventListener('input', () => {
+  if (restoreEditorSelection()) applyQuoteBar(quoteBarColorEl.value);
 });
 
 el('tbHiOn').addEventListener('mousedown', e => {
+  if (e.target === highlightColorEl) { captureEditorSelection(); return; }
   e.preventDefault();
   const c = getHighlightColorValue();
 
-  if (!hasActiveTextSelection()) {
+  if (!hasActiveTextSelection() && !restoreEditorSelection()) {
     const changed = recolorAllHighlights(c);
     if (changed) {
       applyAutoFormat(); draw();
@@ -2118,7 +2216,15 @@ el('tbHiOn').addEventListener('mousedown', e => {
   }
 
   document.execCommand('hiliteColor', false, c) || document.execCommand('backColor', false, c);
+  if (hiTextColorToggleEl && hiTextColorToggleEl.checked) {
+    document.execCommand('foreColor', false, highlightTextColorEl.value);
+  }
   applyAutoFormat(); draw();
+});
+highlightTextColorEl.addEventListener('input', () => {
+  if (hiTextColorToggleEl && hiTextColorToggleEl.checked && restoreEditorSelection()) {
+    document.execCommand('foreColor', false, highlightTextColorEl.value); applyAutoFormat(); draw();
+  }
 });
 
 document.querySelectorAll('.swatch').forEach(btn => {
@@ -2815,7 +2921,8 @@ function computePages() {
   let finalCanvasHeight = presetHeight;
   if (hMode === 'auto') {
     const srcSize = parseInt(sourceFontSizeEl.value, 10);
-    finalCanvasHeight = pY + (my * 2) + srcSize + 30 + titleHeightSpace; 
+    const hasSourceAuto = !!(sourceEl.value.trim() || (sourceNameEl && sourceNameEl.value.trim()));
+    finalCanvasHeight = pY + (my * 2) + (hasSourceAuto ? (srcSize + 30) : 0) + titleHeightSpace;
     if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
   }
   
@@ -3064,16 +3171,20 @@ function draw() {
     const w2 = part2 ? ctx.measureText(part2).width : 0;
     const tw = w1 + w2;
 
-    let sourceX = cWidth - fixedPaddingSide - tw;
+    const isBelowText = !!(sourcePositionEl && sourcePositionEl.value === 'belowText');
+    // 본문 바로 아래 옵션일 땐 본문과 동일한 좌우 여백(mx)을 기준으로,
+    // 하단 고정 옵션일 땐 기존 고정 여백(fixedPaddingSide)을 기준으로 정렬
+    const sourcePaddingSide = isBelowText ? mx : fixedPaddingSide;
+    let sourceX = cWidth - sourcePaddingSide - tw;
     const sAlign = sourceAlignEl.value;
     if (sAlign === 'left') {
-      sourceX = fixedPaddingSide;
+      sourceX = sourcePaddingSide;
     } else if (sAlign === 'center') {
       sourceX = (cWidth - tw) / 2;
     }
 
     let sourceY = cHeight - fixedPaddingBottom;
-    if (sourcePositionEl && sourcePositionEl.value === 'belowText' && page && page.length) {
+    if (isBelowText && page && page.length) {
       const lastLine = page[page.length - 1];
       sourceY = startY + lastLine.yOffset + lh + srcSize * 0.9;
     }
@@ -3276,12 +3387,63 @@ prevBtn.addEventListener('click', () => { if(currentPage > 0) { currentPage--; d
 nextBtn.addEventListener('click', () => { const p = computePages().pages.length; if(currentPage < p - 1) { currentPage++; draw(); } });
 
 el('copyBtn').addEventListener('click', () => {
-  canvas.toBlob(blob => { navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => showToast('클립보드에 복사되었습니다.')).catch(e => showToast('복사 실패: ' + e, 'danger')); });
+  canvas.toBlob(blob => {
+    if (!navigator.clipboard || !navigator.clipboard.write) { openImagePreviewModal(canvas.toDataURL()); return; }
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      .then(() => showToast('클립보드에 복사되었습니다.'))
+      .catch(() => openImagePreviewModal(canvas.toDataURL()));
+  });
 });
 
+const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+function openImagePreviewModal(dataUrl) {
+  el('imgPreviewImg').src = dataUrl;
+  el('imgPreviewModal').classList.add('open');
+}
+function closeImagePreviewModal() {
+  el('imgPreviewModal').classList.remove('open');
+}
+el('imgPreviewCloseBtn').addEventListener('click', closeImagePreviewModal);
+document.querySelector('#imgPreviewModal .img-preview-backdrop').addEventListener('click', closeImagePreviewModal);
+
 el('downloadBtn').addEventListener('click', () => {
+  if (isMobileDevice) {
+    // 모바일 사파리 등에서는 강제 다운로드가 제대로 동작하지 않는 경우가 많아,
+    // 이미지를 미리보기로 띄우고 길게 눌러 저장하도록 안내한다.
+    openImagePreviewModal(canvas.toDataURL());
+    return;
+  }
   const link = document.createElement('a'); link.download = `page_${currentPage + 1}.png`; link.href = canvas.toDataURL(); link.click();
 });
+
+(function () {
+  const handle = el('editorResizeHandle');
+  if (!handle) return;
+  let dragging = false; let startY = 0; let startHeight = 0;
+  function getY(e) { return e.touches && e.touches.length ? e.touches[0].clientY : e.clientY; }
+  function onStart(e) {
+    dragging = true;
+    startY = getY(e);
+    startHeight = editorEl.getBoundingClientRect().height;
+    handle.classList.add('dragging');
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    const dy = getY(e) - startY;
+    const newHeight = Math.max(80, Math.min(2000, startHeight + dy));
+    editorEl.style.height = newHeight + 'px';
+    e.preventDefault();
+  }
+  function onEnd() { dragging = false; handle.classList.remove('dragging'); }
+  handle.addEventListener('mousedown', onStart);
+  handle.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove, { passive: false });
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+})();
 
 const resizer = el('resizer'); const panelCol = el('panelCol'); let isResizing = false;
 resizer.addEventListener('mousedown', () => { isResizing = true; resizer.classList.add('resizing'); document.body.style.cursor = 'col-resize'; });
