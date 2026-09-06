@@ -663,11 +663,12 @@
   .img-preview-box img {
     max-width: 100%; max-height: 65vh; border-radius: 8px; border: 1px solid var(--border);
   }
+  body.preview-open .bottom-bar { display: none !important; }
 
   /* ---------- 출처: 구분 기호 선택 버튼 ---------- */
   .sep-options { display: flex; gap: 6px; margin-top: 4px; }
   .sep-btn {
-    width: 36px; height: 28px;
+    min-width: 36px; height: 28px; padding: 0 8px;
     border: 1px solid var(--border-strong);
     background: var(--bg-panel); color: #c98aa4;
     font-size: 12px; font-family: inherit; cursor: pointer;
@@ -1245,6 +1246,7 @@
             <div class="sep-options" id="sourceSepButtons" data-selected="•">
               <button type="button" class="sep-btn active" data-sep="•">•</button>
               <button type="button" class="sep-btn" data-sep="|">|</button>
+              <button type="button" class="sep-btn" data-sep="">없음</button>
             </div>
           </div>
           <div class="field">
@@ -1271,6 +1273,12 @@
           <div class="field" style="margin-top: 8px;">
             <label>글자 크기 (<span id="sourceFontSizeVal">13</span>px)</label>
             <input type="range" id="sourceFontSize" min="8" max="40" value="13">
+          </div>
+          <div class="field dialogue-toggle-field">
+            <label class="dialogue-checkbox-label">
+              <input type="checkbox" id="sourceLetterSpacingToggle" class="dialogue-checkbox">
+              <span class="dialogue-switch-text">자간을 본문과 동일하게 적용</span>
+            </label>
           </div>
         </div>
       </details>
@@ -1387,6 +1395,7 @@ const paraSpacingValEl = el('paraSpacingVal');
 const lineHeightEl = el('lineHeight');
 const scaleXEl = el('scaleX');
 const sourceFontSizeEl = el('sourceFontSize');
+const sourceLetterSpacingToggleEl = el('sourceLetterSpacingToggle');
 const sourceColorEl = el('sourceColor');
 const titleFontFamilyEl = el('titleFontFamily');
 const sourceSepWrapEl = el('sourceSepButtons');
@@ -3155,20 +3164,41 @@ function draw() {
   const fixedPaddingSide = 50; const fixedPaddingBottom = 40;
   const src = sourceEl.value.trim();
   const srcName = sourceNameEl ? sourceNameEl.value.trim() : '';
-  const sep = (sourceSepWrapEl && sourceSepWrapEl.dataset.selected) || '•';
+  const sep = sourceSepWrapEl ? sourceSepWrapEl.dataset.selected : '•';
 
   if (src || srcName) {
     const srcSize = parseInt(sourceFontSizeEl.value, 10);
     ctx.font = `${FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
 
+    const useSrcLs = !!(sourceLetterSpacingToggleEl && sourceLetterSpacingToggleEl.checked);
+    const srcLs = useSrcLs ? ls : 0;
+
+    // 자간(글자 사이 간격)을 본문과 동일하게 적용할 경우 한 글자씩 측정/렌더링
+    function measureRun(str) {
+      if (!str) return 0;
+      if (!srcLs) return ctx.measureText(str).width;
+      let w = 0;
+      for (let i = 0; i < str.length; i++) w += ctx.measureText(str[i]).width + srcLs;
+      return w;
+    }
+    function drawRun(str, x, y) {
+      if (!srcLs) { ctx.fillText(str, x, y); return; }
+      let cx = x;
+      for (let i = 0; i < str.length; i++) { ctx.fillText(str[i], cx, y); cx += ctx.measureText(str[i]).width + srcLs; }
+    }
+
     // 이름과 출처를 둘 다 입력하면 이름(진하게) · 출처(연하게) 순으로 이어붙이고, 하나만 입력하면 그것만 진하게 표시
+    // 구분 기호가 "없음"이면 기호 없이 이름과 출처 사이 여백만 남긴다
     let part1 = '', part2 = '';
-    if (src && srcName) { part1 = `${srcName}  ${sep}  `; part2 = src; }
+    if (src && srcName) {
+      part1 = sep ? `${srcName} ${sep} ` : `${srcName} `;
+      part2 = src;
+    }
     else if (srcName) { part1 = srcName; }
     else { part1 = src; }
 
-    const w1 = ctx.measureText(part1).width;
-    const w2 = part2 ? ctx.measureText(part2).width : 0;
+    const w1 = measureRun(part1);
+    const w2 = part2 ? measureRun(part2) : 0;
     const tw = w1 + w2;
 
     const isBelowText = !!(sourcePositionEl && sourcePositionEl.value === 'belowText');
@@ -3191,13 +3221,13 @@ function draw() {
 
     const baseColor = sourceColorEl.value;
     ctx.fillStyle = baseColor;
-    ctx.fillText(part1, sourceX, sourceY);
+    drawRun(part1, sourceX, sourceY);
 
     if (part2) {
       // 출처 부분은 같은 색을 연하게(투명도↓) 만들어 이름보다 흐리게 표시
       ctx.save();
       ctx.globalAlpha = 0.55;
-      ctx.fillText(part2, sourceX + w1, sourceY);
+      drawRun(part2, sourceX + w1, sourceY);
       ctx.restore();
     }
   }
@@ -3340,7 +3370,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
+[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl, sourceLetterSpacingToggleEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
 sourceAlignEl.addEventListener('change', scheduleDraw);
 
 if (sourceSepWrapEl) {
@@ -3400,13 +3430,15 @@ const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 function openImagePreviewModal(dataUrl) {
   el('imgPreviewImg').src = dataUrl;
   el('imgPreviewModal').classList.add('open');
+  document.body.classList.add('preview-open');
   const bar = document.querySelector('.bottom-bar');
-  if (bar) bar.style.visibility = 'hidden';
+  if (bar) bar.style.setProperty('display', 'none', 'important');
 }
 function closeImagePreviewModal() {
   el('imgPreviewModal').classList.remove('open');
+  document.body.classList.remove('preview-open');
   const bar = document.querySelector('.bottom-bar');
-  if (bar) bar.style.visibility = '';
+  if (bar) bar.style.removeProperty('display');
 }
 el('imgPreviewCloseBtn').addEventListener('click', closeImagePreviewModal);
 document.querySelector('#imgPreviewModal .img-preview-backdrop').addEventListener('click', closeImagePreviewModal);
