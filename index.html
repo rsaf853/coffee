@@ -618,6 +618,7 @@
     display: flex; align-items: center; justify-content: center;
     border: 1.5px dashed var(--border-strong); background: var(--bg-panel);
     color: var(--ink-soft); font-size: 14px; font-weight: 700; line-height: 1;
+    position: relative; overflow: hidden; cursor: pointer;
   }
   .swatch-add:hover { border-color: var(--accent); color: var(--accent-strong); }
 
@@ -756,6 +757,13 @@
   }
   #editor:empty::before { content: attr(data-placeholder); color: var(--ink-placeholder); pointer-events: none; display: block; }
   #editor:focus { border-color: var(--accent); }
+
+  /* ---------- 구분선(divider) 삽입 블록 ---------- */
+  .rs-divider {
+    display: flex; align-items: center; justify-content: center;
+    height: 18px; margin: 2px 0; cursor: default; user-select: none;
+  }
+  .rs-divider-line { display: block; width: 100%; height: 2px; border-radius: 1px; }
 
   .editor-resize-handle {
     width: 100%; height: 16px; margin-top: -4px; margin-bottom: 4px;
@@ -1084,7 +1092,7 @@
       <details class="panel-section" open>
         <summary class="section-title">본문 편집</summary>
         <div class="details-content">
-          <div class="hint">텍스트를 드래그한 뒤 툴바를 누르면 적용됩니다.</div>
+          <div class="hint">텍스트를 드래그한 뒤 툴바를 누르면 적용됩니다. (구분선은 커서 위치에 바로 삽입됩니다)</div>
           
           <div class="editor-toolbar">
             <button type="button" class="tbtn" id="tbBold"><b>B</b></button>
@@ -1094,6 +1102,10 @@
             
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyColor">
               글자색 <input type="color" id="inlineColorPicker" class="inline-picker" value="#cccccc" title="글자색 선택">
+            </button>
+
+            <button type="button" class="tbtn color-picker-wrap" id="tbInsertDivider">
+              구분선 <input type="color" id="dividerColorPicker" class="inline-picker" value="#b3b3b3" title="구분선 색상">
             </button>
 
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyQuoteBar">
@@ -1498,48 +1510,47 @@ function addHiSwatchButton(color, isCustom) {
   container.appendChild(btn);
 }
 
+// 모바일 사파리 등에서는 숨겨둔 input[type=color]를 JS로 .click() 해서 여는 방식이
+// 신뢰성 있게 동작하지 않는 경우가 있어, "+" 버튼 자체를 <label>로 만들고 그 안에
+// 실제 input[type=color]를 겹쳐 놓아 탭하면 네이티브 색상 선택기가 바로 열리도록 한다.
 function addHiAddButton() {
   const container = el('hiSwatches');
   if (!container) return;
-  const addBtn = document.createElement('button');
-  addBtn.type = 'button'; addBtn.className = 'swatch swatch-add'; addBtn.title = '색상 추가';
-  addBtn.textContent = '+';
-  addBtn.addEventListener('click', () => {
-    const r = addBtn.getBoundingClientRect();
-    hiCustomColorInput.style.left = (window.scrollX + r.left) + 'px';
-    hiCustomColorInput.style.top = (window.scrollY + r.bottom) + 'px';
-    hiCustomColorInput.click();
+  const wrap = document.createElement('label');
+  wrap.className = 'swatch swatch-add'; wrap.title = '색상 추가';
+  wrap.textContent = '+';
+
+  const input = document.createElement('input');
+  input.type = 'color';
+  input.style.position = 'absolute';
+  input.style.inset = '0';
+  input.style.width = '100%';
+  input.style.height = '100%';
+  input.style.opacity = '0';
+  input.style.border = 'none';
+  input.style.padding = '0';
+  input.style.margin = '0';
+  input.style.cursor = 'pointer';
+
+  input.addEventListener('change', () => {
+    const color = input.value.toUpperCase();
+    const custom = getCustomHiSwatches();
+    if (!custom.includes(color) && !HI_SWATCHES_DEFAULT.includes(color)) {
+      custom.push(color);
+      if (custom.length > 20) custom.shift(); // 최대 20개까지만 저장
+      saveCustomHiSwatches(custom);
+      wrap.remove();
+      addHiSwatchButton(color, true);
+      addHiAddButton();
+    }
+    highlightColorEl.value = color;
+    updateHiDot();
+    showToast('색상이 추가되었습니다.');
   });
-  container.appendChild(addBtn);
+
+  wrap.appendChild(input);
+  container.appendChild(wrap);
 }
-
-const hiCustomColorInput = document.createElement('input');
-hiCustomColorInput.type = 'color';
-hiCustomColorInput.style.position = 'absolute';
-hiCustomColorInput.style.width = '1px';
-hiCustomColorInput.style.height = '1px';
-hiCustomColorInput.style.opacity = '0';
-hiCustomColorInput.style.border = 'none';
-hiCustomColorInput.style.padding = '0';
-hiCustomColorInput.style.pointerEvents = 'none';
-document.body.appendChild(hiCustomColorInput);
-
-hiCustomColorInput.addEventListener('change', () => {
-  const color = hiCustomColorInput.value.toUpperCase();
-  const custom = getCustomHiSwatches();
-  if (!custom.includes(color) && !HI_SWATCHES_DEFAULT.includes(color)) {
-    custom.push(color);
-    if (custom.length > 20) custom.shift(); // 최대 20개까지만 저장
-    saveCustomHiSwatches(custom);
-    const addBtnEl = el('hiSwatches').querySelector('.swatch-add');
-    if (addBtnEl) addBtnEl.remove();
-    addHiSwatchButton(color, true);
-    addHiAddButton();
-  }
-  highlightColorEl.value = color;
-  updateHiDot();
-  showToast('색상이 추가되었습니다.');
-});
 
 // ---------- 모바일 사파리 대응: 색상 피커가 열리면서 사라지는 선택 영역을 별도로 저장/복원 ----------
 let savedEditorRange = null;
@@ -1555,6 +1566,9 @@ function captureEditorSelection() {
 function restoreEditorSelection() {
   if (!savedEditorRange) return false;
   try {
+    // 모바일 사파리 등에서는 execCommand가 contenteditable에 포커스가
+    // 실제로 있어야 정상 동작하므로, 선택영역 복원 전에 포커스를 먼저 준다.
+    editorEl.focus({ preventScroll: true });
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(savedEditorRange.cloneRange());
@@ -2182,13 +2196,24 @@ function canvasPointerUp(e) {
   endDrag(e);
 }
 
-el('tbBold').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('bold'); applyAutoFormat(); draw(); });
-el('tbItalic').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('italic'); applyAutoFormat(); draw(); });
-el('tbUnderline').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('underline'); applyAutoFormat(); draw(); });
-el('tbStrike').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('strikeThrough'); applyAutoFormat(); draw(); });
-el('tbClear').addEventListener('mousedown', e => { e.preventDefault(); document.execCommand('removeFormat'); clearQuoteBarInSelection(); applyAutoFormat(); draw(); });
+// ---------- 모바일 대응: mousedown뿐 아니라 touchstart에서도 동일하게 동작하도록 ----------
+// 모바일에서는 버튼을 탭하는 순간(touchstart)에 브라우저가 먼저 에디터의 포커스/선택영역을
+// 흐트러뜨리고, 그 뒤에야 합성된 mousedown이 발생한다. mousedown에서만 preventDefault를
+// 해서는 이미 늦기 때문에, touchstart 단계에서도 동일한 핸들러를 실행해 선택영역이
+// 사라지기 전에 서식을 적용한다.
+function bindPressAction(button, handler) {
+  if (!button) return;
+  button.addEventListener('mousedown', handler);
+  button.addEventListener('touchstart', handler, { passive: false });
+}
 
-el('tbApplyColor').addEventListener('mousedown', e => {
+bindPressAction(el('tbBold'), e => { e.preventDefault(); editorEl.focus({ preventScroll: true }); document.execCommand('bold'); applyAutoFormat(); draw(); });
+bindPressAction(el('tbItalic'), e => { e.preventDefault(); editorEl.focus({ preventScroll: true }); document.execCommand('italic'); applyAutoFormat(); draw(); });
+bindPressAction(el('tbUnderline'), e => { e.preventDefault(); editorEl.focus({ preventScroll: true }); document.execCommand('underline'); applyAutoFormat(); draw(); });
+bindPressAction(el('tbStrike'), e => { e.preventDefault(); editorEl.focus({ preventScroll: true }); document.execCommand('strikeThrough'); applyAutoFormat(); draw(); });
+bindPressAction(el('tbClear'), e => { e.preventDefault(); editorEl.focus({ preventScroll: true }); document.execCommand('removeFormat'); clearQuoteBarInSelection(); applyAutoFormat(); draw(); });
+
+bindPressAction(el('tbApplyColor'), e => {
   if (e.target === inlineColorPickerEl) { captureEditorSelection(); return; } // 스와치 자체를 누르면 네이티브 색상 선택기가 열리도록 그대로 둔다
   e.preventDefault();
   if (!restoreEditorSelection()) return;
@@ -2198,7 +2223,7 @@ inlineColorPickerEl.addEventListener('input', () => {
   if (restoreEditorSelection()) { document.execCommand('foreColor', false, inlineColorPickerEl.value); applyAutoFormat(); draw(); }
 });
 
-el('tbApplyQuoteBar').addEventListener('mousedown', e => {
+bindPressAction(el('tbApplyQuoteBar'), e => {
   if (e.target === quoteBarColorEl) { captureEditorSelection(); return; }
   e.preventDefault();
   if (!restoreEditorSelection()) return;
@@ -2208,9 +2233,17 @@ quoteBarColorEl.addEventListener('input', () => {
   if (restoreEditorSelection()) applyQuoteBar(quoteBarColorEl.value);
 });
 
-el('tbHiOn').addEventListener('mousedown', e => {
+const dividerColorEl = el('dividerColorPicker');
+bindPressAction(el('tbInsertDivider'), e => {
+  if (e.target === dividerColorEl) { captureEditorSelection(); return; }
+  e.preventDefault();
+  insertDividerAtCursor(dividerColorEl.value);
+});
+
+bindPressAction(el('tbHiOn'), e => {
   if (e.target === highlightColorEl) { captureEditorSelection(); return; }
   e.preventDefault();
+  editorEl.focus({ preventScroll: true });
   const c = getHighlightColorValue();
 
   if (!hasActiveTextSelection() && !restoreEditorSelection()) {
@@ -2295,6 +2328,13 @@ function extractDataFromEditor() {
       if (node.id === 'start-marker') { tokens.push({ isStartMarker: true }); return; }
       if (node.id === 'end-marker') { tokens.push({ isEndMarker: true }); return; }
       if (node.tagName === 'BR') { tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false }); return; }
+      if (node.classList && node.classList.contains('rs-divider')) {
+        // 구분선은 자체가 하나의 줄(블록)이므로, 다른 블록들과 동일하게
+        // 앞에 줄바꿈 경계를 넣어준 뒤 구분선 토큰 하나만 추가한다.
+        if (node !== editorEl.firstChild) tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
+        tokens.push({ isDivider: true, color: node.getAttribute('data-color') || '#b3b3b3', format: {} });
+        return;
+      }
 
       const newFmt = { ...currentFmt };
       if (['B', 'STRONG'].includes(node.tagName) || node.style.fontWeight === 'bold' || parseInt(node.style.fontWeight) >= 700) newFmt.bold = true;
@@ -2376,6 +2416,14 @@ function buildHtmlFromTokens(tokens) {
   }
 
   tokens.forEach(tok => {
+    if (tok.isDivider) {
+      // 구분선 앞에는 이미 별도의 줄바꿈(\n) 토큰이 경계를 만들어 두므로,
+      // 여기서는 아직 flush되지 않은 내용이 남아있을 때만(방어적으로) flush한다.
+      if (currentBlock || currentBlockQuoteBar) flushBlock();
+      const c = tok.color || '#b3b3b3';
+      html += `<div class="rs-divider" contenteditable="false" data-color="${c}"><span class="rs-divider-line" style="background:${c}"></span></div>`;
+      return;
+    }
     if (tok.isStartMarker) { currentBlock += '<span id="start-marker"></span>'; return; }
     if (tok.isEndMarker) { currentBlock += '<span id="end-marker"></span>'; return; }
     if (tok.isPlaceholder) return;
@@ -2486,6 +2534,53 @@ function clearQuoteBarInSelection() {
   restoreSelectionFromMarkers();
 }
 
+function insertDividerAtCursor(color) {
+  editorEl.focus({ preventScroll: true });
+
+  // 현재 선택/커서 위치를 최대한 복원하고, 실패하면 에디터 맨 끝에 커서를 둔다.
+  if (!restoreEditorSelection()) {
+    const fallbackRange = document.createRange();
+    fallbackRange.selectNodeContents(editorEl);
+    fallbackRange.collapse(false);
+    const fallbackSel = window.getSelection();
+    fallbackSel.removeAllRanges();
+    fallbackSel.addRange(fallbackRange);
+  }
+
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.collapse(false);
+  range.deleteContents();
+
+  const div = document.createElement('div');
+  div.className = 'rs-divider';
+  div.contentEditable = 'false';
+  div.setAttribute('data-color', color);
+  const line = document.createElement('span');
+  line.className = 'rs-divider-line';
+  line.style.background = color;
+  div.appendChild(line);
+  range.insertNode(div);
+
+  // 구분선 뒤에 계속 입력할 수 있도록 빈 줄을 하나 만들고 커서를 그 안으로 옮긴다.
+  let nextLine = div.nextSibling;
+  if (!nextLine || nextLine.nodeType !== 1) {
+    nextLine = document.createElement('div');
+    nextLine.innerHTML = '<br>';
+    div.parentNode.insertBefore(nextLine, div.nextSibling);
+  }
+  const newRange = document.createRange();
+  newRange.selectNodeContents(nextLine);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+
+  applyAutoFormat();
+  draw();
+  showToast('구분선을 삽입했습니다.');
+}
+
 el('tbRemoveAst').addEventListener('click', () => {
     // 별표(*강조*)는 지워도 회색은 계속 남아있어야 하므로, 자동 강조색을
     // '진짜 글자색(inlineColor)'으로 고정한 뒤 별표 기호만 제거한다.
@@ -2582,6 +2677,7 @@ function getHiMetrics(fontStr, size, sampleText) {
 function processTokens(tokens, size, ls, contentWidth) {
   let flat = [];
   tokens.forEach(tok => {
+    if (tok.isDivider) { flat.push(tok); return; }
     if (tok.text === '\n') { flat.push(tok); } else {
       const tokSize = getEffFontSize(tok.format, size);
       ctx.font = getFontStr(tok.format, tokSize);
@@ -2800,6 +2896,18 @@ function computePages() {
   const contentWidth = w - mx*2;
   const size = parseInt(fontSizeEl.value, 10);
   const lh = (parseInt(lineHeightEl.value, 10) / 100) * size;
+  // <sub> 글자로만 이루어진 줄(대사 아래 붙는 캡션 등)은 서식에서 설정한 줄간격보다
+  // 0.1(배) 더 좁게 표시해 본문과 살짝 차이 나는 촘촘한 느낌을 준다.
+  const subLh = Math.max(size * 0.1, lh - size * 0.1);
+  function isFullySubLine(ln) {
+    let hasReal = false;
+    for (const tk of ln) {
+      if (tk.text === '\n' || tk.isDivider) continue;
+      hasReal = true;
+      if (!(tk.format && tk.format.isSub)) return false;
+    }
+    return hasReal;
+  }
   const ls = parseFloat(letterSpacingEl.value);
   
   const rawTokens = extractDataFromEditor();
@@ -2828,6 +2936,14 @@ function computePages() {
   }
   
   els.forEach(tk => {
+    if (tk.isDivider) {
+      // 구분선은 폭 계산 없이 항상 자기 혼자 한 줄을 차지하게 만든다.
+      if (currentLine.length > 0) breakLine();
+      currentLine.push(tk);
+      nextLineIsParaStart = true;
+      breakLine();
+      return;
+    }
     if (tk.text === '\n') { currentLine.push(tk); nextLineIsParaStart = true; breakLine(); return; }
     const quoteIndent = (tk.format && tk.format.quoteBar) ? (QUOTE_BAR_W + QUOTE_GAP) : 0;
     const dlgIndent = (tk.format && tk.format.dialogueIndent) ? tk.format.dialogueIndent : 0;
@@ -2922,7 +3038,8 @@ function computePages() {
     if (willBreak) {
       pages.push(p); p = []; pY = 0; pSpace = 0; isFirstPage = false;
     }
-    pY += pSpace; ln.yOffset = pY; p.push(ln); pY += lh;
+    const thisLineHeight = isFullySubLine(ln) ? subLh : lh;
+    pY += pSpace; ln.yOffset = pY; p.push(ln); pY += thisLineHeight;
   }
   
   if (p.length > 0) pages.push(p);
@@ -2948,7 +3065,13 @@ function draw() {
   nextBtn.disabled = (currentPage >= pages.length - 1);
   pageIndicator.textContent = `${currentPage + 1} / ${pages.length}`;
   
-  canvas.width = cWidth * DPR; canvas.height = cHeight * DPR;
+  // '내용에 맞춰서 자동' 높이처럼 cHeight가 소수점을 가질 때, canvas.width/height는
+  // 정수로 내림 처리되기 때문에 실제 캔버스 버퍼 비율과 화면에 표시되는 CSS 비율이
+  // 아주 미세하게 어긋나면서 맨 아래에 배경색이 채워지지 않은 얇은 흰 줄이 보일 수 있다.
+  // canvas.style.aspectRatio를 계산에 쓴 cWidth/cHeight(반올림 전 값)로 직접 고정해서
+  // 화면 표시 비율이 항상 정확히 일치하도록 만든다.
+  if (cWidth > 0 && cHeight > 0) canvas.style.aspectRatio = `${cWidth} / ${cHeight}`;
+  canvas.width = Math.round(cWidth * DPR); canvas.height = Math.round(cHeight * DPR);
   ctx.scale(DPR, DPR);
   
   ctx.fillStyle = bgColorEl.value;
@@ -3062,6 +3185,18 @@ function draw() {
   }
 
   page.forEach((ln, lIdx) => {
+    if (ln.length === 1 && ln[0] && ln[0].isDivider) {
+      const dividerY = startY + ln.yOffset - size * 0.35;
+      ctx.save();
+      ctx.strokeStyle = ln[0].color || '#cccccc';
+      ctx.lineWidth = Math.max(1, size * 0.06);
+      ctx.beginPath();
+      ctx.moveTo(mx, dividerY);
+      ctx.lineTo(mx + contentWidth, dividerY);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     let lnWidth = ln.reduce((s, e) => s + (e.text === '\n' ? 0 : e.w), 0);
     let y = startY + ln.yOffset;
     if (ln.length > 0 && ln[ln.length-1].text === ' ') lnWidth -= ln[ln.length-1].w;
@@ -3279,6 +3414,22 @@ function applyPresetData(data, presetName) {
   if(data.sourceAlign) sourceAlignEl.value = data.sourceAlign;
   if(sourcePositionEl) sourcePositionEl.value = data.sourcePosition || 'fixed';
   if(data.firstLineIndent !== undefined) { el('firstLineIndent').value = data.firstLineIndent; el('firstLineIndentVal').textContent = data.firstLineIndent; }
+
+  // 아래 항목들은 '라이트/다크' 기본 테마 전환 시에는 들어있지 않아서
+  // (테마 토글 시 사용자가 입력한 출처/형광펜 설정이 사라지지 않도록) data에
+  // 값이 있을 때만 적용하고, 사용자가 직접 저장한 템플릿에만 반영되게 한다.
+  if (data.sourceName !== undefined && sourceNameEl) sourceNameEl.value = data.sourceName;
+  if (data.source !== undefined) sourceEl.value = data.source;
+  if (data.sourceSep !== undefined && sourceSepWrapEl) {
+    sourceSepWrapEl.dataset.selected = data.sourceSep;
+    sourceSepWrapEl.querySelectorAll('.sep-btn').forEach(b => b.classList.toggle('active', b.dataset.sep === data.sourceSep));
+  }
+  if (data.highlightColor !== undefined) { highlightColorEl.value = data.highlightColor; updateHiDot(); }
+  if (data.highlightTextColor !== undefined) highlightTextColorEl.value = data.highlightTextColor;
+  if (data.hiTextColorToggle !== undefined && hiTextColorToggleEl) hiTextColorToggleEl.checked = !!data.hiTextColorToggle;
+  if (data.hiOpacity !== undefined) { hiOpacity = parseInt(data.hiOpacity, 10) || 100; updateHiOpacityUI(); }
+  if (data.dividerColor !== undefined && dividerColorEl) dividerColorEl.value = data.dividerColor;
+
   if (presetName) el('presetSelect').value = presetName;
   updateAllRanges();
   draw();
@@ -3316,7 +3467,16 @@ el('savePresetBtn').addEventListener('click', () => {
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
     sourceColor: sourceColorEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
     sourcePosition: sourcePositionEl ? sourcePositionEl.value : 'fixed',
-    firstLineIndent: el('firstLineIndent').value
+    firstLineIndent: el('firstLineIndent').value,
+    // 출처 내용/이름과 형광펜 기본색 등도 템플릿에 함께 저장한다.
+    sourceName: sourceNameEl ? sourceNameEl.value : '',
+    source: sourceEl.value,
+    sourceSep: sourceSepWrapEl ? sourceSepWrapEl.dataset.selected : '•',
+    highlightColor: highlightColorEl.value,
+    highlightTextColor: highlightTextColorEl.value,
+    hiTextColorToggle: !!(hiTextColorToggleEl && hiTextColorToggleEl.checked),
+    hiOpacity: hiOpacity,
+    dividerColor: dividerColorEl ? dividerColorEl.value : '#b3b3b3'
   };
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
   nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name;
