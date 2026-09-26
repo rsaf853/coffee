@@ -382,7 +382,9 @@
     font-size: 12px; font-family: inherit; cursor: pointer;
     border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .body-img-arrow-btn:hover { border-color: var(--border-strong); color: var(--accent-strong); background: var(--accent-soft); }
+  .body-img-arrow-btn:hover { border-color: var(--border-strong); color: var(--ink-soft); background: var(--accent-soft); }
+  .body-img-arrow-btn.active { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); font-weight: 600; }
+  .body-img-arrow-btn.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); }
 
   .sticker-thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
   .sticker-thumb {
@@ -709,9 +711,9 @@
     font-size: 12px; font-family: inherit; cursor: pointer;
     border-radius: 6px; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
-  .sep-btn:hover { border-color: var(--border-strong); color: var(--accent-strong); }
+  .sep-btn:hover { border-color: var(--border-strong); color: var(--ink-soft); }
   .sep-btn.active { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); font-weight: 600; }
-  .sep-btn.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color:  var(--ink-soft); }
+  .sep-btn.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-ink); }
 
   /* ---------- 스티커: 스타일 선택 버튼 (기본/스티커/그림자) ---------- */
   .style-options { display: flex; gap: 6px; margin-top: 4px; }
@@ -1225,7 +1227,7 @@
 
      <!-- 본문 이미지 -->
       <details class="panel-section">
-        <summary class="section-title">본문 이미지(테스트중)</summary>
+        <summary class="section-title">본문 이미지</summary>
         <div class="details-content">
           <div id="bodyImgControls">
             <label id="bodyImgDropZone" for="bodyImgInput" class="img-add-dropzone">
@@ -1242,6 +1244,13 @@
               <button type="button" class="body-img-arrow-btn" id="bodyImgRight" aria-label="오른쪽으로 이동">→</button>
             </div>
 
+            <div class="field dialogue-toggle-field" style="margin-top: 4px;">
+              <label class="dialogue-checkbox-label">
+                <input type="checkbox" id="bodyImgMarginToggle" class="dialogue-checkbox">
+                <span class="dialogue-switch-text">페이지 여백과 동일하게 적용</span>
+              </label>
+            </div>
+
             <div class="field" style="margin-top: 10px;">
               <label>확대 (<span id="bodyImgZoomVal">100</span>%)</label>
               <input type="range" id="bodyImgZoom" min="50" max="300" step="1" value="100">
@@ -1252,21 +1261,15 @@
               <input type="range" id="bodyImgThickness" min="80" max="800" step="1" value="380">
             </div>
 
-            <div class="row2">
-              <div class="field" style="margin-bottom: 0;">
-                <label>본문 사이 간격 (<span id="bodyImgGapVal">30</span>px)</label>
-                <input type="range" id="bodyImgGap" min="0" max="150" step="1" value="30">
-              </div>
-              <div class="field" style="margin-bottom: 0;">
-                <label>모서리 둥글기 (<span id="bodyImgRadiusVal">0</span>px)</label>
-                <input type="range" id="bodyImgRadius" min="0" max="200" step="1" value="0">
-              </div>
+            <div class="field" style="margin-top: 10px;">
+              <label>본문 사이 간격 (<span id="bodyImgGapVal">30</span>px)</label>
+              <input type="range" id="bodyImgGap" min="0" max="150" step="1" value="30">
             </div>
 
             <div class="row2">
               <div class="field" style="margin-bottom: 0;">
                 <label>테두리 두께 (<span id="bodyImgBorderWidthVal">1</span>px)</label>
-                <input type="range" id="bodyImgBorderWidth" min="0" max="40" step="1" value="1">
+                <input type="range" id="bodyImgBorderWidth" min="0" max="20" step="1" value="1">
               </div>
               <div class="field" style="margin-bottom: 0;">
                 <label>테두리 색상</label>
@@ -1821,7 +1824,6 @@ const bodyImgFileNameEl = el('bodyImgFileName');
 const bodyImgZoomEl = el('bodyImgZoom');
 const bodyImgThicknessEl = el('bodyImgThickness');
 const bodyImgGapEl = el('bodyImgGap');
-const bodyImgRadiusEl = el('bodyImgRadius');
 const bodyImgBorderWidthEl = el('bodyImgBorderWidth');
 const bodyImgBorderColorEl = el('bodyImgBorderColor');
 const bodyImgDeleteBtnEl = el('bodyImgDeleteBtn');
@@ -1830,38 +1832,37 @@ let bodyImgObj = null;
 let bodyImgEnabled = false;
 let bodyImgZoom = 100;
 let bodyImgPanX = 0, bodyImgPanY = 0;
+let bodyImgPosition = 'top'; // 'top' | 'bottom' | 'left' | 'right'
+let bodyImgUseMargin = false;
 let bodyImgThickness = 380;
 let bodyImgGap = 30;
-let bodyImgRadius = 0;
 let bodyImgBorderWidth = 1;
 let bodyImgBorderColor = '#ffb8d9';
 let bodyImgDragging = false;
 let bodyImgDragStartPos = { x: 0, y: 0 };
 let bodyImgPanStart = { x: 0, y: 0 };
 
-function bodyImgOrientation() {
-  if (!bodyImgObj) return null;
-  return (bodyImgObj.naturalWidth >= bodyImgObj.naturalHeight) ? 'band' : 'column';
-}
-
 // 캔버스 좌표계(cWidth/cHeight 기준) 위에서 이미지가 차지하는 사각형 영역
 function getBodyImgFrame(cWidth, cHeight) {
-  const orientation = bodyImgOrientation();
-  if (!orientation) return null;
-  if (orientation === 'column') {
-    const w = Math.max(1, Math.min(bodyImgThickness, cWidth));
-    return { x: cWidth - w, y: 0, w, h: cHeight, orientation };
+  if (!bodyImgObj) return null;
+  const mx = bodyImgUseMargin ? (parseInt(marginXEl.value, 10) || 0) : 0;
+  const my = bodyImgUseMargin ? (parseInt(marginYEl.value, 10) || 0) : 0;
+  if (bodyImgPosition === 'left' || bodyImgPosition === 'right') {
+    const w = Math.max(1, Math.min(bodyImgThickness, cWidth - mx * 2));
+    const x = (bodyImgPosition === 'left') ? mx : cWidth - w - mx;
+    return { x, y: my, w, h: cHeight - my * 2, position: bodyImgPosition };
   }
-  const h = Math.max(1, Math.min(bodyImgThickness, cHeight));
-  return { x: 0, y: 0, w: cWidth, h, orientation };
+  const h = Math.max(1, Math.min(bodyImgThickness, cHeight - my * 2));
+  const y = (bodyImgPosition === 'bottom') ? cHeight - h - my : my;
+  return { x: mx, y, w: cWidth - mx * 2, h, position: bodyImgPosition };
 }
 
 function isPointInBodyImgFrame(pos) {
   if (!bodyImgEnabled || !bodyImgObj) return false;
   const frame = getBodyImgFrame(canvas.width / DPR, canvas.height / DPR);
   if (!frame) return false;
-  // band 방식은 첫 페이지에만 그려진다
-  if (frame.orientation === 'band' && currentPage !== 0) return false;
+  // 상/하단 배치는 첫 페이지에만 그려진다
+  if ((frame.position === 'top' || frame.position === 'bottom') && currentPage !== 0) return false;
   return pos.x >= frame.x && pos.x <= frame.x + frame.w && pos.y >= frame.y && pos.y <= frame.y + frame.h;
 }
 
@@ -1890,20 +1891,29 @@ if (bodyImgInputEl) {
 if (bodyImgZoomEl) bodyImgZoomEl.addEventListener('input', (e) => { bodyImgZoom = parseInt(e.target.value, 10) || 100; el('bodyImgZoomVal').textContent = bodyImgZoom; scheduleDraw(); });
 if (bodyImgThicknessEl) bodyImgThicknessEl.addEventListener('input', (e) => { bodyImgThickness = parseInt(e.target.value, 10) || 0; el('bodyImgThicknessVal').textContent = bodyImgThickness; scheduleDraw(); });
 if (bodyImgGapEl) bodyImgGapEl.addEventListener('input', (e) => { bodyImgGap = parseInt(e.target.value, 10) || 0; el('bodyImgGapVal').textContent = bodyImgGap; scheduleDraw(); });
-if (bodyImgRadiusEl) bodyImgRadiusEl.addEventListener('input', (e) => { bodyImgRadius = parseInt(e.target.value, 10) || 0; el('bodyImgRadiusVal').textContent = bodyImgRadius; scheduleDraw(); });
 if (bodyImgBorderWidthEl) bodyImgBorderWidthEl.addEventListener('input', (e) => { bodyImgBorderWidth = parseInt(e.target.value, 10) || 0; el('bodyImgBorderWidthVal').textContent = bodyImgBorderWidth; scheduleDraw(); });
 if (bodyImgBorderColorEl) bodyImgBorderColorEl.addEventListener('input', (e) => { bodyImgBorderColor = e.target.value; scheduleDraw(); });
+const bodyImgMarginToggleEl = el('bodyImgMarginToggle');
+if (bodyImgMarginToggleEl) bodyImgMarginToggleEl.addEventListener('change', () => { bodyImgUseMargin = bodyImgMarginToggleEl.checked; draw(); });
 
-const BODY_IMG_NUDGE = 20;
-function bindBodyImgNudge(id, dx, dy) {
+const BODY_IMG_POSITIONS = { bodyImgUp: 'top', bodyImgDown: 'bottom', bodyImgLeft: 'left', bodyImgRight: 'right' };
+function refreshBodyImgPositionButtons() {
+  Object.keys(BODY_IMG_POSITIONS).forEach(id => {
+    const btn = el(id);
+    if (btn) btn.classList.toggle('active', BODY_IMG_POSITIONS[id] === bodyImgPosition);
+  });
+}
+Object.keys(BODY_IMG_POSITIONS).forEach(id => {
   const btn = el(id);
   if (!btn) return;
-  btn.addEventListener('click', () => { bodyImgPanX += dx; bodyImgPanY += dy; draw(); });
-}
-bindBodyImgNudge('bodyImgUp', 0, -BODY_IMG_NUDGE);
-bindBodyImgNudge('bodyImgDown', 0, BODY_IMG_NUDGE);
-bindBodyImgNudge('bodyImgLeft', -BODY_IMG_NUDGE, 0);
-bindBodyImgNudge('bodyImgRight', BODY_IMG_NUDGE, 0);
+  btn.addEventListener('click', () => {
+    bodyImgPosition = BODY_IMG_POSITIONS[id];
+    bodyImgPanX = 0; bodyImgPanY = 0;
+    refreshBodyImgPositionButtons();
+    draw();
+  });
+});
+refreshBodyImgPositionButtons();
 
 if (bodyImgDeleteBtnEl) {
   bodyImgDeleteBtnEl.addEventListener('click', () => {
@@ -3109,9 +3119,13 @@ function computePages() {
   const my = parseInt(marginYEl.value, 10);
   const mx = parseInt(marginXEl.value, 10);
   const bodyImgActive = bodyImgEnabled && bodyImgObj;
-  const bodyImgOrient = bodyImgActive ? bodyImgOrientation() : null;
-  const bodyImgTopOffset = (bodyImgOrient === 'band') ? (bodyImgThickness + bodyImgGap) : 0;
-  const contentWidth = (bodyImgOrient === 'column')
+  const bodyImgPos = bodyImgActive ? bodyImgPosition : null;
+  const isBodyImgColumn = bodyImgPos === 'left' || bodyImgPos === 'right';
+  const isBodyImgBand = bodyImgPos === 'top' || bodyImgPos === 'bottom';
+  const bodyImgTopOffset = (bodyImgPos === 'top') ? (bodyImgThickness + bodyImgGap) : 0;
+  const bodyImgBottomOffset = (bodyImgPos === 'bottom') ? (bodyImgThickness + bodyImgGap) : 0;
+  const bodyImgLeftOffset = (bodyImgPos === 'left') ? (bodyImgThickness + bodyImgGap) : 0;
+  const contentWidth = isBodyImgColumn
     ? Math.max(20, w - mx*2 - (bodyImgThickness + bodyImgGap))
     : w - mx*2;
   const size = parseInt(fontSizeEl.value, 10);
@@ -3242,7 +3256,7 @@ function computePages() {
       }
     }
 
-    let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0) - (isFirstPage ? bodyImgTopOffset : 0);
+    let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0) - (isFirstPage ? bodyImgTopOffset : 0) - (isFirstPage ? bodyImgBottomOffset : 0);
 
     let willBreak = (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0);
 
@@ -3272,11 +3286,11 @@ function computePages() {
     if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
   }
   
-  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx, bodyImgOrient, bodyImgTopOffset };
+  return { pages, cWidth: w, cHeight: finalCanvasHeight, lh, size, my, mx: mx + bodyImgLeftOffset, contentWidth, ls, titleHeightSpace, indentPx, isBodyImgColumn, isBodyImgBand, bodyImgTopOffset };
 }
 
 function draw() {
-  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx, bodyImgOrient, bodyImgTopOffset } = computePages();
+  const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx, isBodyImgColumn, isBodyImgBand, bodyImgTopOffset } = computePages();
   
   if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
   if (currentPage < 0) currentPage = 0;
@@ -3323,23 +3337,13 @@ function draw() {
   }
 
   // ---- 본문 이미지 (배너/컬럼) ----
-  const bodyImgShowOnThisPage = bodyImgOrient === 'column' || (bodyImgOrient === 'band' && currentPage === 0);
+  const bodyImgShowOnThisPage = isBodyImgColumn || (isBodyImgBand && currentPage === 0);
   if (bodyImgShowOnThisPage) {
     const frame = getBodyImgFrame(cWidth, cHeight);
     if (frame) {
       ctx.save();
-      const r = Math.max(0, Math.min(bodyImgRadius, frame.w / 2, frame.h / 2));
       ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(frame.x, frame.y, frame.w, frame.h, r);
-      } else {
-        ctx.moveTo(frame.x + r, frame.y);
-        ctx.arcTo(frame.x + frame.w, frame.y, frame.x + frame.w, frame.y + frame.h, r);
-        ctx.arcTo(frame.x + frame.w, frame.y + frame.h, frame.x, frame.y + frame.h, r);
-        ctx.arcTo(frame.x, frame.y + frame.h, frame.x, frame.y, r);
-        ctx.arcTo(frame.x, frame.y, frame.x + frame.w, frame.y, r);
-        ctx.closePath();
-      }
+      ctx.rect(frame.x, frame.y, frame.w, frame.h);
       ctx.clip();
 
       const iw = bodyImgObj.naturalWidth, ih = bodyImgObj.naturalHeight;
@@ -3355,9 +3359,7 @@ function draw() {
         ctx.save();
         const bw = bodyImgBorderWidth;
         ctx.beginPath();
-        const ir = Math.max(0, r - bw / 2);
-        if (ctx.roundRect) ctx.roundRect(frame.x + bw / 2, frame.y + bw / 2, frame.w - bw, frame.h - bw, ir);
-        else ctx.rect(frame.x + bw / 2, frame.y + bw / 2, frame.w - bw, frame.h - bw);
+        ctx.rect(frame.x + bw / 2, frame.y + bw / 2, frame.w - bw, frame.h - bw);
         ctx.strokeStyle = bodyImgBorderColor;
         ctx.lineWidth = bw;
         ctx.stroke();
@@ -3371,7 +3373,7 @@ function draw() {
   const scaleX = parseInt(scaleXEl.value, 10) / 100;
   
   let startY = my + (lh - size)/2 + size; 
-  if (currentPage === 0 && bodyImgOrient === 'band') startY += bodyImgTopOffset;
+  if (currentPage === 0 && isBodyImgBand && bodyImgPosition === 'top') startY += bodyImgTopOffset;
 
   const titleText = el('titleInput').value.trim();
   if (currentPage === 0 && titleText) {
