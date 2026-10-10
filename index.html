@@ -3564,7 +3564,7 @@ function draw() {
       ctx.save();
       if (data.isPlaceholder) {
         const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
-        ctx.fillStyle = isDarkTheme ? 'rgba(150,150,150,0.35)' : 'rgba(200,160,175,0.4)';
+        ctx.fillStyle = isDarkTheme ? 'rgba(150,150,150,0.35)' : 'rgba(120,120,120,0.35)';
       }
       else if (fmt.inlineColor) ctx.fillStyle = fmt.inlineColor;
       else if (fmt.isSub) ctx.fillStyle = (subColorEl ? subColorEl.value : '#b3b3b3');
