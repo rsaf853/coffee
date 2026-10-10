@@ -3197,9 +3197,10 @@ function computePages() {
   const pages = []; let currentLines = []; let currentLine = []; let currentX = 0;
   // 문단(하드 줄바꿈 직후) 첫 줄인지 추적해 들여쓰기 폭을 반영
   let curLineIsParaStart = true; let nextLineIsParaStart = false;
-  function effWidth(quoteIndent) { return curLineIsParaStart ? Math.max(20, contentWidth - indentPx - quoteIndent) : contentWidth - quoteIndent; }
+  let curParaNoIndent = false, paraStartPending = true;
+  function effWidth(quoteIndent) { return (curLineIsParaStart && !curParaNoIndent) ? Math.max(20, contentWidth - indentPx - quoteIndent) : contentWidth - quoteIndent; }
   function breakLine() {
-    currentLine.isParaStart = curLineIsParaStart;
+    currentLine.isParaStart = curLineIsParaStart; currentLine.noIndent = curParaNoIndent;
     currentLines.push(currentLine);
     currentLine = []; currentX = 0;
     curLineIsParaStart = nextLineIsParaStart; nextLineIsParaStart = false;
@@ -3212,9 +3213,14 @@ function computePages() {
       currentLine.push(tk);
       nextLineIsParaStart = true;
       breakLine();
+      paraStartPending = true;
       return;
     }
-    if (tk.text === '\n') { currentLine.push(tk); nextLineIsParaStart = true; breakLine(); return; }
+    if (tk.text === '\n') { currentLine.push(tk); nextLineIsParaStart = true; breakLine(); paraStartPending = true; return; }
+    if (paraStartPending && tk.text && tk.text.trim() !== '') {
+      curParaNoIndent = !!(tk.format && tk.format.dialogueIndent);
+      paraStartPending = false;
+    }
     const quoteIndent = (tk.format && tk.format.quoteBar) ? (QUOTE_BAR_W + QUOTE_GAP) : 0;
     const dlgIndent = (tk.format && tk.format.dialogueIndent) ? tk.format.dialogueIndent : 0;
     const cw = effWidth(quoteIndent + dlgIndent);
@@ -3224,7 +3230,7 @@ function computePages() {
     } else { currentLine.push(tk); currentX += tk.w; }
   });
   
-  if (currentLine.length > 0) { currentLine.isParaStart = curLineIsParaStart; currentLines.push(currentLine); }
+  if (currentLine.length > 0) { currentLine.isParaStart = curLineIsParaStart; currentLine.noIndent = curParaNoIndent; currentLines.push(currentLine); }
   if (currentLines.length === 0) { const emptyLn = []; emptyLn.isParaStart = true; currentLines.push(emptyLn); }
 
   let presetHeight = 1000;
@@ -3308,7 +3314,8 @@ function computePages() {
     if (willBreak) {
       pages.push(p); p = []; pY = 0; pSpace = 0; isFirstPage = false;
     }
-    const thisLineHeight = isFullySubLine(ln) ? subLh : lh;
+    const nextLn = currentLines[idx + 1];
+    const thisLineHeight = (isFullySubLine(ln) && nextLn && isFullySubLine(nextLn)) ? subLh : lh;
     pY += pSpace; ln.yOffset = pY; p.push(ln); pY += thisLineHeight;
   }
   
@@ -3513,7 +3520,7 @@ function draw() {
       if (f && f.dialogueIndent) lineDialogueIndent = f.dialogueIndent;
       if (ln[qi].dialogueName) { lineDialogueName = ln[qi].dialogueName; lineDialogueNameColor = ln[qi].dialogueNameColor || null; }
     }
-    const lineIndent = (ln.isParaStart ? indentPx : 0) + quoteShift + lineDialogueIndent;
+    const lineIndent = ((ln.isParaStart && !ln.noIndent) ? indentPx : 0) + quoteShift + lineDialogueIndent;
     const effLineWidth = contentWidth - lineIndent;
     let x = mx + lineIndent; let justifySpace = 0;
 
