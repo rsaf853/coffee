@@ -1373,7 +1373,90 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
       </details>
 
 
-      <!-- 6. 출처 -->
+      <!-- 6. 페이징 -->
+      <details class="panel-section">
+        <summary class="section-title">페이징</summary>
+        <div class="details-content">
+          <div class="field dialogue-toggle-field">
+            <label class="dialogue-checkbox-label">
+              <input type="checkbox" id="pageNumToggle" class="dialogue-checkbox">
+              <span class="dialogue-switch-text">페이지 번호 넣기</span>
+            </label>
+          </div>
+          <div id="pageNumOptions">
+            <div class="row2">
+              <div class="field">
+                <label>형식</label>
+                <select id="pageNumFormat">
+                  <option value="plain" selected>1</option>
+                  <option value="pad">01</option>
+                  <option value="of">1 / 5</option>
+                  <option value="dash">– 1 –</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>정렬 위치</label>
+                <select id="pageNumAlign">
+                  <option value="left">왼쪽</option>
+                  <option value="center" selected>가운데</option>
+                  <option value="right">오른쪽</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label>세로 위치</label>
+                <select id="pageNumPos">
+                  <option value="bottom" selected>하단</option>
+                  <option value="top">상단</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>굵기</label>
+                <select id="pageNumWeight">
+                  <option value="100">얇게</option>
+                  <option value="400" selected>보통</option>
+                  <option value="500">중간</option>
+                  <option value="700">굵게</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom: 8px;">
+              <label>폰트</label>
+              <select id="pageNumFont">
+                <option value="pretendard" selected>프리텐다드</option>
+                <option value="presentation">프리젠테이션</option>
+                <option value="nexon">넥슨 Lv.1 고딕</option>
+                <option value="bookkgothic">부크크 고딕</option>
+                <option value="bookkmyungjo">부크크 명조</option>
+                <option value="joseon">조선신명조</option>
+                <option value="ibmplex">IBM Plex Sans</option>
+                <option value="kopub">KoPub World 바탕</option>
+                <option value="kopubdotum">KoPub World 돋움</option>
+                <option value="yeolringothic">열린고딕</option>
+                <option value="yeolrinmyeongjo">열린명조</option>
+                <option value="busan">부산체</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>글자색</label>
+              <input type="color" id="pageNumColor" value="#acacac">
+            </div>
+            <div class="field" style="margin-top: 8px;">
+              <label>글자 크기 (<span id="pageNumSizeVal">13</span>px)</label>
+              <input type="range" id="pageNumSize" min="8" max="40" value="13">
+            </div>
+            <div class="field dialogue-toggle-field">
+              <label class="dialogue-checkbox-label">
+                <input type="checkbox" id="pageNumSkipFirst" class="dialogue-checkbox">
+                <span class="dialogue-switch-text">첫 페이지에는 표시 안 함</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- 6-2. 출처 -->
       <details class="panel-section">
         <summary class="section-title">출처</summary>
         <div class="details-content">
@@ -1412,6 +1495,23 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
                 <option value="right" selected>오른쪽</option>
               </select>
             </div>
+          </div>
+          <div class="field" style="margin-bottom: 8px;">
+            <label>폰트</label>
+            <select id="sourceFontFamily">
+                <option value="pretendard" selected>프리텐다드</option>
+                <option value="presentation">프리젠테이션</option>
+                <option value="nexon">넥슨 Lv.1 고딕</option>
+                <option value="bookkgothic">부크크 고딕</option>
+                <option value="bookkmyungjo">부크크 명조</option>
+                <option value="joseon">조선신명조</option>
+                <option value="ibmplex">IBM Plex Sans</option>
+                <option value="kopub">KoPub World 바탕</option>
+                <option value="kopubdotum">KoPub World 돋움</option>
+                <option value="yeolringothic">열린고딕</option>
+                <option value="yeolrinmyeongjo">열린명조</option>
+                <option value="busan">부산체</option>
+              </select>
           </div>
           <div class="row2">
             <div class="field">
@@ -1554,6 +1654,11 @@ const scaleXEl = el('scaleX');
 const sourceFontSizeEl = el('sourceFontSize');
 const sourceLetterSpacingEl = el('sourceLetterSpacing');
 const sourceWeightEl = el('sourceWeight');
+const sourceFontFamilyEl = el('sourceFontFamily');
+const pageNumToggleEl = el('pageNumToggle'), pageNumOptionsEl = el('pageNumOptions'), pageNumFormatEl = el('pageNumFormat'),
+      pageNumAlignEl = el('pageNumAlign'), pageNumPosEl = el('pageNumPos'), pageNumWeightEl = el('pageNumWeight'),
+      pageNumFontEl = el('pageNumFont'), pageNumColorEl = el('pageNumColor'), pageNumSizeEl = el('pageNumSize'),
+      pageNumSkipFirstEl = el('pageNumSkipFirst');
 const sourceColorEl = el('sourceColor');
 const titleFontFamilyEl = el('titleFontFamily');
 const sourceSepWrapEl = el('sourceSepButtons');
@@ -3432,7 +3537,11 @@ function computePages() {
   if (hMode === 'auto') {
     const srcSize = parseInt(sourceFontSizeEl.value, 10);
     const hasSourceAuto = !!(sourceEl.value.trim() || (sourceNameEl && sourceNameEl.value.trim()));
-    finalCanvasHeight = pY + (my * 2) + (hasSourceAuto ? (srcSize + 30) : 0) + titleHeightSpace;
+    // 출처 없이 페이지 번호만 있어도 출처처럼 아래 여백을 자동으로 확보 (상단 번호는 제외)
+    const hasPageNumAuto = !!(pageNumToggleEl.checked && pageNumPosEl.value === 'bottom');   // 페이지마다 높이가 달라지지 않도록 '첫 페이지 제외'와 무관하게 확보
+    const pnSizeAuto = parseInt(pageNumSizeEl.value, 10) || 13;
+    const bottomReserve = Math.max(hasSourceAuto ? srcSize : 0, hasPageNumAuto ? pnSizeAuto : 0);
+    finalCanvasHeight = pY + (my * 2) + ((hasSourceAuto || hasPageNumAuto) ? (bottomReserve + 30) : 0) + titleHeightSpace;
     if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
   }
   
@@ -3719,9 +3828,27 @@ function draw() {
   const srcName = sourceNameEl ? sourceNameEl.value.trim() : '';
   const sep = sourceSepWrapEl ? sourceSepWrapEl.dataset.selected : '•';
 
+  // 페이지 번호: 출처보다 먼저 크기를 재 둔다 (같은 쪽에 겹치면 출처가 안쪽으로 비켜주기 위해)
+  let pnInfo = null;
+  if (pageNumToggleEl.checked && !(pageNumSkipFirstEl.checked && currentPage === 0)) {
+    const n = currentPage + 1;
+    const label = pageNumFormatEl.value === 'of' ? `${n} / ${pages.length}`
+                : pageNumFormatEl.value === 'dash' ? `– ${n} –`
+                : pageNumFormatEl.value === 'pad' ? String(n).padStart(2, '0')
+                : String(n);
+    const size = parseInt(pageNumSizeEl.value, 10) || 13;
+    const def = FONT_DEFS[pageNumFontEl.value] || FONT_DEFS['pretendard'];
+    const font = `${parseInt(pageNumWeightEl.value, 10) || 400} ${size}px ${def.css}`;
+    ctx.save(); ctx.font = font;
+    const w = ctx.measureText(label).width;
+    ctx.restore();
+    pnInfo = { label, size, font, w, align: pageNumAlignEl.value, pos: pageNumPosEl.value };
+  }
+
   if (src || srcName) {
     const srcSize = parseInt(sourceFontSizeEl.value, 10);
-    ctx.font = `${parseInt(sourceWeightEl.value, 10) || FONT_DEFS['pretendard'].weights.regular} ${srcSize}px ${FONT_DEFS['pretendard'].css}`;
+    const srcDef = FONT_DEFS[sourceFontFamilyEl.value] || FONT_DEFS['pretendard'];
+    ctx.font = `${parseInt(sourceWeightEl.value, 10) || srcDef.weights.regular || 400} ${srcSize}px ${srcDef.css}`;
 
     const srcLs = parseFloat(sourceLetterSpacingEl.value) || 0;
 
@@ -3766,6 +3893,14 @@ function draw() {
     }
 
     let sourceY = cHeight - fixedPaddingBottom;
+
+    // 페이지 번호가 하단에서 출처와 같은 쪽에 있으면, 번호가 맨 가장자리에 서고 출처는 간격을 두고 안쪽으로 비킨다
+    if (pnInfo && !isBelowText && pnInfo.pos === 'bottom' && pnInfo.align === sAlign) {
+      const pnGap = 18;
+      if (sAlign === 'right') sourceX = cWidth - fixedPaddingSide - pnInfo.w - pnGap - tw;
+      else if (sAlign === 'left') sourceX = fixedPaddingSide + pnInfo.w + pnGap;
+      else sourceY -= pnInfo.size * 1.8;   // 둘 다 가운데면 출처를 번호 위로 올린다
+    }
     if (isBelowText && page && page.length) {
       const lastLine = page[page.length - 1];
       sourceY = startY + lastLine.yOffset + lh + srcSize * 0.9;
@@ -3782,6 +3917,17 @@ function draw() {
       drawRun(part2, sourceX + w1, sourceY);
       ctx.restore();
     }
+  }
+
+  // ---------- 페이지 번호 ----------
+  if (pnInfo) {
+    ctx.save();
+    ctx.font = pnInfo.font;
+    ctx.fillStyle = pageNumColorEl.value;
+    const pnX = pnInfo.align === 'left' ? fixedPaddingSide : pnInfo.align === 'center' ? (cWidth - pnInfo.w) / 2 : cWidth - fixedPaddingSide - pnInfo.w;
+    const pnY = pnInfo.pos === 'top' ? fixedPaddingBottom + pnInfo.size * 0.8 : cHeight - fixedPaddingBottom;
+    ctx.fillText(pnInfo.label, pnX, pnY);
+    ctx.restore();
   }
 
   stickers.forEach(s => {
@@ -3833,6 +3979,18 @@ function applyPresetData(data, presetName) {
   letterSpacingEl.value = data.letterSpacing; el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
   sourceFontSizeEl.value = data.sourceFontSize; el('sourceFontSizeVal').textContent = sourceFontSizeEl.value;
+  sourceFontFamilyEl.value = migrateFontId(data.sourceFontFamily || 'pretendard'); loadFontWeights(sourceFontFamilyEl.value);
+  if (data.pageNumOn !== undefined) {
+    pageNumToggleEl.checked = !!data.pageNumOn;
+    if (data.pageNumFormat) pageNumFormatEl.value = data.pageNumFormat;
+    if (data.pageNumAlign) pageNumAlignEl.value = data.pageNumAlign;
+    if (data.pageNumPos) pageNumPosEl.value = data.pageNumPos;
+    if (data.pageNumWeight) pageNumWeightEl.value = data.pageNumWeight;
+    pageNumFontEl.value = migrateFontId(data.pageNumFont || 'pretendard'); loadFontWeights(pageNumFontEl.value);
+    if (data.pageNumColor) pageNumColorEl.value = data.pageNumColor;
+    if (data.pageNumSize) { pageNumSizeEl.value = data.pageNumSize; el('pageNumSizeVal').textContent = data.pageNumSize; }
+    pageNumSkipFirstEl.checked = !!data.pageNumSkipFirst;
+  }
   if(data.sourceWeight) sourceWeightEl.value = data.sourceWeight;
   if(data.sourceLetterSpacing !== undefined){ sourceLetterSpacingEl.value = data.sourceLetterSpacing; el('sourceLetterSpacingVal').textContent = sourceLetterSpacingEl.value; updateRangeProgress(sourceLetterSpacingEl); }
   if(data.sourceAlign) sourceAlignEl.value = data.sourceAlign;
@@ -3889,7 +4047,7 @@ el('savePresetBtn').addEventListener('click', () => {
     weight: weightEl.value, quoteWeight: quoteWeightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
     lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
-    sourceColor: sourceColorEl.value, sourceWeight: sourceWeightEl.value, sourceLetterSpacing: sourceLetterSpacingEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
+    sourceColor: sourceColorEl.value, sourceWeight: sourceWeightEl.value, sourceFontFamily: sourceFontFamilyEl.value, pageNumOn: pageNumToggleEl.checked, pageNumFormat: pageNumFormatEl.value, pageNumAlign: pageNumAlignEl.value, pageNumPos: pageNumPosEl.value, pageNumWeight: pageNumWeightEl.value, pageNumFont: pageNumFontEl.value, pageNumColor: pageNumColorEl.value, pageNumSize: pageNumSizeEl.value, pageNumSkipFirst: pageNumSkipFirstEl.checked, sourceLetterSpacing: sourceLetterSpacingEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
     sourcePosition: sourcePositionEl ? sourcePositionEl.value : 'fixed',
     firstLineIndent: el('firstLineIndent').value,
     // 출처 내용/이름과 형광펜 기본색 등도 템플릿에 함께 저장한다.
@@ -3954,7 +4112,8 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl, sourceWeightEl, quoteWeightEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
+[pageNumToggleEl, pageNumFormatEl, pageNumAlignEl, pageNumPosEl, pageNumWeightEl, pageNumFontEl, pageNumColorEl, pageNumSizeEl, pageNumSkipFirstEl].forEach(item => { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); });
+[sourceEl, sourceNameEl, sourceFontFamilyEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl, sourceWeightEl, quoteWeightEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
 sourceAlignEl.addEventListener('change', scheduleDraw);
 
 if (sourceSepWrapEl) {
@@ -4043,10 +4202,11 @@ function ensureSlicedFonts() {
     const _titleEl = el('titleInput'); const _twEl = el('titleWeight');
     addFallback(fontFamilyEl.value, editorEl.innerText, [weightEl.value, quoteWeightEl.value]);
     addFallback(titleFontFamilyEl.value, _titleEl ? _titleEl.value : '', [_twEl ? _twEl.value : 'bold']);
-    addFallback('pretendard', sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''), ['thin', 'regular', 'medium', 'bold']);
+    addFallback(sourceFontFamilyEl.value, sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''), ['thin', 'regular', 'medium', 'bold']);
     add(fontFamilyEl.value, [weightEl.value, quoteWeightEl.value], editorEl.innerText + sourceEl.value);
     // 출처 줄은 항상 프리텐다드로 그려지므로 그 글자/굵기도 미리 받아둔다
-    add('pretendard', ['thin', 'regular', 'medium', 'bold'], sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''));
+    if (pageNumToggleEl.checked && pageNumFontEl.value === 'pretendard') add('pretendard', ['thin', 'regular', 'medium', 'bold'], '0123456789/–-');
+    if (sourceFontFamilyEl.value === 'pretendard') add('pretendard', ['thin', 'regular', 'medium', 'bold'], sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''));
     const tw = el('titleWeight');
     add(titleFontFamilyEl.value, [tw ? tw.value : 'bold'], (el('titleInput') || {}).value);
     if (jobs.length) Promise.all(jobs).then(() => scheduleDraw());
@@ -4057,13 +4217,27 @@ if (document.fonts && document.fonts.addEventListener) document.fonts.addEventLi
 // 폰트 CSS가 늦게 도착했을 때(또는 로드 직후) 현재 선택된 폰트를 다시 받아서 그린다
 window.__fontCssLoaded = function () {
   _slicedLoaded.clear();
-  Promise.all([loadFontWeights(fontFamilyEl.value), loadFontWeights(titleFontFamilyEl.value)])
+  Promise.all([loadFontWeights(fontFamilyEl.value), loadFontWeights(titleFontFamilyEl.value), loadFontWeights(sourceFontFamilyEl.value), loadFontWeights(pageNumFontEl.value)])
     .then(() => { ensureSlicedFonts(); draw(); });
 };
 
 fontFamilyEl.addEventListener('change', async (e) => {
   rebuildWeightOptions(weightEl, e.target.value);
   await loadFontWeights(e.target.value);
+  draw();
+});
+
+pageNumToggleEl.addEventListener('change', () => { ensureSlicedFonts(); });
+pageNumSizeEl.addEventListener('input', () => { el('pageNumSizeVal').textContent = pageNumSizeEl.value; });
+pageNumFontEl.addEventListener('change', async (e) => {
+  await loadFontWeights(e.target.value);
+  ensureSlicedFonts();
+  draw();
+});
+
+sourceFontFamilyEl.addEventListener('change', async (e) => {
+  await loadFontWeights(e.target.value);
+  ensureSlicedFonts();
   draw();
 });
 
