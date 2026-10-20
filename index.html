@@ -24,19 +24,41 @@
   <link rel="apple-touch-icon" href="images/icon1.png">
 <!-- Pretendard 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<!-- SUIT (static, 굵기별 woff2) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
 <!-- 사라사 고딕 (Sarasa Term K, 한글 포함 / unicode-range 분할) — 렌더링을 막지 않도록 비동기 로드 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/200.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/300.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/400.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/600.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/700.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/200.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/300.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/400.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/600.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/700.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
 <!-- 본명조 (Source Han Serif = Noto Serif KR 와 동일 디자인) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/300.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/400.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/500.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/600.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/700.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/300.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/400.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/500.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/600.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/700.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
 <style>
+  /* 스포카 한 산스 Neo - 굵기 5가지 (100 / 300 / 400 / 500 / 700) */
+  @font-face { font-family: 'Spoqa Han Sans Neo'; font-weight: 100; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Thin.woff2') format('woff2'); }
+  @font-face { font-family: 'Spoqa Han Sans Neo'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'Spoqa Han Sans Neo'; font-weight: 400; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'Spoqa Han Sans Neo'; font-weight: 500; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'Spoqa Han Sans Neo'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/spoqa/spoqa-han-sans@latest/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Bold.woff2') format('woff2'); }
+
+  /* KoPub 바탕 - 굵기 3가지 (300 / 400 / 700) */
+  @font-face { font-family: 'KoPub Batang'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPub Batang'; font-weight: 400; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPub Batang'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Bold.woff2') format('woff2'); }
+
   /* LINE Seed Sans KR - 굵기 3가지 (100 / 400 / 700) */
   @font-face {
     font-family: 'LINESeedSansKR';
@@ -1106,7 +1128,10 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
                 <option value="ibmplex">IBM Plex Sans</option>
                 <option value="lineseed">LINE Seed</option>
                 <option value="sarasa">사라사 고딕</option>
-                <option value="sourcehan">본명조 (Source Han Serif)</option>
+                <option value="suit">SUIT</option>
+                <option value="spoqa">스포카 한 산스 Neo</option>
+                <option value="sourcehan">본명조</option>
+                <option value="kopub">KoPub 바탕</option>
                 <option value="busan">부산체</option>
               </select>
             </div>
@@ -1131,7 +1156,10 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
               <option value="ibmplex">IBM Plex Sans</option>
               <option value="lineseed">LINE Seed</option>
               <option value="sarasa">사라사 고딕</option>
-              <option value="sourcehan">본명조 (Source Han Serif)</option>
+              <option value="suit">SUIT</option>
+              <option value="spoqa">스포카 한 산스 Neo</option>
+              <option value="sourcehan">본명조</option>
+              <option value="kopub">KoPub 바탕</option>
             </select>
           </div>
           
@@ -1178,6 +1206,12 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
               <label>기본 글자색</label>
               <input type="color" id="textColor" value="#777777">
             </div>
+          </div>
+          <div class="field">
+            <label>" " 안 굵기</label>
+            <select id="quoteWeight">
+              <option value="inherit">기본 굵기와 동일</option>
+            </select>
           </div>
           
           <div class="field">
@@ -1315,12 +1349,6 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
               <label>" " 안 색상</label>
               <input type="color" id="quoteColor" value="#000000">
             </div>
-          </div>
-          <div class="field" style="margin-top: 10px; margin-bottom: 0;">
-            <label>" " 안 굵기</label>
-            <select id="quoteWeight">
-              <option value="inherit">기본 굵기와 동일</option>
-            </select>
           </div>
         </div>
       </details>
@@ -1835,6 +1863,15 @@ const FONT_DEFS = {
   sourcehan: { name: 'Noto Serif KR', css: "'Noto Serif KR', 'Source Han Serif K', serif", sliced: true,
     weights: { light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
+  suit: { name: 'SUIT', css: "'SUIT', 'Pretendard Variable', sans-serif", lazy: true,
+    weights: { thin: 100, light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
+    weightOptions: [ {id:'thin', label:'Thin'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
+  spoqa: { name: 'Spoqa Han Sans Neo', css: "'Spoqa Han Sans Neo', 'Pretendard Variable', sans-serif", lazy: true,
+    weights: { thin: 100, light: 300, regular: 400, medium: 500, bold: 700 },
+    weightOptions: [ {id:'thin', label:'Thin'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
+  kopub: { name: 'KoPub Batang', css: "'KoPub Batang', serif", lazy: true,
+    weights: { light: 300, regular: 400, bold: 700 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
   busan: { name: 'Busan', css: "'Busan', sans-serif", weights: { regular: 400, bold: 400 },
     weightOptions: [ {id:'regular', label:'Regular'} ] }
 };
@@ -3994,6 +4031,13 @@ function ensureSlicedFonts() {
 }
 if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => scheduleDraw());
 
+// 폰트 CSS가 늦게 도착했을 때(또는 로드 직후) 현재 선택된 폰트를 다시 받아서 그린다
+window.__fontCssLoaded = function () {
+  _slicedLoaded.clear();
+  Promise.all([loadFontWeights(fontFamilyEl.value), loadFontWeights(titleFontFamilyEl.value)])
+    .then(() => { ensureSlicedFonts(); draw(); });
+};
+
 fontFamilyEl.addEventListener('change', async (e) => {
   rebuildWeightOptions(weightEl, e.target.value);
   await loadFontWeights(e.target.value);
@@ -4097,8 +4141,9 @@ window.addEventListener('load', async () => {
   // 부크크 명조/고딕 등 커스텀 폰트의 모든 굵기를 미리 받아둬서
   // 캔버스에서 선택 즉시 정상적으로 적용되도록 함
   if (document.fonts) {
-    await Promise.all(Object.keys(FONT_DEFS).map(loadFontWeights));
+    await Promise.all(Object.keys(FONT_DEFS).filter(k => !FONT_DEFS[k].lazy).map(loadFontWeights));
     draw();
+    window.__fontCssLoaded();
   }
 });
 </script>
