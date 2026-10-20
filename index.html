@@ -24,75 +24,34 @@
   <link rel="apple-touch-icon" href="images/icon1.png">
 <!-- Pretendard JP 폰트 불러오기 (한글+일본어, 필요한 글자 조각만 로드) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-jp-dynamic-subset.min.css">
-<!-- SUIT (static, 굵기별 woff2) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<!-- 사라사 고딕 (Sarasa Term K, 한글 포함 / unicode-range 분할) — 렌더링을 막지 않도록 비동기 로드 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/200.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/300.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/400.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/600.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/700.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<!-- 본명조 (Source Han Serif = Noto Serif KR 와 동일 디자인) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/300.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/400.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/500.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/600.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/700.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
 <style>
-  /* KoPub 바탕 - 굵기 3가지 (300 / 400 / 700) */
-  @font-face { font-family: 'KoPub Batang'; font-weight: 300; font-display: swap;
-    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Light.woff2') format('woff2'); }
-  @font-face { font-family: 'KoPub Batang'; font-weight: 400; font-display: swap;
-    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Regular.woff2') format('woff2'); }
-  @font-face { font-family: 'KoPub Batang'; font-weight: 700; font-display: swap;
-    src: url('https://cdn.jsdelivr.net/npm/@noonnu/kopub-batang@0.0.1/KoPubBatang-Bold.woff2') format('woff2'); }
+  /* KoPub World 바탕 / 돋움 - 굵기 3가지 (300 Light / 400 Medium / 700 Bold) */
+  @font-face { font-family: 'KoPubWorld Batang'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Batang-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPubWorld Batang'; font-weight: 400; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Batang-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPubWorld Batang'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Batang-Bold.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPubWorld Dotum'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Dotum-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPubWorld Dotum'; font-weight: 400; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Dotum-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'KoPubWorld Dotum'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/npm/font-kopubworld@1.0/fonts/KoPubWorld-Dotum-Bold.woff2') format('woff2'); }
 
-  /* LINE Seed Sans KR - 굵기 3가지 (100 / 400 / 700) */
-  @font-face {
-    font-family: 'LINESeedSansKR';
-    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Th.woff2') format('woff2');
-    font-weight: 100;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'LINESeedSansKR';
-    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Rg.woff2') format('woff2');
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'LINESeedSansKR';
-    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Bd.woff2') format('woff2');
-    font-weight: 700;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'BookkMyungjo';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Lt.woff2') format('woff2');
-    font-weight: 400;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'BookkMyungjo';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Bd.woff2') format('woff2');
-    font-weight: 700;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'BookkGothic';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkGothic-Lt.woff2') format('woff2');
-    font-weight: 300;
-    font-display: swap;
-  }
-
-  @font-face {
-    font-family: 'BookkGothic';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkGothic-Bd.woff2') format('woff2');
-    font-weight: 700;
-    font-display: swap;
-  }
+  /* 열린고딕 / 열린명조 (윤디자인) - 굵기 3가지 (300 Light / 500 Medium / 700 Bold) */
+  @font-face { font-family: 'Yeolrin Gothic'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinGothic-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'Yeolrin Gothic'; font-weight: 500; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinGothic-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'Yeolrin Gothic'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinGothic-Bold.woff2') format('woff2'); }
+  @font-face { font-family: 'Yeolrin Myeongjo'; font-weight: 300; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinMyeongjo-Light.woff2') format('woff2'); }
+  @font-face { font-family: 'Yeolrin Myeongjo'; font-weight: 500; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinMyeongjo-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'Yeolrin Myeongjo'; font-weight: 700; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/hyunbinseo/yeolrin@1/YeolrinMyeongjo-Bold.woff2') format('woff2'); }
 
   /* 프리젠테이션 (Presentation / Freesentation) - 굵기 4가지 */
   @font-face {
@@ -177,26 +136,6 @@
     font-family: 'IbmPlexSans';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-SemiBold.woff') format('woff');
     font-weight: 600;
-    font-display: swap;
-  }
-
-  /* 마루 부리 - 굵기 3가지 (200 / 400 / 700) */
-  @font-face {
-    font-family: 'MaruBuri';
-    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-ExtraLight.woff2') format('woff2');
-    font-weight: 200;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'MaruBuri';
-    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'MaruBuri';
-    src: url('https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Bold.woff2') format('woff2');
-    font-weight: 700;
     font-display: swap;
   }
 
@@ -951,11 +890,7 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
   <span style="font-family:'NexonLv1Gothic'">.</span>
   <span style="font-family:'JoseonMyeongjo'">.</span>
   <span style="font-family:'IbmPlexSans'">.</span>
-  <span style="font-family:'MaruBuri'">.</span>
   <span style="font-family:'Busan'">.</span>
-  <span style="font-family:'LINESeedSansKR'">.</span>
-  <span style="font-family:'Sarasa Term K'">.</span>
-  <span style="font-family:'Noto Serif KR'">.</span>
 </div>
 
 <main>
@@ -1112,13 +1047,11 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
                 <option value="bookkgothic">부크크 고딕</option>
                 <option value="bookkmyungjo">부크크 명조</option>
                 <option value="joseon">조선신명조</option>
-                <option value="marubuli">마루 부리</option>
                 <option value="ibmplex">IBM Plex Sans</option>
-                <option value="lineseed">LINE Seed</option>
-                <option value="sarasa">사라사 고딕</option>
-                <option value="suit">SUIT</option>
-                <option value="sourcehan">본명조</option>
-                <option value="kopub">KoPub 바탕</option>
+                <option value="kopub">KoPub World 바탕</option>
+                <option value="kopubdotum">KoPub World 돋움</option>
+                <option value="yeolringothic">열린고딕</option>
+                <option value="yeolrinmyeongjo">열린명조</option>
                 <option value="busan">부산체</option>
               </select>
             </div>
@@ -1139,13 +1072,11 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
               <option value="bookkgothic">부크크 고딕</option>
               <option value="bookkmyungjo">부크크 명조</option>
               <option value="joseon">조선신명조</option>
-              <option value="marubuli">마루 부리</option>
               <option value="ibmplex">IBM Plex Sans</option>
-              <option value="lineseed">LINE Seed</option>
-              <option value="sarasa">사라사 고딕</option>
-              <option value="suit">SUIT</option>
-              <option value="sourcehan">본명조</option>
-              <option value="kopub">KoPub 바탕</option>
+              <option value="kopub">KoPub World 바탕</option>
+              <option value="kopubdotum">KoPub World 돋움</option>
+              <option value="yeolringothic">열린고딕</option>
+              <option value="yeolrinmyeongjo">열린명조</option>
             </select>
           </div>
           
@@ -1824,39 +1755,44 @@ function recolorAllHighlights(newColor) {
   return changed;
 }
 
+// 칸지(한자) 폴백: 일본어 폰트(노토 JP)를 1순위로, JP에 없는 글자는 TC → KR → SC 순서로 채운다.
+// 전부 Source Han 계열이라 굵기·획 느낌이 서로 잘 맞는다.
+const SANS_FB  = "'Noto Sans JP', 'Noto Sans TC', 'Noto Sans KR', 'Noto Sans SC', sans-serif";
+const SERIF_FB = "'Noto Serif JP', 'Noto Serif TC', 'Noto Serif KR', 'Noto Serif SC', serif";
+const FALLBACK_CHAINS = {
+  sans:  [['Noto Sans JP','noto-sans-jp','5.2.9'], ['Noto Sans TC','noto-sans-tc','5.2.9'], ['Noto Sans KR','noto-sans-kr','5.2.9'], ['Noto Sans SC','noto-sans-sc','5.2.9']],
+  serif: [['Noto Serif JP','noto-serif-jp','5.2.8'], ['Noto Serif TC','noto-serif-tc','5.2.9'], ['Noto Serif KR','noto-serif-kr','5.2.9'], ['Noto Serif SC','noto-serif-sc','5.2.9']]
+};
+
 const FONT_DEFS = {
-  pretendard: { name: 'Pretendard JP Variable', sliced: true, hasJp: true, css: "'Pretendard JP Variable', 'Noto Sans JP', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 },
+  pretendard: { name: 'Pretendard JP Variable', kind: 'sans', sliced: true, hasJp: true, css: "'Pretendard JP Variable', " + SANS_FB, weights: { thin: 100, regular: 400, medium: 500, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
-  bookkmyungjo: { name: 'BookkMyungjo', css: "'BookkMyungjo', 'Noto Serif JP', serif",     weights: { regular: 400, bold: 700 },
+  bookkmyungjo: { name: 'BookkMyungjo', kind: 'serif', css: "'BookkMyungjo', " + SERIF_FB,     weights: { regular: 400, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  bookkgothic:  { name: 'BookkGothic', css: "'BookkGothic', 'Noto Sans JP', sans-serif",  weights: { regular: 300, bold: 700 },
+  bookkgothic:  { name: 'BookkGothic', kind: 'sans', css: "'BookkGothic', " + SANS_FB,  weights: { regular: 300, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  presentation: { name: 'Presentation', css: "'Presentation', 'Noto Sans JP', sans-serif", weights: { extralight: 200, regular: 400, bold: 700, black: 900 },
+  presentation: { name: 'Presentation', kind: 'sans', css: "'Presentation', " + SANS_FB, weights: { extralight: 200, regular: 400, bold: 700, black: 900 },
     weightOptions: [ {id:'extralight', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Medium'}, {id:'black', label:'Bold'} ] },
-  nexon: { name: 'NexonLv1Gothic', css: "'NexonLv1Gothic', 'Noto Sans JP', sans-serif", weights: { light: 300, regular: 400, bold: 700 },
+  nexon: { name: 'NexonLv1Gothic', kind: 'sans', css: "'NexonLv1Gothic', " + SANS_FB, weights: { light: 300, regular: 400, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  joseon: { name: 'JoseonMyeongjo', css: "'JoseonMyeongjo', 'Noto Serif JP', serif", weights: { regular: 400, bold: 700 },
+  joseon: { name: 'JoseonMyeongjo', kind: 'serif', css: "'JoseonMyeongjo', " + SERIF_FB, weights: { regular: 400, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', 'Noto Sans JP', sans-serif", weights: { thin: 200, regular: 300, medium: 400, bold: 600 },
+  ibmplex: { name: 'IbmPlexSans', kind: 'sans', css: "'IbmPlexSans', " + SANS_FB, weights: { thin: 200, regular: 300, medium: 400, bold: 600 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
-  marubuli: { name: 'MaruBuri', css: "'MaruBuri', 'Noto Serif JP', serif", weights: { thin: 200, regular: 400, bold: 700 },
-    weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  lineseed: { name: 'LINESeedSansKR', css: "'LINESeedSansKR', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", weights: { thin: 100, regular: 400, bold: 700 },
-    weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  sarasa: { name: 'Sarasa Term K', css: "'Sarasa Term K', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", sliced: true,
-    weights: { extralight: 200, light: 300, regular: 400, semibold: 600, bold: 700 },
-    weightOptions: [ {id:'extralight', label:'ExtraLight'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  sourcehan: { name: 'Noto Serif KR', css: "'Noto Serif KR', 'Source Han Serif K', 'Noto Serif JP', serif", sliced: true,
-    weights: { light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
-    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  suit: { name: 'SUIT', css: "'SUIT', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", lazy: true,
-    weights: { thin: 100, light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
-    weightOptions: [ {id:'thin', label:'Thin'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  kopub: { name: 'KoPub Batang', css: "'KoPub Batang', 'Noto Serif JP', serif", lazy: true,
+  busan: { name: 'Busan', kind: 'sans', css: "'Busan', " + SANS_FB, weights: { regular: 400, bold: 400 },
+    weightOptions: [ {id:'regular', label:'Regular'} ] },
+  kopub: { name: 'KoPubWorld Batang', kind: 'serif', css: "'KoPubWorld Batang', " + SERIF_FB, lazy: true,
     weights: { light: 300, regular: 400, bold: 700 },
-    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  busan: { name: 'Busan', css: "'Busan', 'Noto Sans JP', sans-serif", weights: { regular: 400, bold: 400 },
-    weightOptions: [ {id:'regular', label:'Regular'} ] }
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Medium'}, {id:'bold', label:'Bold'} ] },
+  kopubdotum: { name: 'KoPubWorld Dotum', kind: 'sans', css: "'KoPubWorld Dotum', " + SANS_FB, lazy: true,
+    weights: { light: 300, regular: 400, bold: 700 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Medium'}, {id:'bold', label:'Bold'} ] },
+  yeolringothic: { name: 'Yeolrin Gothic', kind: 'sans', css: "'Yeolrin Gothic', " + SANS_FB, lazy: true,
+    weights: { light: 300, regular: 500, bold: 700 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Medium'}, {id:'bold', label:'Bold'} ] },
+  yeolrinmyeongjo: { name: 'Yeolrin Myeongjo', kind: 'serif', css: "'Yeolrin Myeongjo', " + SERIF_FB, lazy: true,
+    weights: { light: 300, regular: 500, bold: 700 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Medium'}, {id:'bold', label:'Bold'} ] }
 };
 
 function rebuildWeightOptions(selectEl, fontId) {
@@ -3826,14 +3762,19 @@ const DARK_PRESET_DATA = {
 
 const PRESETS_KEY = 'canvas_app_multi_presets_v1';
 
+// 삭제된 폰트(마루부리/본명조/사라사/LINE Seed/SUIT)로 저장된 프리셋은 비슷한 폰트로 대체
+const REMOVED_FONTS = { marubuli: 'kopub', sourcehan: 'kopub', sarasa: 'pretendard', lineseed: 'pretendard', suit: 'pretendard' };
+function migrateFontId(id) { return REMOVED_FONTS[id] || (FONT_DEFS[id] ? id : 'pretendard'); }
+
 function applyPresetData(data, presetName) {
   if (!data) return;
   canvasWidthEl.value = data.canvasWidth; heightModeEl.value = data.heightMode; customHeightWrap.style.display = (heightModeEl.value === 'custom') ? 'block' : 'none';
   canvasHeightEl.value = data.canvasHeight; marginYEl.value = data.marginY; el('marginYVal').textContent = marginYEl.value;
   marginXEl.value = data.marginX; el('marginXVal').textContent = marginXEl.value; bgColorEl.value = data.bgColor;
+  data.fontFamily = migrateFontId(data.fontFamily);
   fontFamilyEl.value = data.fontFamily; lineBreakModeEl.value = data.lineBreakMode; alignEl.value = data.align;
   rebuildWeightOptions(weightEl, data.fontFamily);
-  weightEl.value = data.weight; if (data.quoteWeight !== undefined) quoteWeightEl.value = data.quoteWeight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize; el('fontSizeVal').textContent = fontSizeEl.value;
+  weightEl.value = data.weight; if (!weightEl.value) weightEl.value = 'regular'; if (data.quoteWeight !== undefined) quoteWeightEl.value = data.quoteWeight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize; el('fontSizeVal').textContent = fontSizeEl.value;
   lineHeightEl.value = data.lineHeight; el('lineHeightVal').textContent = lineHeightEl.value; paraSpacingEl.value = data.paraSpacing; paraSpacingValEl.textContent = paraSpacingEl.value;
   letterSpacingEl.value = data.letterSpacing; el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
@@ -3988,16 +3929,18 @@ async function loadFontWeights(defKey) {
 // unicode-range로 분할된 폰트(사라사 고딕/본명조): 지금 화면에 쓰이는 글자 + 굵기만 골라서 로드하고,
 // 로드가 끝나면 캔버스를 다시 그린다 (처음 그릴 땐 대체 폰트로 보일 수 있기 때문)
 const _slicedLoaded = new Set();
-const _jpCssAdded = {};
-function ensureJpCss(fam) {
-  if (_jpCssAdded[fam]) return; _jpCssAdded[fam] = true;
-  [fam === 'Noto Serif JP' ? ['noto-serif-jp', '5.2.8'] : ['noto-sans-jp', '5.2.9']].forEach(([pkg, ver]) => [300, 400, 500, 700].forEach(w => {
-    const l = document.createElement('link');
-    l.rel = 'stylesheet';
-    l.href = `https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/${w}.css`;
-    l.onload = () => { if (window.__fontCssLoaded) window.__fontCssLoaded(); };
-    document.head.appendChild(l);
-  }));
+const _fbCssAdded = {};
+const FB_WEIGHTS = [300, 400, 500, 700];
+function nearestFbWeight(n) { return FB_WEIGHTS.reduce((best, w) => Math.abs(w - n) <= Math.abs(best - n) ? w : best, 400); }
+// 폴백(노토 JP/TC/KR/SC)은 칸지·가나가 실제로 나왔을 때, 쓰는 굵기만 그때서야 불러온다
+function ensureFallbackCss(pkg, ver, weight) {
+  const key = pkg + '|' + weight;
+  if (_fbCssAdded[key]) return; _fbCssAdded[key] = true;
+  const l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = `https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/${weight}.css`;
+  l.onload = () => { if (window.__fontCssLoaded) window.__fontCssLoaded(); };
+  document.head.appendChild(l);
 }
 let _slicedTimer = null;
 function ensureSlicedFonts() {
@@ -4017,24 +3960,29 @@ function ensureSlicedFonts() {
         jobs.push(document.fonts.load(`${n} 16px "${def.name}"`, chars).catch(() => {}));
       });
     };
-    // 일본어(가나)가 들어 있으면 일본어 폴백 폰트(노토 산스/세리프 JP)를 그때서야 불러온다
-    const allText = editorEl.innerText + sourceEl.value + ((el('titleInput') || {}).value || '');
-    if (/[\u3040-\u30ff\u31f0-\u31ff]/.test(allText)) {
-      // 지금 선택된 폰트(본문/제목)가 쓰는 일본어 폴백(산스/세리프)만 불러온다
-      const jpFams = new Set();
-      [fontFamilyEl.value, titleFontFamilyEl.value].forEach(id => {
-        const d = FONT_DEFS[id]; if (!d || d.hasJp) return;
-        jpFams.add(d.css.indexOf('Noto Serif JP') !== -1 ? 'Noto Serif JP' : 'Noto Sans JP');
-      });
-      jpFams.forEach(ensureJpCss);
-      const jpChars = [...new Set(allText.match(/[\u3040-\u30ff\u31f0-\u31ff\u3400-\u9fff\uff00-\uffef]/g) || [])].join('');
-      [...jpFams].forEach(fam => [300, 400, 500, 700].forEach(n => {
-        const key = fam + '|' + n + '|' + jpChars;
+    // 칸지(한자)·가나가 들어 있으면 폴백 폰트(노토 JP → TC → KR → SC)를 불러온다.
+    // (예전엔 가나가 있을 때만 불러서, 칸지만 있는 글은 기기 기본 폰트로 떨어졌음)
+    const cjkAny = /[\u3000-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef\u{20000}-\u{323af}]/gu;
+    const cjkCore = /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\u{20000}-\u{323af}]/u;
+    const addFallback = (fontId, text, weightIds) => {
+      const def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
+      const found = (text || '').match(cjkAny) || [];
+      if (!found.some(c => cjkCore.test(c))) return;
+      const chars = [...new Set(found)].join('');
+      const ws = new Set(weightIds.map(w => nearestFbWeight(def.weights[w] || 400)));
+      ws.add(nearestFbWeight(def.weights.bold || 700));
+      (FALLBACK_CHAINS[def.kind] || FALLBACK_CHAINS.sans).forEach(([fam, pkg, ver]) => ws.forEach(n => {
+        ensureFallbackCss(pkg, ver, n);
+        const key = fam + '|' + n + '|' + chars;
         if (_slicedLoaded.has(key)) return;
         _slicedLoaded.add(key);
-        jobs.push(document.fonts.load(`${n} 16px "${fam}"`, jpChars).catch(() => {}));
+        jobs.push(document.fonts.load(`${n} 16px "${fam}"`, chars).catch(() => {}));
       }));
-    }
+    };
+    const _titleEl = el('titleInput'); const _twEl = el('titleWeight');
+    addFallback(fontFamilyEl.value, editorEl.innerText, [weightEl.value, quoteWeightEl.value]);
+    addFallback(titleFontFamilyEl.value, _titleEl ? _titleEl.value : '', [_twEl ? _twEl.value : 'bold']);
+    addFallback('pretendard', sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''), ['thin', 'regular', 'medium', 'bold']);
     add(fontFamilyEl.value, [weightEl.value, quoteWeightEl.value], editorEl.innerText + sourceEl.value);
     // 출처 줄은 항상 프리텐다드로 그려지므로 그 글자/굵기도 미리 받아둔다
     add('pretendard', ['thin', 'regular', 'medium', 'bold'], sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''));
