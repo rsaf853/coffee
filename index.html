@@ -3,12 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script>
+/* 첫 페인트 전에 테마를 확정해서 (구)핑크 테마가 잠깐 보이는 것을 막는다 */
+(function(){
+  var r = document.documentElement, t = 'light';
+  try {
+    var sv = localStorage.getItem('rosie_editor_theme');
+    if (sv === 'light' || sv === 'dark') t = sv;
+    else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+  } catch (e) {}
+  r.setAttribute('data-theme', t);
+  r.classList.add('no-anim');
+  window.addEventListener('load', function(){
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ r.classList.remove('no-anim'); }); });
+  });
+})();
+</script>
 <title>r♡sieditor</title>
 <link rel="icon" type="image/png" href="images/coffee.png">
   <link rel="apple-touch-icon" href="images/icon1.png">
 <!-- Pretendard 폰트 불러오기 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<!-- 사라사 고딕 (Sarasa Term K, 한글 포함 / unicode-range 분할) — 렌더링을 막지 않도록 비동기 로드 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/200.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/300.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/400.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/600.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@elgar328/sarasa-term-k@1.0.42/700.css" media="print" onload="this.media='all'">
+<!-- 본명조 (Source Han Serif = Noto Serif KR 와 동일 디자인) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/300.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/400.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/500.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/600.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-kr@5.2.9/700.css" media="print" onload="this.media='all'">
 <style>
+  /* LINE Seed Sans KR - 굵기 3가지 (100 / 400 / 700) */
+  @font-face {
+    font-family: 'LINESeedSansKR';
+    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Th.woff2') format('woff2');
+    font-weight: 100;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LINESeedSansKR';
+    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Rg.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'LINESeedSansKR';
+    src: url('https://cdn.jsdelivr.net/npm/@fontpkg/line-seed-sans-kr@1.0.1/LINESeedSansKR-Bd.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+
   @font-face {
     font-family: 'BookkMyungjo';
     src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2302@1.0/BookkMyungjo-Lt.woff2') format('woff2');
@@ -848,7 +896,8 @@
 
 
 <style id="unify">
-html,html[data-theme="light"]{--bg-app:#fff;--bg-canvas-area:#f6f6f6;--bg-panel:#fff;--bg-card:#fff;--dot-color:transparent;--canvas-vignette:linear-gradient(#f6f6f6,#f6f6f6);--border-soft:#eee;--border:#e4e4e4;--border-strong:#bdbdbd;--ink:#000;--ink-soft:#6b6b6b;--ink-faint:#9a9a9a;--ink-placeholder:#cfcfcf;--accent:#000;--accent-strong:#000;--accent-ink:#fff;--accent-soft:#f6f6f6;--danger:#c62828;--danger-bg:#fff;--danger-border:#e4e4e4;--heart:#000;--track-empty:#e4e4e4;--shadow-bar:none;--shadow-card:none}
+html.no-anim *,html.no-anim *::before,html.no-anim *::after{transition:none !important}
+:root,html[data-theme="light"]{--bg-app:#fff;--bg-canvas-area:#f6f6f6;--bg-panel:#fff;--bg-card:#fff;--dot-color:transparent;--canvas-vignette:linear-gradient(#f6f6f6,#f6f6f6);--border-soft:#eee;--border:#e4e4e4;--border-strong:#bdbdbd;--ink:#000;--ink-soft:#6b6b6b;--ink-faint:#9a9a9a;--ink-placeholder:#cfcfcf;--accent:#000;--accent-strong:#000;--accent-ink:#fff;--accent-soft:#f6f6f6;--danger:#c62828;--danger-bg:#fff;--danger-border:#e4e4e4;--heart:#000;--track-empty:#e4e4e4;--shadow-bar:none;--shadow-card:none}
 html[data-theme="dark"]{--bg-app:#000;--bg-canvas-area:#111;--bg-panel:#000;--bg-card:#000;--dot-color:transparent;--canvas-vignette:linear-gradient(#111,#111);--border-soft:#1a1a1a;--border:#2a2a2a;--border-strong:#555;--ink:#fff;--ink-soft:#aaa;--ink-faint:#777;--ink-placeholder:#444;--accent:#fff;--accent-strong:#fff;--accent-ink:#000;--accent-soft:#111;--danger:#ff6b6b;--danger-bg:#000;--danger-border:#2a2a2a;--heart:#fff;--track-empty:#2a2a2a;--shadow-bar:none;--shadow-card:none}
 *,*::before,*::after{border-radius:0 !important}
 body{letter-spacing:-0.03em}
@@ -894,6 +943,9 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
   <span style="font-family:'IbmPlexSans'">.</span>
   <span style="font-family:'MaruBuri'">.</span>
   <span style="font-family:'Busan'">.</span>
+  <span style="font-family:'LINESeedSansKR'">.</span>
+  <span style="font-family:'Sarasa Term K'">.</span>
+  <span style="font-family:'Noto Serif KR'">.</span>
 </div>
 
 <main>
@@ -1052,6 +1104,9 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
                 <option value="joseon">조선신명조</option>
                 <option value="marubuli">마루 부리</option>
                 <option value="ibmplex">IBM Plex Sans</option>
+                <option value="lineseed">LINE Seed</option>
+                <option value="sarasa">사라사 고딕</option>
+                <option value="sourcehan">본명조 (Source Han Serif)</option>
                 <option value="busan">부산체</option>
               </select>
             </div>
@@ -1074,6 +1129,9 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
               <option value="joseon">조선신명조</option>
               <option value="marubuli">마루 부리</option>
               <option value="ibmplex">IBM Plex Sans</option>
+              <option value="lineseed">LINE Seed</option>
+              <option value="sarasa">사라사 고딕</option>
+              <option value="sourcehan">본명조 (Source Han Serif)</option>
             </select>
           </div>
           
@@ -1257,6 +1315,12 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Va
               <label>" " 안 색상</label>
               <input type="color" id="quoteColor" value="#000000">
             </div>
+          </div>
+          <div class="field" style="margin-top: 10px; margin-bottom: 0;">
+            <label>" " 안 굵기</label>
+            <select id="quoteWeight">
+              <option value="inherit">기본 굵기와 동일</option>
+            </select>
           </div>
         </div>
       </details>
@@ -1536,6 +1600,7 @@ const highlightTextColorEl = el('highlightTextColor');
 const hiTextColorToggleEl = el('hiTextColorToggle');
 const asteriskColorEl = el('asteriskColor');
 const quoteColorEl = el('quoteColor');
+const quoteWeightEl = el('quoteWeight');
 const letterSpacingEl = el('letterSpacing');
 const paraSpacingEl = el('paraSpacing'); 
 const paraSpacingValEl = el('paraSpacingVal');
@@ -1762,6 +1827,14 @@ const FONT_DEFS = {
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
   marubuli: { name: 'MaruBuri', css: "'MaruBuri', serif", weights: { thin: 200, regular: 400, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
+  lineseed: { name: 'LINESeedSansKR', css: "'LINESeedSansKR', 'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, bold: 700 },
+    weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
+  sarasa: { name: 'Sarasa Term K', css: "'Sarasa Term K', 'Pretendard Variable', sans-serif", sliced: true,
+    weights: { extralight: 200, light: 300, regular: 400, semibold: 600, bold: 700 },
+    weightOptions: [ {id:'extralight', label:'ExtraLight'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
+  sourcehan: { name: 'Noto Serif KR', css: "'Noto Serif KR', 'Source Han Serif K', serif", sliced: true,
+    weights: { light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
+    weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
   busan: { name: 'Busan', css: "'Busan', sans-serif", weights: { regular: 400, bold: 400 },
     weightOptions: [ {id:'regular', label:'Regular'} ] }
 };
@@ -1774,6 +1847,18 @@ function rebuildWeightOptions(selectEl, fontId) {
   selectEl.innerHTML = opts.map(o => `<option value="${o.id}">${o.label}</option>`).join('');
   const target = opts.some(o => o.id === prev) ? prev : (opts.some(o => o.id === 'regular') ? 'regular' : (opts[0] ? opts[0].id : ''));
   if (target) selectEl.value = target;
+  if (selectEl === weightEl) rebuildQuoteWeightOptions(fontId);
+}
+
+// " " 안 굵기: '기본 굵기와 동일' + 현재 폰트가 지원하는 굵기들
+function rebuildQuoteWeightOptions(fontId) {
+  if (!quoteWeightEl) return;
+  const def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
+  const opts = def.weightOptions || [];
+  const prev = quoteWeightEl.value;
+  quoteWeightEl.innerHTML = '<option value="inherit">기본 굵기와 동일</option>' +
+    opts.map(o => `<option value="${o.id}">${o.label}</option>`).join('');
+  quoteWeightEl.value = opts.some(o => o.id === prev) ? prev : 'inherit';
 }
 
 let currentPage = 0;
@@ -2920,7 +3005,9 @@ editorEl.addEventListener('paste', (e) => {
 function getFontStr(fmt, size) {
   let fontId = fontFamilyEl.value;
   let def = FONT_DEFS[fontId] || FONT_DEFS['pretendard'];
-  let wId = weightEl.value; if (fmt.bold) wId = 'bold';
+  let wId = weightEl.value;
+  if (fmt.isQuote && quoteWeightEl && quoteWeightEl.value && quoteWeightEl.value !== 'inherit' && def.weights[quoteWeightEl.value]) wId = quoteWeightEl.value;
+  if (fmt.bold) wId = 'bold';
   let wNum = def.weights[wId] || 400;
   let st = fmt.italic ? "italic " : "";
   return `${st}${wNum} ${size}px ${def.css}`;
@@ -3343,6 +3430,7 @@ function computePages() {
 }
 
 function draw() {
+  if (typeof ensureSlicedFonts === 'function') ensureSlicedFonts();
   const { pages, cWidth, cHeight, lh, size, my, mx, contentWidth, ls, titleHeightSpace, indentPx, isBodyImgColumn, isBodyImgBand, bodyImgTopOffset } = computePages();
   
   if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
@@ -3725,7 +3813,7 @@ function applyPresetData(data, presetName) {
   marginXEl.value = data.marginX; el('marginXVal').textContent = marginXEl.value; bgColorEl.value = data.bgColor;
   fontFamilyEl.value = data.fontFamily; lineBreakModeEl.value = data.lineBreakMode; alignEl.value = data.align;
   rebuildWeightOptions(weightEl, data.fontFamily);
-  weightEl.value = data.weight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize; el('fontSizeVal').textContent = fontSizeEl.value;
+  weightEl.value = data.weight; if (data.quoteWeight !== undefined) quoteWeightEl.value = data.quoteWeight; textColorEl.value = data.textColor; fontSizeEl.value = data.fontSize; el('fontSizeVal').textContent = fontSizeEl.value;
   lineHeightEl.value = data.lineHeight; el('lineHeightVal').textContent = lineHeightEl.value; paraSpacingEl.value = data.paraSpacing; paraSpacingValEl.textContent = paraSpacingEl.value;
   letterSpacingEl.value = data.letterSpacing; el('letterSpacingVal').textContent = letterSpacingEl.value; scaleXEl.value = data.scaleX; el('scaleXVal').textContent = scaleXEl.value;
   asteriskColorEl.value = data.asteriskColor; quoteColorEl.value = data.quoteColor; sourceColorEl.value = data.sourceColor;
@@ -3783,7 +3871,7 @@ el('savePresetBtn').addEventListener('click', () => {
     canvasWidth: canvasWidthEl.value, heightMode: heightModeEl.value, canvasHeight: canvasHeightEl.value,
     marginY: marginYEl.value, marginX: marginXEl.value, bgColor: bgColorEl.value,
     fontFamily: fontFamilyEl.value, lineBreakMode: lineBreakModeEl.value, align: alignEl.value,
-    weight: weightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
+    weight: weightEl.value, quoteWeight: quoteWeightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
     lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
     scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
     sourceColor: sourceColorEl.value, sourceWeight: sourceWeightEl.value, sourceLetterSpacing: sourceLetterSpacingEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
@@ -3851,7 +3939,7 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   });
 });
 
-[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl, sourceWeightEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
+[sourceEl, sourceNameEl, sourceAlignEl, sourcePositionEl, bgColorEl, textColorEl, lineBreakModeEl, weightEl, alignEl, sourceColorEl, vAlignEl, sourceWeightEl, quoteWeightEl].forEach(item => { if (item) { item.addEventListener('input', scheduleDraw); item.addEventListener('change', scheduleDraw); } });
 sourceAlignEl.addEventListener('change', scheduleDraw);
 
 if (sourceSepWrapEl) {
@@ -3868,11 +3956,43 @@ if (sourceSepWrapEl) {
 async function loadFontWeights(defKey) {
   const def = FONT_DEFS[defKey];
   if (!def || !def.name || !document.fonts) return;
+  // 사라사/본명조는 unicode-range로 잘게 나뉘어 있어서 글자를 넘기지 않으면 한글 조각이 안 받아진다.
+  // 여기서는 부담이 큰 전체 굵기 선로딩을 하지 않고(ensureSlicedFonts가 실제 쓰는 글자/굵기만 로드)
+  if (def.sliced) return;
   const uniqueWeights = [...new Set(Object.values(def.weights))];
   await Promise.all(uniqueWeights.map(w =>
     document.fonts.load(`${w} 16px "${def.name}"`).catch(err => console.warn('폰트 로드 실패:', def.name, w, err))
   ));
 }
+
+// unicode-range로 분할된 폰트(사라사 고딕/본명조): 지금 화면에 쓰이는 글자 + 굵기만 골라서 로드하고,
+// 로드가 끝나면 캔버스를 다시 그린다 (처음 그릴 땐 대체 폰트로 보일 수 있기 때문)
+const _slicedLoaded = new Set();
+let _slicedTimer = null;
+function ensureSlicedFonts() {
+  if (!document.fonts) return;
+  clearTimeout(_slicedTimer);
+  _slicedTimer = setTimeout(() => {
+    const jobs = [];
+    const add = (fontId, weightIds, text) => {
+      const def = FONT_DEFS[fontId];
+      if (!def || !def.sliced) return;
+      const chars = [...new Set((text || '') + ' 가나다0123abcABC.,"\'*')].join('');
+      const nums = [...new Set(weightIds.map(w => def.weights[w]).filter(Boolean).concat([def.weights.bold]))];
+      nums.forEach(n => {
+        const key = def.name + '|' + n + '|' + chars;
+        if (_slicedLoaded.has(key)) return;
+        _slicedLoaded.add(key);
+        jobs.push(document.fonts.load(`${n} 16px "${def.name}"`, chars).catch(() => {}));
+      });
+    };
+    add(fontFamilyEl.value, [weightEl.value, quoteWeightEl.value], editorEl.innerText + sourceEl.value);
+    const tw = el('titleWeight');
+    add(titleFontFamilyEl.value, [tw ? tw.value : 'bold'], (el('titleInput') || {}).value);
+    if (jobs.length) Promise.all(jobs).then(() => scheduleDraw());
+  }, 120);
+}
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => scheduleDraw());
 
 fontFamilyEl.addEventListener('change', async (e) => {
   rebuildWeightOptions(weightEl, e.target.value);
