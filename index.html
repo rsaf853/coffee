@@ -1769,6 +1769,52 @@ const FALLBACK_CHAINS = {
           ['Noto Serif KR','noto-serif-kr','5.2.9',[300,400,500,700]], ['Noto Serif SC','noto-serif-sc','5.2.9',[300,400,500,700]]]
 };
 
+// 일본어(가나·칸지·일본어 문장부호)는 어떤 폰트를 골라도 BIZ UDP 고딕/명조로 따로 그린다.
+// 'JP Sans' / 'JP Serif' 는 BIZ UDP 폰트에서 일본어 글자 범위만 떼어 만든 별칭이라
+// 한글·영문·숫자는 선택한 폰트 그대로 나온다. (폰트 CSS를 받아서 unicode-range를 일본어로 한정)
+const JP_ALIAS = {
+  sans:  { family: 'JP Sans',  pkg: 'biz-udpgothic', ver: '5.2.9' },
+  serif: { family: 'JP Serif', pkg: 'biz-udpmincho', ver: '5.2.7' }
+};
+const JP_RANGES = [[0x3000,0x30ff],[0x31f0,0x31ff],[0x3400,0x4dbf],[0x4e00,0x9fff],[0xf900,0xfaff],[0xff00,0xffef],[0x20000,0x3ffff]];
+function parseUnicodeRange(str) {
+  return str.split(',').map(t => t.trim().replace(/^U\+/i, '')).filter(Boolean).map(t => {
+    if (t.indexOf('?') !== -1) return [parseInt(t.replace(/\?/g, '0'), 16), parseInt(t.replace(/\?/g, 'F'), 16)];
+    const p = t.split('-'); const lo = parseInt(p[0], 16); return [lo, p[1] ? parseInt(p[1], 16) : lo];
+  });
+}
+function clipToJapanese(ranges) {
+  const out = [];
+  ranges.forEach(([a, b]) => JP_RANGES.forEach(([c, d]) => {
+    const lo = Math.max(a, c), hi = Math.min(b, d);
+    if (lo <= hi) out.push('U+' + lo.toString(16) + (lo === hi ? '' : '-' + hi.toString(16)));
+  }));
+  return out.join(',');
+}
+function jpAliasWeight(n) { return n >= 600 ? 700 : 400; }   // BIZ UDP는 400 / 700 두 가지
+const _jpAliasAdded = {};
+function ensureJpAlias(kind, weight) {
+  const a = JP_ALIAS[kind] || JP_ALIAS.sans, key = a.family + '|' + weight;
+  if (_jpAliasAdded[key]) return; _jpAliasAdded[key] = true;
+  const base = `https://cdn.jsdelivr.net/npm/@fontsource/${a.pkg}@${a.ver}/`;
+  fetch(base + weight + '.css').then(r => r.text()).then(css => {
+    const out = [];
+    (css.match(/@font-face\s*\{[^}]*\}/g) || []).forEach(rule => {
+      const ur = rule.match(/unicode-range:\s*([^;]+);/), src = rule.match(/src:\s*([^;]+);/);
+      if (!ur || !src) return;
+      const range = clipToJapanese(parseUnicodeRange(ur[1]));
+      if (!range) return;
+      const url = src[1].replace(/url\((['"]?)\.\//g, 'url($1' + base);
+      out.push(`@font-face{font-family:'${a.family}';font-style:normal;font-weight:${weight};font-display:swap;src:${url};unicode-range:${range};}`);
+    });
+    if (!out.length) return;
+    const st = document.createElement('style');
+    st.textContent = out.join('\n');
+    document.head.appendChild(st);
+    if (window.__fontCssLoaded) window.__fontCssLoaded();
+  }).catch(err => { _jpAliasAdded[key] = false; console.warn('BIZ UDP 일본어 폰트 로드 실패:', err); });
+}
+
 const FONT_DEFS = {
   pretendard: { name: 'Pretendard JP Variable', kind: 'sans', sliced: true, hasJp: true, css: "'Pretendard JP Variable', " + SANS_FB, weights: { thin: 100, regular: 400, medium: 500, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
@@ -1799,6 +1845,9 @@ const FONT_DEFS = {
     weights: { light: 300, regular: 500, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Medium'}, {id:'bold', label:'Bold'} ] }
 };
+
+// 모든 폰트의 맨 앞에 일본어 전용 별칭을 붙인다 (일본어 글자만 가로채고 나머지는 아래 폰트로 내려감)
+Object.keys(FONT_DEFS).forEach(k => { const d = FONT_DEFS[k]; d.css = `'${(JP_ALIAS[d.kind] || JP_ALIAS.sans).family}', ` + d.css; });
 
 function rebuildWeightOptions(selectEl, fontId) {
   if (!selectEl) return;
@@ -3975,6 +4024,14 @@ function ensureSlicedFonts() {
       const chars = [...new Set(found)].join('');
       const want = new Set(weightIds.map(w => def.weights[w] || 400));
       want.add(def.weights.bold || 700);
+      const jp = JP_ALIAS[def.kind] || JP_ALIAS.sans;
+      new Set([...want].map(jpAliasWeight)).forEach(n => {
+        ensureJpAlias(def.kind || 'sans', n);
+        const key = jp.family + '|' + n + '|' + chars;
+        if (_slicedLoaded.has(key)) return;
+        _slicedLoaded.add(key);
+        jobs.push(document.fonts.load(`${n} 16px "${jp.family}"`, chars).catch(() => {}));
+      });
       (FALLBACK_CHAINS[def.kind] || FALLBACK_CHAINS.sans).forEach(([fam, pkg, ver, list]) => new Set([...want].map(w => nearestFbWeight(w, list))).forEach(n => {
         ensureFallbackCss(pkg, ver, n);
         const key = fam + '|' + n + '|' + chars;
