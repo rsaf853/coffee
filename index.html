@@ -22,8 +22,8 @@
 <title>r♡sieditor</title>
 <link rel="icon" type="image/png" href="images/coffee.png">
   <link rel="apple-touch-icon" href="images/icon1.png">
-<!-- Pretendard 폰트 불러오기 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
+<!-- Pretendard JP 폰트 불러오기 (한글+일본어, 필요한 글자 조각만 로드) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-jp-dynamic-subset.min.css">
 <!-- SUIT (static, 굵기별 woff2) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/static/woff2/SUIT.css" media="print" onload="this.media='all';window.__fontCssLoaded&&window.__fontCssLoaded()">
 <!-- 사라사 고딕 (Sarasa Term K, 한글 포함 / unicode-range 분할) — 렌더링을 막지 않도록 비동기 로드 -->
@@ -281,7 +281,7 @@
 
   body, html {
     margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    font-family: 'Pretendard JP Variable', -apple-system, sans-serif;
     background: var(--bg-app);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
@@ -937,7 +937,7 @@ details.panel-section summary{display:none}
 .field label{font-size:10.5px;font-weight:600;color:var(--ink-faint)}
 .field input[type=text],.field input[type=number],.field select{border-color:var(--border)}
 .field input[type=text]:focus,.field input[type=number]:focus,.field select:focus{border-color:var(--ink);box-shadow:none}
-html,body,button,input,textarea,select,option,summary{font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif !important}
+html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif !important}
 </style>
 </head>
 <body>
@@ -1825,37 +1825,37 @@ function recolorAllHighlights(newColor) {
 }
 
 const FONT_DEFS = {
-  pretendard: { name: 'Pretendard Variable', css: "'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 },
+  pretendard: { name: 'Pretendard JP Variable', sliced: true, hasJp: true, css: "'Pretendard JP Variable', 'Noto Sans JP', sans-serif", weights: { thin: 100, regular: 400, medium: 500, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
-  bookkmyungjo: { name: 'BookkMyungjo', css: "'BookkMyungjo', serif",     weights: { regular: 400, bold: 700 },
+  bookkmyungjo: { name: 'BookkMyungjo', css: "'BookkMyungjo', 'Noto Serif JP', serif",     weights: { regular: 400, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  bookkgothic:  { name: 'BookkGothic', css: "'BookkGothic', sans-serif",  weights: { regular: 300, bold: 700 },
+  bookkgothic:  { name: 'BookkGothic', css: "'BookkGothic', 'Noto Sans JP', sans-serif",  weights: { regular: 300, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  presentation: { name: 'Presentation', css: "'Presentation', sans-serif", weights: { extralight: 200, regular: 400, bold: 700, black: 900 },
+  presentation: { name: 'Presentation', css: "'Presentation', 'Noto Sans JP', sans-serif", weights: { extralight: 200, regular: 400, bold: 700, black: 900 },
     weightOptions: [ {id:'extralight', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Medium'}, {id:'black', label:'Bold'} ] },
-  nexon: { name: 'NexonLv1Gothic', css: "'NexonLv1Gothic', sans-serif", weights: { light: 300, regular: 400, bold: 700 },
+  nexon: { name: 'NexonLv1Gothic', css: "'NexonLv1Gothic', 'Noto Sans JP', sans-serif", weights: { light: 300, regular: 400, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  joseon: { name: 'JoseonMyeongjo', css: "'JoseonMyeongjo', serif", weights: { regular: 400, bold: 700 },
+  joseon: { name: 'JoseonMyeongjo', css: "'JoseonMyeongjo', 'Noto Serif JP', serif", weights: { regular: 400, bold: 700 },
     weightOptions: [ {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', sans-serif", weights: { thin: 200, regular: 300, medium: 400, bold: 600 },
+  ibmplex: { name: 'IbmPlexSans', css: "'IbmPlexSans', 'Noto Sans JP', sans-serif", weights: { thin: 200, regular: 300, medium: 400, bold: 600 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'bold', label:'Bold'} ] },
-  marubuli: { name: 'MaruBuri', css: "'MaruBuri', serif", weights: { thin: 200, regular: 400, bold: 700 },
+  marubuli: { name: 'MaruBuri', css: "'MaruBuri', 'Noto Serif JP', serif", weights: { thin: 200, regular: 400, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  lineseed: { name: 'LINESeedSansKR', css: "'LINESeedSansKR', 'Pretendard Variable', sans-serif", weights: { thin: 100, regular: 400, bold: 700 },
+  lineseed: { name: 'LINESeedSansKR', css: "'LINESeedSansKR', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", weights: { thin: 100, regular: 400, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  sarasa: { name: 'Sarasa Term K', css: "'Sarasa Term K', 'Pretendard Variable', sans-serif", sliced: true,
+  sarasa: { name: 'Sarasa Term K', css: "'Sarasa Term K', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", sliced: true,
     weights: { extralight: 200, light: 300, regular: 400, semibold: 600, bold: 700 },
     weightOptions: [ {id:'extralight', label:'ExtraLight'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  sourcehan: { name: 'Noto Serif KR', css: "'Noto Serif KR', 'Source Han Serif K', serif", sliced: true,
+  sourcehan: { name: 'Noto Serif KR', css: "'Noto Serif KR', 'Source Han Serif K', 'Noto Serif JP', serif", sliced: true,
     weights: { light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  suit: { name: 'SUIT', css: "'SUIT', 'Pretendard Variable', sans-serif", lazy: true,
+  suit: { name: 'SUIT', css: "'SUIT', 'Pretendard JP Variable', 'Noto Sans JP', sans-serif", lazy: true,
     weights: { thin: 100, light: 300, regular: 400, medium: 500, semibold: 600, bold: 700 },
     weightOptions: [ {id:'thin', label:'Thin'}, {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'medium', label:'Medium'}, {id:'semibold', label:'SemiBold'}, {id:'bold', label:'Bold'} ] },
-  kopub: { name: 'KoPub Batang', css: "'KoPub Batang', serif", lazy: true,
+  kopub: { name: 'KoPub Batang', css: "'KoPub Batang', 'Noto Serif JP', serif", lazy: true,
     weights: { light: 300, regular: 400, bold: 700 },
     weightOptions: [ {id:'light', label:'Light'}, {id:'regular', label:'Regular'}, {id:'bold', label:'Bold'} ] },
-  busan: { name: 'Busan', css: "'Busan', sans-serif", weights: { regular: 400, bold: 400 },
+  busan: { name: 'Busan', css: "'Busan', 'Noto Sans JP', sans-serif", weights: { regular: 400, bold: 400 },
     weightOptions: [ {id:'regular', label:'Regular'} ] }
 };
 
@@ -3988,6 +3988,17 @@ async function loadFontWeights(defKey) {
 // unicode-range로 분할된 폰트(사라사 고딕/본명조): 지금 화면에 쓰이는 글자 + 굵기만 골라서 로드하고,
 // 로드가 끝나면 캔버스를 다시 그린다 (처음 그릴 땐 대체 폰트로 보일 수 있기 때문)
 const _slicedLoaded = new Set();
+const _jpCssAdded = {};
+function ensureJpCss(fam) {
+  if (_jpCssAdded[fam]) return; _jpCssAdded[fam] = true;
+  [fam === 'Noto Serif JP' ? ['noto-serif-jp', '5.2.8'] : ['noto-sans-jp', '5.2.9']].forEach(([pkg, ver]) => [300, 400, 500, 700].forEach(w => {
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = `https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/${w}.css`;
+    l.onload = () => { if (window.__fontCssLoaded) window.__fontCssLoaded(); };
+    document.head.appendChild(l);
+  }));
+}
 let _slicedTimer = null;
 function ensureSlicedFonts() {
   if (!document.fonts) return;
@@ -4006,7 +4017,27 @@ function ensureSlicedFonts() {
         jobs.push(document.fonts.load(`${n} 16px "${def.name}"`, chars).catch(() => {}));
       });
     };
+    // 일본어(가나)가 들어 있으면 일본어 폴백 폰트(노토 산스/세리프 JP)를 그때서야 불러온다
+    const allText = editorEl.innerText + sourceEl.value + ((el('titleInput') || {}).value || '');
+    if (/[\u3040-\u30ff\u31f0-\u31ff]/.test(allText)) {
+      // 지금 선택된 폰트(본문/제목)가 쓰는 일본어 폴백(산스/세리프)만 불러온다
+      const jpFams = new Set();
+      [fontFamilyEl.value, titleFontFamilyEl.value].forEach(id => {
+        const d = FONT_DEFS[id]; if (!d || d.hasJp) return;
+        jpFams.add(d.css.indexOf('Noto Serif JP') !== -1 ? 'Noto Serif JP' : 'Noto Sans JP');
+      });
+      jpFams.forEach(ensureJpCss);
+      const jpChars = [...new Set(allText.match(/[\u3040-\u30ff\u31f0-\u31ff\u3400-\u9fff\uff00-\uffef]/g) || [])].join('');
+      [...jpFams].forEach(fam => [300, 400, 500, 700].forEach(n => {
+        const key = fam + '|' + n + '|' + jpChars;
+        if (_slicedLoaded.has(key)) return;
+        _slicedLoaded.add(key);
+        jobs.push(document.fonts.load(`${n} 16px "${fam}"`, jpChars).catch(() => {}));
+      }));
+    }
     add(fontFamilyEl.value, [weightEl.value, quoteWeightEl.value], editorEl.innerText + sourceEl.value);
+    // 출처 줄은 항상 프리텐다드로 그려지므로 그 글자/굵기도 미리 받아둔다
+    add('pretendard', ['thin', 'regular', 'medium', 'bold'], sourceEl.value + ((typeof sourceNameEl !== 'undefined' && sourceNameEl) ? sourceNameEl.value : ''));
     const tw = el('titleWeight');
     add(titleFontFamilyEl.value, [tw ? tw.value : 'bold'], (el('titleInput') || {}).value);
     if (jobs.length) Promise.all(jobs).then(() => scheduleDraw());
