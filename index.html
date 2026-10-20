@@ -1755,13 +1755,18 @@ function recolorAllHighlights(newColor) {
   return changed;
 }
 
-// 칸지(한자) 폴백: 일본어 폰트(노토 JP)를 1순위로, JP에 없는 글자는 TC → KR → SC 순서로 채운다.
-// 전부 Source Han 계열이라 굵기·획 느낌이 서로 잘 맞는다.
-const SANS_FB  = "'Noto Sans JP', 'Noto Sans TC', 'Noto Sans KR', 'Noto Sans SC', sans-serif";
-const SERIF_FB = "'Noto Serif JP', 'Noto Serif TC', 'Noto Serif KR', 'Noto Serif SC', serif";
+// 칸지(한자)·가나 폴백 순서. 일본어 전용 폰트를 먼저 쓰고, 거기 없는 글자만 노토(JP → TC → KR → SC)가 채운다.
+//   고딕: Zen Kaku Gothic New  /  명조: Shippori Mincho
+//   바꾸고 싶으면 아래 첫 줄의 이름·패키지·버전·굵기만 교체 (예: 'Zen Old Mincho' / 'zen-old-mincho')
+const SANS_FB  = "'Zen Kaku Gothic New', 'Noto Sans JP', 'Noto Sans TC', 'Noto Sans KR', 'Noto Sans SC', sans-serif";
+const SERIF_FB = "'Shippori Mincho', 'Noto Serif JP', 'Noto Serif TC', 'Noto Serif KR', 'Noto Serif SC', serif";
 const FALLBACK_CHAINS = {
-  sans:  [['Noto Sans JP','noto-sans-jp','5.2.9'], ['Noto Sans TC','noto-sans-tc','5.2.9'], ['Noto Sans KR','noto-sans-kr','5.2.9'], ['Noto Sans SC','noto-sans-sc','5.2.9']],
-  serif: [['Noto Serif JP','noto-serif-jp','5.2.8'], ['Noto Serif TC','noto-serif-tc','5.2.9'], ['Noto Serif KR','noto-serif-kr','5.2.9'], ['Noto Serif SC','noto-serif-sc','5.2.9']]
+  sans:  [['Zen Kaku Gothic New','zen-kaku-gothic-new','5.2.7',[300,400,500,700,900]],
+          ['Noto Sans JP','noto-sans-jp','5.2.9',[300,400,500,700]], ['Noto Sans TC','noto-sans-tc','5.2.9',[300,400,500,700]],
+          ['Noto Sans KR','noto-sans-kr','5.2.9',[300,400,500,700]], ['Noto Sans SC','noto-sans-sc','5.2.9',[300,400,500,700]]],
+  serif: [['Shippori Mincho','shippori-mincho','5.2.8',[400,500,600,700,800]],
+          ['Noto Serif JP','noto-serif-jp','5.2.8',[300,400,500,700]], ['Noto Serif TC','noto-serif-tc','5.2.9',[300,400,500,700]],
+          ['Noto Serif KR','noto-serif-kr','5.2.9',[300,400,500,700]], ['Noto Serif SC','noto-serif-sc','5.2.9',[300,400,500,700]]]
 };
 
 const FONT_DEFS = {
@@ -3930,8 +3935,7 @@ async function loadFontWeights(defKey) {
 // 로드가 끝나면 캔버스를 다시 그린다 (처음 그릴 땐 대체 폰트로 보일 수 있기 때문)
 const _slicedLoaded = new Set();
 const _fbCssAdded = {};
-const FB_WEIGHTS = [300, 400, 500, 700];
-function nearestFbWeight(n) { return FB_WEIGHTS.reduce((best, w) => Math.abs(w - n) <= Math.abs(best - n) ? w : best, 400); }
+function nearestFbWeight(n, list) { return list.reduce((best, w) => Math.abs(w - n) <= Math.abs(best - n) ? w : best, list[0]); }
 // 폴백(노토 JP/TC/KR/SC)은 칸지·가나가 실제로 나왔을 때, 쓰는 굵기만 그때서야 불러온다
 function ensureFallbackCss(pkg, ver, weight) {
   const key = pkg + '|' + weight;
@@ -3969,9 +3973,9 @@ function ensureSlicedFonts() {
       const found = (text || '').match(cjkAny) || [];
       if (!found.some(c => cjkCore.test(c))) return;
       const chars = [...new Set(found)].join('');
-      const ws = new Set(weightIds.map(w => nearestFbWeight(def.weights[w] || 400)));
-      ws.add(nearestFbWeight(def.weights.bold || 700));
-      (FALLBACK_CHAINS[def.kind] || FALLBACK_CHAINS.sans).forEach(([fam, pkg, ver]) => ws.forEach(n => {
+      const want = new Set(weightIds.map(w => def.weights[w] || 400));
+      want.add(def.weights.bold || 700);
+      (FALLBACK_CHAINS[def.kind] || FALLBACK_CHAINS.sans).forEach(([fam, pkg, ver, list]) => new Set([...want].map(w => nearestFbWeight(w, list))).forEach(n => {
         ensureFallbackCss(pkg, ver, n);
         const key = fam + '|' + n + '|' + chars;
         if (_slicedLoaded.has(key)) return;
