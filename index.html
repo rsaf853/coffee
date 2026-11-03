@@ -3847,7 +3847,15 @@ function draw() {
       ctx.save();
       ctx.font = getFontStr({ bold: true }, size);
       ctx.fillStyle = lineDialogueNameColor || textColorEl.value;
-      ctx.fillText(lineDialogueName, mx + quoteShift, y);
+      // 본문과 똑같이 가로 비율(scaleX)과 자간(ls)을 적용해서 그린다
+      ctx.translate(mx + quoteShift, y); ctx.scale(scaleX, 1);
+      if (lineBreakModeEl.value === 'char') { ctx.fillText(lineDialogueName, 0, 0); }
+      else {
+        let ncx = 0;
+        for (let i = 0; i < lineDialogueName.length; i++) {
+          ctx.fillText(lineDialogueName[i], ncx, 0); ncx += ctx.measureText(lineDialogueName[i]).width + ls;
+        }
+      }
       ctx.restore();
     }
     
@@ -3962,13 +3970,16 @@ function draw() {
     const isBelowText = !!(sourcePositionEl && sourcePositionEl.value === 'belowText');
     // 본문 바로 아래 옵션일 땐 본문과 동일한 좌우 여백(mx)을 기준으로,
     // 하단 고정 옵션일 땐 기존 고정 여백(fixedPaddingSide)을 기준으로 정렬
-    const sourcePaddingSide = isBelowText ? mx : fixedPaddingSide;
-    let sourceX = cWidth - sourcePaddingSide - tw;
+    // 본문 바로 아래일 땐 '본문 글이 실제로 놓이는 영역'(좌/우 사진 때문에 줄어든 영역 포함)
+    // 의 왼쪽(mx)~오른쪽(mx+contentWidth) 기준으로 정렬한다
+    const srcRegL = isBelowText ? mx : fixedPaddingSide;
+    const srcRegR = isBelowText ? mx + contentWidth : cWidth - fixedPaddingSide;
+    let sourceX = srcRegR - tw;
     const sAlign = sourceAlignEl.value;
     if (sAlign === 'left') {
-      sourceX = sourcePaddingSide;
+      sourceX = srcRegL;
     } else if (sAlign === 'center') {
-      sourceX = (cWidth - tw) / 2;
+      sourceX = isBelowText ? srcRegL + (srcRegR - srcRegL - tw) / 2 : (cWidth - tw) / 2;
     }
 
     let sourceY = cHeight - fixedPaddingBottom;
