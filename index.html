@@ -794,6 +794,14 @@
   }
   .rs-divider-line { display: block; width: 100%; height: 2px; border-radius: 1px; }
 
+  /* ---------- 페이지 나눔 표시 (이미지에는 그려지지 않고 에디터에서만 보임) ---------- */
+  .rs-pagebreak {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    height: 22px; margin: 4px 0; cursor: default; user-select: none;
+    color: var(--accent-strong); font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .rs-pagebreak::before, .rs-pagebreak::after { content: ""; flex: 1; border-top: 1.5px dashed var(--accent-strong); opacity: .6; }
+
   .editor-resize-handle {
     width: 100%; height: 16px; margin-top: -4px; margin-bottom: 4px;
     display: flex; align-items: center; justify-content: center;
@@ -1184,6 +1192,8 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
             <button type="button" class="tbtn color-picker-wrap" id="tbInsertDivider">
               구분선 <input type="color" id="dividerColorPicker" class="inline-picker" value="#b3b3b3" title="구분선 색상">
             </button>
+
+            <button type="button" class="tbtn" id="tbInsertPageBreak" title="커서 위치에서 다음 페이지로 넘김">페이지 나눔</button>
 
             <button type="button" class="tbtn color-picker-wrap" id="tbApplyQuoteBar">
               인용 <input type="color" id="quoteBarColorPicker" class="inline-picker" value="#000000" title="인용 색상">
@@ -2711,6 +2721,11 @@ bindPressAction(el('tbInsertDivider'), e => {
   insertDividerAtCursor(dividerColorEl.value);
 });
 
+bindPressAction(el('tbInsertPageBreak'), e => {
+  e.preventDefault();
+  insertPageBreakAtCursor();
+});
+
 bindPressAction(el('tbHiOn'), e => {
   if (e.target === highlightColorEl) { captureEditorSelection(); return; }
   e.preventDefault();
@@ -2799,6 +2814,12 @@ function extractDataFromEditor() {
       if (node.id === 'start-marker') { tokens.push({ isStartMarker: true }); return; }
       if (node.id === 'end-marker') { tokens.push({ isEndMarker: true }); return; }
       if (node.tagName === 'BR') { tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false }); return; }
+      if (node.classList && node.classList.contains('rs-pagebreak')) {
+        // 페이지 나눔: 구분선처럼 자기 혼자 한 줄 토큰이고, 페이지를 가를 때 쓰인다 (isPageBreak)
+        if (node !== editorEl.firstChild) tokens.push({ text: '\n', format: { ...currentFmt }, isPlaceholder: false });
+        tokens.push({ isDivider: true, isPageBreak: true, format: {} });
+        return;
+      }
       if (node.classList && node.classList.contains('rs-divider')) {
         // 구분선은 자체가 하나의 줄(블록)이므로, 다른 블록들과 동일하게
         // 앞에 줄바꿈 경계를 넣어준 뒤 구분선 토큰 하나만 추가한다.
@@ -2891,6 +2912,7 @@ function buildHtmlFromTokens(tokens) {
       // 구분선 앞에는 이미 별도의 줄바꿈(\n) 토큰이 경계를 만들어 두므로,
       // 여기서는 아직 flush되지 않은 내용이 남아있을 때만(방어적으로) flush한다.
       if (currentBlock || currentBlockQuoteBar) flushBlock();
+      if (tok.isPageBreak) { html += '<div class="rs-pagebreak" contenteditable="false"><span>페이지 나눔</span></div>'; return; }
       const c = tok.color || '#b3b3b3';
       html += `<div class="rs-divider" contenteditable="false" data-color="${c}"><span class="rs-divider-line" style="background:${c}"></span></div>`;
       return;
@@ -3003,6 +3025,48 @@ function clearQuoteBarInSelection() {
 
   editorEl.innerHTML = buildHtmlFromTokens(tokens) || '';
   restoreSelectionFromMarkers();
+}
+
+// 커서 위치에서 페이지를 나누는 표시를 넣는다 (구분선과 같은 방식의 블록)
+function insertPageBreakAtCursor() {
+  editorEl.focus({ preventScroll: true });
+  if (!restoreEditorSelection()) {
+    const fallbackRange = document.createRange();
+    fallbackRange.selectNodeContents(editorEl);
+    fallbackRange.collapse(false);
+    const fallbackSel = window.getSelection();
+    fallbackSel.removeAllRanges();
+    fallbackSel.addRange(fallbackRange);
+  }
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.collapse(false);
+  range.deleteContents();
+
+  const div = document.createElement('div');
+  div.className = 'rs-pagebreak';
+  div.contentEditable = 'false';
+  const label = document.createElement('span');
+  label.textContent = '페이지 나눔';
+  div.appendChild(label);
+  range.insertNode(div);
+
+  let nextLine = div.nextSibling;
+  if (!nextLine || nextLine.nodeType !== 1) {
+    nextLine = document.createElement('div');
+    nextLine.innerHTML = '<br>';
+    div.parentNode.insertBefore(nextLine, div.nextSibling);
+  }
+  const newRange = document.createRange();
+  newRange.selectNodeContents(nextLine);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+
+  applyAutoFormat();
+  currentPage = 0;
+  draw();
 }
 
 function insertDividerAtCursor(color) {
@@ -3450,7 +3514,7 @@ function computePages() {
   else if (hMode !== 'auto') { const parts = hMode.split(':').map(Number); presetHeight = Math.round(w * (parts[1] / parts[0])); }
   
   const hasSource = !!(sourceEl.value.trim() || (sourceNameEl && sourceNameEl.value.trim()));
-  const contentHeightLimit = presetHeight - my*2 - (hasSource ? 40 : 0); 
+  const contentHeightLimit = presetHeight - my*2 - ((hasSource || (pageNumToggleEl.checked && pageNumPosEl.value === 'bottom')) ? 40 : 0); 
 
   // ---- 문단 경계 계산 (줄 방지용) ----
   // 문단 = 빈 줄(단락 구분)로 나뉜 연속된 줄들의 묶음
@@ -3484,10 +3548,22 @@ function computePages() {
   }
 
   let p = []; let pY = 0; let isFirstPage = true;
+  let maxPY = 0, forcedBreakPending = false, skipBlankAtPageTop = false;
   const actualParaSpacing = parseInt(paraSpacingEl.value, 10);
 
   for (let idx = 0; idx < currentLines.length; idx++) {
     const ln = currentLines[idx];
+
+    // 사용자가 넣은 '페이지 나눔': 여기서 무조건 새 페이지를 시작한다 (표시 줄 자체는 그리지 않음)
+    if (ln.length === 1 && ln[0] && ln[0].isPageBreak) {
+      if (p.length > 0) { maxPY = Math.max(maxPY, pY); pages.push(p); p = []; pY = 0; isFirstPage = false; }
+      forcedBreakPending = true; skipBlankAtPageTop = true;
+      continue;
+    }
+    if (skipBlankAtPageTop) {
+      if (p.length === 0 && isBlankLine(ln)) continue;   // 나눔 바로 뒤의 빈 줄은 새 페이지 맨 위에 남기지 않는다
+      skipBlankAtPageTop = false;
+    }
     let isNewPara = false;
     if (idx > 0) {
       const prevLine = currentLines[idx-1];
@@ -3510,6 +3586,8 @@ function computePages() {
       }
     }
 
+    if (forcedBreakPending) { pSpace = 0; forcedBreakPending = false; }
+
     let availableHeight = contentHeightLimit - (isFirstPage ? titleHeightSpace : 0) - (isFirstPage ? bodyImgTopOffset : 0) - (isFirstPage ? bodyImgBottomOffset : 0);
 
     let willBreak = (hMode !== 'auto' && pY + pSpace + lh > availableHeight && p.length > 0);
@@ -3531,7 +3609,8 @@ function computePages() {
     pY += pSpace; ln.yOffset = pY; p.push(ln); pY += thisLineHeight;
   }
   
-  if (p.length > 0) pages.push(p);
+  if (p.length > 0 || pages.length === 0) pages.push(p);
+  maxPY = Math.max(maxPY, pY);
   
   let finalCanvasHeight = presetHeight;
   if (hMode === 'auto') {
@@ -3541,7 +3620,7 @@ function computePages() {
     const hasPageNumAuto = !!(pageNumToggleEl.checked && pageNumPosEl.value === 'bottom');   // 페이지마다 높이가 달라지지 않도록 '첫 페이지 제외'와 무관하게 확보
     const pnSizeAuto = parseInt(pageNumSizeEl.value, 10) || 13;
     const bottomReserve = Math.max(hasSourceAuto ? srcSize : 0, hasPageNumAuto ? pnSizeAuto : 0);
-    finalCanvasHeight = pY + (my * 2) + ((hasSourceAuto || hasPageNumAuto) ? (bottomReserve + 30) : 0) + titleHeightSpace;
+    finalCanvasHeight = maxPY + (my * 2) + ((hasSourceAuto || hasPageNumAuto) ? (bottomReserve + 30) : 0) + titleHeightSpace;
     if (finalCanvasHeight < w * 0.5) finalCanvasHeight = Math.round(w * 0.5);
   }
   
@@ -3966,7 +4045,63 @@ const PRESETS_KEY = 'canvas_app_multi_presets_v1';
 const REMOVED_FONTS = { marubuli: 'kopub', sourcehan: 'kopub', sarasa: 'pretendard', lineseed: 'pretendard', suit: 'pretendard' };
 function migrateFontId(id) { return REMOVED_FONTS[id] || (FONT_DEFS[id] ? id : 'pretendard'); }
 
+// ---------- 템플릿: 내용(본문·제목 글자)을 뺀 거의 모든 설정을 저장/복원 ----------
+// 패널 안의 모든 입력(슬라이더·색·선택·체크)을 id별로 통째로 저장하므로, 앞으로 옵션이 추가돼도 자동으로 포함된다.
+// 저장하지 않는 것: 본문 글자, 제목 글자, 불러온 이미지(배경/본문/스티커), 미리보기 확대, 템플릿 이름칸
+const TEMPLATE_SKIP_IDS = new Set(['titleInput', 'presetNameInput', 'presetSelect', 'canvasZoom']);
+const TEMPLATE_FONT_IDS = ['fontFamily', 'titleFontFamily', 'sourceFontFamily', 'pageNumFont'];
+
+function collectTemplateState() {
+  const controls = {};
+  document.querySelectorAll('#panelCol input[id], #panelCol select[id], #panelCol textarea[id]').forEach(e => {
+    if (TEMPLATE_SKIP_IDS.has(e.id) || e.type === 'file' || e.type === 'button') return;
+    controls[e.id] = (e.type === 'checkbox' || e.type === 'radio') ? e.checked : e.value;
+  });
+  return {
+    _v: 2, controls,
+    sourceSep: sourceSepWrapEl ? sourceSepWrapEl.dataset.selected : '•',
+    hiOpacity: hiOpacity,
+    bodyImgPosition: bodyImgPosition
+  };
+}
+
+function applyTemplateState(data, presetName) {
+  const c = data.controls || {};
+  const fire = (e, type) => e.dispatchEvent(new Event(type, { bubbles: true }));
+  // 폰트를 먼저 적용해야 굵기 목록이 올바르게 다시 만들어진 뒤 저장된 굵기를 넣을 수 있다
+  TEMPLATE_FONT_IDS.forEach(id => {
+    const e = el(id);
+    if (e && c[id] !== undefined) { e.value = migrateFontId(c[id]); fire(e, 'change'); }
+  });
+  Object.keys(c).forEach(id => {
+    if (TEMPLATE_FONT_IDS.includes(id) || TEMPLATE_SKIP_IDS.has(id)) return;
+    const e = el(id);
+    if (!e || e.type === 'file') return;
+    const v = c[id];
+    if (e.type === 'checkbox') { e.checked = !!v; fire(e, 'change'); }
+    else if (e.tagName === 'SELECT') { if (Array.from(e.options).some(o => o.value === v)) { e.value = v; fire(e, 'change'); } }
+    else if (e.type === 'color') { e.value = v; }   // 색 입력은 선택 영역에 색을 칠하는 동작이 걸려 있어 이벤트는 보내지 않는다
+    else { e.value = v; fire(e, 'input'); }
+  });
+  if (data.sourceSep !== undefined && sourceSepWrapEl) {
+    sourceSepWrapEl.dataset.selected = data.sourceSep;
+    sourceSepWrapEl.querySelectorAll('.sep-btn').forEach(b => b.classList.toggle('active', b.dataset.sep === data.sourceSep));
+  }
+  if (data.hiOpacity !== undefined) { hiOpacity = parseInt(data.hiOpacity, 10) || 100; updateHiOpacityUI(); }
+  if (data.bodyImgPosition) { bodyImgPosition = data.bodyImgPosition; refreshBodyImgPositionButtons(); }
+  updateHiDot();
+  if (presetName) el('presetSelect').value = presetName;
+  updateAllRanges();
+  draw();
+}
+
 function applyPresetData(data, presetName) {
+  if (data && data.controls) { applyTemplateState(data, presetName); return; }
+  applyPresetDataLegacy(data, presetName);
+}
+
+// (예전 형식 템플릿 + 라이트/다크 기본 테마 전환용)
+function applyPresetDataLegacy(data, presetName) {
   if (!data) return;
   canvasWidthEl.value = data.canvasWidth; heightModeEl.value = data.heightMode; customHeightWrap.style.display = (heightModeEl.value === 'custom') ? 'block' : 'none';
   canvasHeightEl.value = data.canvasHeight; marginYEl.value = data.marginY; el('marginYVal').textContent = marginYEl.value;
@@ -4040,26 +4175,7 @@ el('savePresetBtn').addEventListener('click', () => {
   if (!name) { showToast('템플릿 이름을 입력해주세요.', 'danger'); nameInput.focus(); return; }
   let dataMap = {};
   try { dataMap = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}'); } catch(e) {}
-  dataMap[name] = {
-    canvasWidth: canvasWidthEl.value, heightMode: heightModeEl.value, canvasHeight: canvasHeightEl.value,
-    marginY: marginYEl.value, marginX: marginXEl.value, bgColor: bgColorEl.value,
-    fontFamily: fontFamilyEl.value, lineBreakMode: lineBreakModeEl.value, align: alignEl.value,
-    weight: weightEl.value, quoteWeight: quoteWeightEl.value, textColor: textColorEl.value, fontSize: fontSizeEl.value,
-    lineHeight: lineHeightEl.value, paraSpacing: paraSpacingEl.value, letterSpacing: letterSpacingEl.value,
-    scaleX: scaleXEl.value, asteriskColor: asteriskColorEl.value, quoteColor: quoteColorEl.value,
-    sourceColor: sourceColorEl.value, sourceWeight: sourceWeightEl.value, sourceFontFamily: sourceFontFamilyEl.value, pageNumOn: pageNumToggleEl.checked, pageNumFormat: pageNumFormatEl.value, pageNumAlign: pageNumAlignEl.value, pageNumPos: pageNumPosEl.value, pageNumWeight: pageNumWeightEl.value, pageNumFont: pageNumFontEl.value, pageNumColor: pageNumColorEl.value, pageNumSize: pageNumSizeEl.value, pageNumSkipFirst: pageNumSkipFirstEl.checked, sourceLetterSpacing: sourceLetterSpacingEl.value, sourceFontSize: sourceFontSizeEl.value, sourceAlign: sourceAlignEl.value,
-    sourcePosition: sourcePositionEl ? sourcePositionEl.value : 'fixed',
-    firstLineIndent: el('firstLineIndent').value,
-    // 출처 내용/이름과 형광펜 기본색 등도 템플릿에 함께 저장한다.
-    sourceName: sourceNameEl ? sourceNameEl.value : '',
-    source: sourceEl.value,
-    sourceSep: sourceSepWrapEl ? sourceSepWrapEl.dataset.selected : '•',
-    highlightColor: highlightColorEl.value,
-    highlightTextColor: highlightTextColorEl.value,
-    hiTextColorToggle: !!(hiTextColorToggleEl && hiTextColorToggleEl.checked),
-    hiOpacity: hiOpacity,
-    dividerColor: dividerColorEl ? dividerColorEl.value : '#b3b3b3'
-  };
+  dataMap[name] = collectTemplateState();
   localStorage.setItem(PRESETS_KEY, JSON.stringify(dataMap));
   nameInput.value = ''; loadPresetsList(); el('presetSelect').value = name;
   showToast(`"${name}" 템플릿이 저장되었습니다.`);
