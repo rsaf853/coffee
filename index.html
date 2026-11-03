@@ -1308,7 +1308,7 @@ html,body,button,input,textarea,select,option,summary{font-family:"Pretendard JP
 
             <div class="field" style="margin-top: 10px;">
               <label>확대 (<span id="bodyImgZoomVal">100</span>%)</label>
-              <input type="range" id="bodyImgZoom" min="50" max="300" step="1" value="100">
+              <input type="range" id="bodyImgZoom" min="100" max="300" step="1" value="100">
             </div>
 
             <div class="field" style="margin-top: 10px;">
@@ -2022,7 +2022,7 @@ bgImageInput.addEventListener('change', (e) => {
       bgImageObj = img;
       bgOffsetX = 0; bgOffsetY = 0; 
       const currentCanvasWidth = parseInt(canvasWidthEl.value, 10) || 800;
-      const initialScale = (currentCanvasWidth / img.width) * 100;
+      const initialScale = (currentCanvasWidth / img.width) * 100; // draw()에서 캔버스를 꽉 채우도록 자동 보정됨
       bgScaleEl.value = Math.max(10, Math.min(300, Math.round(initialScale)));
       el('bgScaleVal').textContent = bgScaleEl.value;
       updateRangeProgress(bgScaleEl);
@@ -3654,12 +3654,17 @@ function draw() {
     ctx.save();
     const opacity = parseInt(bgOpacityEl.value, 10) / 100;
     const darkness = parseInt(bgDarknessEl.value, 10) / 100;
-    const scale = parseInt(bgScaleEl.value, 10) / 100;
+    // 여백이 보이지 않도록: 캔버스를 항상 꽉 채우는 크기 이상으로 확대하고, 이동 범위도 이미지 가장자리까지만 허용
+    const coverScale = Math.max(cWidth / bgImageObj.width, cHeight / bgImageObj.height);
+    const scale = Math.max(parseInt(bgScaleEl.value, 10) / 100, coverScale);
 
     const drawW = bgImageObj.width * scale;
     const drawH = bgImageObj.height * scale;
     const centerX = (cWidth - drawW) / 2;
     const centerY = (cHeight - drawH) / 2;
+    const maxBgX = Math.max(0, (drawW - cWidth) / 2), maxBgY = Math.max(0, (drawH - cHeight) / 2);
+    bgOffsetX = Math.max(-maxBgX, Math.min(maxBgX, bgOffsetX));
+    bgOffsetY = Math.max(-maxBgY, Math.min(maxBgY, bgOffsetY));
     const dx = centerX + bgOffsetX;
     const dy = centerY + bgOffsetY;
 
@@ -3687,8 +3692,12 @@ function draw() {
 
       const iw = bodyImgObj.naturalWidth, ih = bodyImgObj.naturalHeight;
       const baseScale = Math.max(frame.w / iw, frame.h / ih);
-      const scale = baseScale * (bodyImgZoom / 100);
+      const scale = baseScale * (Math.max(100, bodyImgZoom) / 100);
       const drawW = iw * scale, drawH = ih * scale;
+      // 여백이 보이지 않도록 이동 범위를 이미지 가장자리까지로 제한
+      const maxPX = Math.max(0, (drawW - frame.w) / 2), maxPY = Math.max(0, (drawH - frame.h) / 2);
+      bodyImgPanX = Math.max(-maxPX, Math.min(maxPX, bodyImgPanX));
+      bodyImgPanY = Math.max(-maxPY, Math.min(maxPY, bodyImgPanY));
       const cx = frame.x + frame.w / 2 + bodyImgPanX;
       const cy = frame.y + frame.h / 2 + bodyImgPanY;
       ctx.drawImage(bodyImgObj, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
