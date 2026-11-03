@@ -814,7 +814,7 @@
   .editor-resize-handle:hover::after,
   .editor-resize-handle.dragging::after { background: var(--accent-strong); }
 
-  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 12px; }
+  .action-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; margin-bottom: 24px; }
   .btn-primary, .btn-secondary {
     width: 100%; padding: 8px; border-radius: 4px; font-size: 12px;
     font-weight: 600; cursor: pointer; font-family: inherit;
@@ -827,7 +827,8 @@
   .btn-secondary:hover { background: var(--accent-soft); border-color: var(--accent); }
   .btn-secondary:active { transform: scale(0.99); }
 
-  .footer-credit { text-align: right; font-size: 11px; color: var(--ink-faint); font-weight: 400; padding-bottom: 14px; }
+  #panelCol > .panel { min-height: 100%; }
+  .footer-credit { margin-top: auto; padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px)); text-align: right; font-size: 11px; color: var(--ink-faint); font-weight: 400; }
 
   /* ---------- Toast ---------- */
   #toastStack {
